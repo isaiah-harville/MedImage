@@ -1,0 +1,89 @@
+# The demo frontend (web/), internal. Uploads on. Exposed only on traefik-internal behind Authentik.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opendiagnostics-web-internal
+  labels:
+    app.kubernetes.io/name: opendiagnostics-web-internal
+    app.kubernetes.io/component: web
+    app.kubernetes.io/part-of: opendiagnostics-demo
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opendiagnostics-web-internal
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opendiagnostics-web-internal
+        app.kubernetes.io/component: web
+        app.kubernetes.io/part-of: opendiagnostics-demo
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: web
+          image: ghcr.io/isaiah-harville/opendiagnostics-web:main
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 3000
+          env:
+            - name: API_URL
+              value: http://opendiagnostics-serve:8080
+            - name: ALLOW_UPLOADS
+              value: "true"
+            # Uploads are capped at 10 MB by the app; leave room for the form encoding.
+            - name: BODY_SIZE_LIMIT
+              value: "11M"
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 25m
+              memory: 64Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 64Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opendiagnostics-web-internal
+  labels:
+    app.kubernetes.io/name: opendiagnostics-web-internal
+spec:
+  selector:
+    app.kubernetes.io/name: opendiagnostics-web-internal
+  ports:
+    - name: http
+      port: 80
+      targetPort: http

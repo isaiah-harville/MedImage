@@ -14,7 +14,7 @@ licenses and access terms, is in [docs/datasets.md](docs/datasets.md).
 ## Commands
 
 ```bash
-uv sync --locked --extra cpu && uv run ruff format --check && uv run ruff check && uv run ty check && uv run pytest
+uv sync --locked --extra cpu --extra serve && uv run ruff format --check && uv run ruff check && uv run ty check && uv run pytest
 ```
 
 That is the check command. CI runs it on Ubuntu with Python 3.12, then builds the docs and

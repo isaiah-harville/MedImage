@@ -203,17 +203,29 @@ def fit(args: list[str] | None = None) -> Path:
     return cli.run_dir
 
 
-def _load_run(run_dir: Path, splits: list[str] | None = None) -> OpenDiagnosticsCLI:
-    """Rebuild a finished run's data module, model, and trainer from its saved config."""
+def load_run(
+    run_dir: Path, splits: list[str] | None = None, *, with_data: bool = True
+) -> OpenDiagnosticsCLI:
+    """Rebuild a finished run's data module, model, and trainer from its saved config.
+
+    ``with_data=False`` skips downloading and splitting the data and does not fetch the
+    network's pretrained weights, for callers that only need the model and its transforms,
+    such as the inference service.
+    """
     config = yaml.safe_load((run_dir / "config.yaml").read_text())
     skipped = OpenDiagnosticsCLI.subcommands()["fit"] | {"self"}
     for argument in set(inspect.signature(Trainer.fit).parameters) - skipped:
         config.pop(argument, None)
     if splits:
         config["eval"]["splits"] = splits
+    if not with_data:
+        network = config["model"]["init_args"]["network"]
+        if "pretrained" in (network.get("init_args") or {}):
+            network["init_args"]["pretrained"] = False
     cli = OpenDiagnosticsCLI(args=config, run=False, save_config_callback=None)
-    cli.datamodule.prepare_data()
-    cli.datamodule.setup("fit")
+    if with_data:
+        cli.datamodule.prepare_data()
+        cli.datamodule.setup("fit")
     return cli
 
 
@@ -223,7 +235,7 @@ def evaluate_run(run_dir: Path | str, splits: list[str] | None = None) -> dict[s
     The model selection is kept; ``rescored`` records the commit that produced the numbers.
     """
     run_dir = Path(run_dir)
-    cli = _load_run(run_dir, splits)
+    cli = load_run(run_dir, splits)
     results = evaluate(
         cli.trainer,
         cli.model,
@@ -243,7 +255,7 @@ def evaluate_run(run_dir: Path | str, splits: list[str] | None = None) -> dict[s
 def examples_run(run_dir: Path | str, limit: int = 8) -> list[dict[str, Any]]:
     """Render a finished run's example figures with its own checkpoint."""
     run_dir = Path(run_dir)
-    cli = _load_run(run_dir)
+    cli = load_run(run_dir)
     return write_examples(
         cli.model,
         cli.datamodule,

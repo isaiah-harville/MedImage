@@ -1,0 +1,15 @@
+# The OpenDiagnostics demo: an inference API and two frontends. Applied by Flux from the
+# homelab repo, which owns the namespace, the Ingresses, and the GHCR pull secret.
+# CI (.github/workflows/serve-image.yml and web-image.yml) bumps the tags on every build.
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+resources:
+  - serve.yaml
+  - web-public.yaml
+  - web-internal.yaml
+  - networkpolicy.yaml
+images:
+  - name: ghcr.io/isaiah-harville/opendiagnostics-serve
+    newTag: main
+  - name: ghcr.io/isaiah-harville/opendiagnostics-web
+    newTag: main

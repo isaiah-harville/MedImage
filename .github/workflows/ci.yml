@@ -25,7 +25,7 @@ jobs:
           enable-cache: true
       # CPU-only torch keeps CI fast.
       - name: Install
-        run: uv sync --locked --extra cpu
+        run: uv sync --locked --extra cpu --extra serve
       - name: Format
         run: uv run ruff format --check
       - name: Lint

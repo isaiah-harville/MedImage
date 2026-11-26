@@ -201,3 +201,4 @@ docs/notebook/
 
 # xpt expectation records
 .xpt/
+weights/

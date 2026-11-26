@@ -70,7 +70,8 @@ class ImageClassifier(DiagnosticModule):
         self.log("train/loss", loss, on_step=False, on_epoch=True, batch_size=target.shape[0])
         return loss
 
-    def _probs(self, images: torch.Tensor) -> torch.Tensor:
+    def probabilities(self, images: torch.Tensor) -> torch.Tensor:
+        """Class probabilities, averaged over the flipped view when ``tta`` is on."""
         views = [images, images.flip(-1)] if self.tta else [images]
         probs = []
         for view in views:
@@ -80,7 +81,7 @@ class ImageClassifier(DiagnosticModule):
 
     @torch.no_grad()
     def predict_batch(self, batch: dict) -> list[Prediction]:
-        probs = self._probs(batch["image"]).cpu().numpy()
+        probs = self.probabilities(batch["image"]).cpu().numpy()
         target = batch["target"].cpu().numpy()
         return [
             {"id": i, "patient_id": p, "target": target[n], "prob": probs[n]}

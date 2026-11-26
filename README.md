@@ -86,7 +86,7 @@ To add a model, see [models/README.md](models/README.md).
 ## Develop
 
 ```bash
-uv sync --locked --extra cpu && uv run ruff format --check && uv run ruff check && uv run ty check && uv run pytest
+uv sync --locked --extra cpu --extra serve && uv run ruff format --check && uv run ruff check && uv run ty check && uv run pytest
 ```
 
 CI runs the same checks on Ubuntu with Python 3.12, builds the docs, and smoke-trains every

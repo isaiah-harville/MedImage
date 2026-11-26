@@ -1,0 +1,97 @@
+# The inference API (Dockerfile.serve). CPU only; the weights are in the image. It holds
+# no state and writes nothing but /tmp.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: opendiagnostics-serve
+  labels:
+    app.kubernetes.io/name: opendiagnostics-serve
+    app.kubernetes.io/part-of: opendiagnostics-demo
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: opendiagnostics-serve
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: opendiagnostics-serve
+        app.kubernetes.io/part-of: opendiagnostics-demo
+    spec:
+      imagePullSecrets:
+        - name: ghcr-pull-secret
+      terminationGracePeriodSeconds: 30
+      automountServiceAccountToken: false
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: serve
+          image: ghcr.io/isaiah-harville/opendiagnostics-serve:main
+          imagePullPolicy: IfNotPresent
+          ports:
+            - name: http
+              containerPort: 8080
+          env:
+            - name: ATTRIBUTION_STEPS
+              value: "16"
+            - name: MAX_CONCURRENT
+              value: "2"
+            # One BLAS thread per CPU in the limit.
+            - name: OMP_NUM_THREADS
+              value: "2"
+          # Loading every model takes up to a minute or two on CPU.
+          startupProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: http
+            periodSeconds: 20
+            timeoutSeconds: 5
+          resources:
+            requests:
+              cpu: 500m
+              memory: 3Gi
+            limits:
+              cpu: "2"
+              memory: 6Gi
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: [ALL]
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 256Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: opendiagnostics-serve
+  labels:
+    app.kubernetes.io/name: opendiagnostics-serve
+spec:
+  selector:
+    app.kubernetes.io/name: opendiagnostics-serve
+  ports:
+    - name: http
+      port: 8080
+      targetPort: http

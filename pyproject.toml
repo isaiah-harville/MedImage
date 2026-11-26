@@ -42,15 +42,22 @@ dependencies = [
 # A plain `pip install opendiagnostics` takes torch from PyPI as usual.
 cpu = ["torch>=2.6", "torchvision>=0.21"]
 cu132 = ["torch>=2.6", "torchvision>=0.21"]
+serve = [
+    "fastapi>=0.115",
+    "python-multipart>=0.0.18",
+    "uvicorn>=0.32",
+]
 
 [project.scripts]
 opendiagnostics = "opendiagnostics.cli:main"
+opendiagnostics-serve = "opendiagnostics.serve:main"
 
 [project.urls]
 Repository = "https://github.com/isaiah-harville/opendiagnostics"
 
 [dependency-groups]
 dev = [
+    "httpx>=0.28",
     "pytest>=8.3",
     "ruff>=0.8",
     "ty>=0.0.111",

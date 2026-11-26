@@ -140,11 +140,11 @@ def _heat(rgb: torch.Tensor, attribution: torch.Tensor) -> torch.Tensor:
 
 
 def _attribution(
-    module: ImageClassifier, image: torch.Tensor, label: int, size: tuple[int, int]
+    module: ImageClassifier, image: torch.Tensor, label: int, size: tuple[int, int], steps: int
 ) -> torch.Tensor:
     inputs = image[None].to(module.device).requires_grad_()
     maps = IntegratedGradients(module).attribute(
-        inputs, target=label, n_steps=32, internal_batch_size=8
+        inputs, target=label, n_steps=steps, internal_batch_size=8
     )
     saliency = maps[0].detach().abs().sum(0).float()
     if saliency.ndim == 3:
@@ -154,11 +154,18 @@ def _attribution(
     return F.interpolate(saliency[None, None], size=size, mode="bilinear")[0, 0].cpu()
 
 
-def _classifier_pair(
-    module: ImageClassifier, raw: torch.Tensor, model_input: torch.Tensor, label: int
+def explain(
+    module: ImageClassifier,
+    raw: torch.Tensor,
+    model_input: torch.Tensor,
+    label: int,
+    steps: int = 32,
 ) -> tuple[torch.Tensor, torch.Tensor]:
+    """The input as ``uint8 (3, H, W)`` and the same image with an Integrated Gradients map
+    for output ``label`` blended over it. ``raw`` is the image in ``[0, 1]`` before the
+    model's transforms; ``model_input`` is what the network sees."""
     rgb, _ = _scale(_to_rgb(raw))
-    heat = _attribution(module, model_input, label, (int(rgb.shape[-2]), int(rgb.shape[-1])))
+    heat = _attribution(module, model_input, label, (int(rgb.shape[-2]), int(rgb.shape[-1])), steps)
     return rgb, _heat(rgb, heat)
 
 
@@ -237,7 +244,7 @@ def write_examples(
             kind = "boxes"
         else:
             assert isinstance(module, ImageClassifier)
-            shown, overlay = _classifier_pair(module, raw, model_input, pick["label"])
+            shown, overlay = explain(module, raw, model_input, pick["label"])
             caption = {k: pick[k] for k in ("truth", "prediction", "confidence", "correct")}
             kind = "attribution"
         names = (f"{n:02d}-input.png", f"{n:02d}-{kind}.png")
