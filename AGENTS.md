@@ -14,8 +14,8 @@ licenses and access terms, is in [docs/datasets.md](docs/datasets.md).
 uv sync --locked --extra cpu --extra monai && uv run ruff format --check && uv run ruff check && uv run ty check && uv run pytest
 ```
 
-That is the check command. CI runs it on Python 3.11 to 3.14 on Linux, and on macOS and
-Windows, plus a smoke run of every config in `configs/smoke/`. On an NVIDIA machine, use
+That is the check command. CI runs it on Ubuntu with Python 3.12, then builds the docs and
+smoke-trains every config in `configs/smoke/`. On an NVIDIA machine, use
 `--extra cu132` instead of `--extra cpu`.
 
 | Task | Command |

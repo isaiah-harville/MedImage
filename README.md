@@ -85,8 +85,8 @@ To add a model, see [models/README.md](models/README.md).
 uv sync --locked --extra cpu --extra monai && uv run ruff format --check && uv run ruff check && uv run ty check && uv run pytest
 ```
 
-CI runs the same checks on Linux with Python 3.11 to 3.14, and on macOS and Windows, and
-then smoke-trains every task from the command line.
+CI runs the same checks on Ubuntu with Python 3.12, builds the docs, and smoke-trains every
+task from the command line.
 
 ## Status and scope
 
