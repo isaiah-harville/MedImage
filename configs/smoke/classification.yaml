@@ -1,0 +1,21 @@
+# A seconds-long CPU run on generated data. CI runs it to check the whole pipeline.
+name: smoke-classification
+seed: 0
+task: classification
+data:
+  dataset:
+    name: synthetic_classification
+    params: {num_samples: 160, image_size: 32, images_per_patient: 2}
+  split: {method: patient, fractions: [0.6, 0.2, 0.2]}
+  train_transforms:
+    - {name: random_flip, params: {axes: [-1]}}
+    - normalize_intensity
+  eval_transforms:
+    - normalize_intensity
+  batch_size: 16
+model:
+  name: simple_cnn
+  params: {width: 8, depth: 2}
+optim: {lr: 0.003}
+train: {epochs: 3, device: cpu, log_every: 0}
+eval: {bootstrap_samples: 200}

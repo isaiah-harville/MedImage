@@ -1,0 +1,17 @@
+# The same pipeline on generated 3D volumes.
+name: smoke-classification-3d
+seed: 0
+task: classification
+data:
+  dataset:
+    name: synthetic_classification
+    params: {num_samples: 80, image_size: 16, spatial_dims: 3, num_classes: 3, label_mode: multiclass}
+  split: {method: patient}
+  train_transforms:
+    - {name: random_flip, params: {axes: [0, 1, 2]}}
+  batch_size: 8
+model:
+  name: simple_cnn
+  params: {width: 4, depth: 2}
+train: {epochs: 2, device: cpu, log_every: 0}
+eval: {bootstrap_samples: 100}
