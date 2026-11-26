@@ -9,8 +9,9 @@ state-of-the-art model.
 
 On the official PneumoniaMNIST test split, run `20261126-011615-8a199f44` reaches AUROC
 **0.9616** (95% CI 0.9442 to 0.9770). That ties the MedMNIST v2 paper's ResNet-50 at
-224×224 (0.962) and is clearly below Google AutoML Vision (0.991), the best number in that
-paper.
+224×224 (0.962). It is clearly below the published best: 0.991 for Google AutoML Vision in
+the same paper, 0.995 for MedViT-S, and 0.997 for the C-Mixer preprint (see
+`baselines.yaml` and docs/benchmarks.md).
 
 ## Intended use
 
