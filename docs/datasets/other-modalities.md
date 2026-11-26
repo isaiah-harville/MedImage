@@ -271,7 +271,7 @@ Kaggle pages render with JavaScript. Kaggle rules were read in a real browser fr
   - There are no patient IDs, and the private test set is unavailable.
   - The data cannot be redistributed, so pipelines must not mirror it.
 
-### EyePACS / Kaggle Diabetic Retinopathy Detection (2015)
+### EyePACS (Kaggle Diabetic Retinopathy Detection, 2015)
 
 - **Name and maintainer:** EyePACS (images), California Healthcare Foundation (sponsor), on Kaggle: https://www.kaggle.com/competitions/diabetic-retinopathy-detection
 - **Tasks and labels:** DR grade 0–4, the same scale as APTOS. Metric: quadratic weighted kappa.
@@ -335,7 +335,7 @@ Kaggle pages render with JavaScript. Kaggle rules were read in a real browser fr
   - The file formats are mixed.
   - Redistribution is prohibited.
 
-### Kermany OCT (and pediatric chest X-ray) — "Large Dataset of Labeled OCT and Chest X-Ray Images"
+### Kermany OCT and pediatric chest X-ray
 
 - **Name and maintainer:** Daniel Kermany, Kang Zhang, Michael Goldbaum. Mendeley Data v3, doi:10.17632/rscbjbr9sj.3: https://data.mendeley.com/datasets/rscbjbr9sj/3
 - **Tasks and labels:**
