@@ -1,0 +1,3 @@
+# Publishing runs
+
+::: medimage.publish
