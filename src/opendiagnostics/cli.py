@@ -193,9 +193,8 @@ def fit(args: list[str] | None = None) -> Path:
     return cli.run_dir
 
 
-def evaluate_run(run_dir: Path | str, splits: list[str] | None = None) -> dict[str, Any]:
-    """Re-evaluate a finished run from its saved config and checkpoint."""
-    run_dir = Path(run_dir)
+def _load_run(run_dir: Path, splits: list[str] | None = None) -> OpenDiagnosticsCLI:
+    """Rebuild a finished run's data module, model, and trainer from its saved config."""
     config = yaml.safe_load((run_dir / "config.yaml").read_text())
     skipped = OpenDiagnosticsCLI.subcommands()["fit"] | {"self"}
     for argument in set(inspect.signature(Trainer.fit).parameters) - skipped:
@@ -205,16 +204,30 @@ def evaluate_run(run_dir: Path | str, splits: list[str] | None = None) -> dict[s
     cli = OpenDiagnosticsCLI(args=config, run=False, save_config_callback=None)
     cli.datamodule.prepare_data()
     cli.datamodule.setup("fit")
-    seed = cli.config.seed_everything
-    return evaluate(
+    return cli
+
+
+def evaluate_run(run_dir: Path | str, splits: list[str] | None = None) -> dict[str, Any]:
+    """Re-score a finished run's checkpoint with the current code and rewrite metrics.json.
+
+    The model selection is kept; ``rescored`` records the commit that produced the numbers.
+    """
+    run_dir = Path(run_dir)
+    cli = _load_run(run_dir, splits)
+    results = evaluate(
         cli.trainer,
         cli.model,
         cli.datamodule,
         EvalSettings(**vars(cli.config.eval)),
-        seed,
+        cli.config.seed_everything,
         run_dir / "checkpoint.ckpt",
         run_dir,
     )
+    previous = json.loads((run_dir / "metrics.json").read_text())
+    results["selection"] = previous["selection"]
+    results["rescored"] = {"git": cli.git, "at": provenance.utc_now()}
+    write_json(run_dir / "metrics.json", results)
+    return results
 
 
 def _evaluate(args: argparse.Namespace) -> int:

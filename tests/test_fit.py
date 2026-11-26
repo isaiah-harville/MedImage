@@ -1,5 +1,6 @@
 import csv
 import json
+import shutil
 
 import numpy as np
 import pytest
@@ -56,8 +57,15 @@ def test_different_seeds_differ(tmp_path):
     assert a["test"] != b["test"]
 
 
-def test_evaluate_run_reproduces_test_metrics(finished_run):
-    assert evaluate_run(finished_run)["test"] == _metrics(finished_run)["test"]
+def test_evaluate_run_reproduces_test_metrics_and_records_the_rescore(finished_run, tmp_path):
+    run_dir = tmp_path / finished_run.name
+    shutil.copytree(finished_run, run_dir)
+    before = _metrics(run_dir)
+    assert evaluate_run(run_dir)["test"] == before["test"]
+    after = _metrics(run_dir)
+    assert after["test"] == before["test"]
+    assert after["selection"] == before["selection"]
+    assert after["rescored"]["git"]["commit"]
 
 
 def test_unknown_config_key_is_an_error(tmp_path, capsys):
