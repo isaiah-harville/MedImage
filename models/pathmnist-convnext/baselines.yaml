@@ -1,0 +1,57 @@
+benchmark: PathMNIST (MedMNIST v2), official test split of 7,180 images
+protocol: >-
+  Test AUROC and ACC on the official split, with the official medmnist evaluator's
+  definitions: AUROC is one-vs-rest macro for multiclass, macro over labels for ChestMNIST, and
+  plain for binary; ACC is argmax for multiclass and a 0.5 threshold for binary and ChestMNIST
+  (compare our accuracy_at_0.5 for binary subsets). Our runs train and test on the native 224 px
+  MedMNIST+ images, so the MedMNIST+ native-224 rows are the like-for-like comparison. MedMNIST
+  v2 "224" rows and both MedViT papers use 28 px images upscaled. MedMNIST+ values are means of
+  3 seeds; MedMNIST v2 values are means of at least 3 trials; the MedViT papers do not say. No
+  source publishes intervals or predictions, so a claim to beat one needs its value outside our
+  95% interval. MedViTV2's Table 5 misquotes several MedMNIST v2 rows, so treat its own numbers
+  with care.
+baselines:
+  - method: "MedViTV2-L (224, resized)"
+    metrics: {auroc: 0.999, accuracy: 0.977}
+    source: Manzari et al., arXiv 2502.13693v3 (2025), Table 5
+    url: https://arxiv.org/html/2502.13693v3
+  - method: "DenseNet-121, end-to-end, native 224 (MedMNIST+), mean of 3 seeds"
+    metrics: {auroc: 0.9979, accuracy: 0.9574}
+    source: Doerrich et al., arXiv 2404.15786v3 (2025), Supplementary Table S9
+    url: https://arxiv.org/html/2404.15786v3
+  - method: "SAM ViT-B/16, end-to-end, native 224 (MedMNIST+), mean of 3 seeds"
+    metrics: {auroc: 0.9976, accuracy: 0.9607}
+    source: Doerrich et al., arXiv 2404.15786v3 (2025), Supplementary Table S9
+    url: https://arxiv.org/html/2404.15786v3
+  - method: "MedViT-T (224, resized)"
+    metrics: {auroc: 0.994, accuracy: 0.938}
+    source: Manzari et al., arXiv 2302.09462v1 (2023), Table 3
+    url: https://arxiv.org/html/2302.09462v1
+  - method: "ResNet-50 (28)"
+    metrics: {auroc: 0.99, accuracy: 0.911}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "ResNet-18 (28 upscaled to 224)"
+    metrics: {auroc: 0.989, accuracy: 0.909}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "ResNet-50 (28 upscaled to 224)"
+    metrics: {auroc: 0.989, accuracy: 0.892}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "ResNet-18 (28)"
+    metrics: {auroc: 0.983, accuracy: 0.907}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "AutoKeras (28)"
+    metrics: {auroc: 0.959, accuracy: 0.834}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "Google AutoML Vision (28)"
+    metrics: {auroc: 0.944, accuracy: 0.728}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "auto-sklearn (28)"
+    metrics: {auroc: 0.934, accuracy: 0.716}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
