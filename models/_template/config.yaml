@@ -1,0 +1,33 @@
+# Copy this directory to models/<dataset>-<model>/ and edit.
+name: CHANGE-ME
+seed: 0
+deterministic: strict
+notes: ""
+# plugins: [plugin.py]
+task:
+  name: classification          # or detection
+  params: {}
+data:
+  dataset:
+    name: csv_classification
+    params:
+      manifest: /path/to/labels.csv
+      label_mode: binary
+      label_columns: [label]
+      patient_column: patient_id
+  split: {method: patient, fractions: [0.7, 0.15, 0.15], stratify: true}
+  train_transforms:
+    - {name: resize, params: {size: [224, 224]}}
+    - {name: random_flip, params: {axes: [-1]}}
+    - normalize_intensity
+  eval_transforms:
+    - {name: resize, params: {size: [224, 224]}}
+    - normalize_intensity
+  batch_size: 32
+  num_workers: 4
+model:
+  name: timm
+  params: {model_name: resnet50, pretrained: true}
+optim: {name: adamw, lr: 3.0e-4, weight_decay: 1.0e-4, scheduler: cosine, warmup_epochs: 1}
+train: {epochs: 20, device: auto, early_stopping_patience: 5}
+eval: {bootstrap_samples: 2000, bootstrap_unit: patient}
