@@ -125,7 +125,6 @@ def _loader(experiment: Experiment, split: str, train: bool) -> DataLoader:
 
 def _optimizer(config: ExperimentConfig, model: nn.Module) -> torch.optim.Optimizer:
     o = config.optim
-    # No weight decay on biases and normalization parameters.
     decay = [p for p in model.parameters() if p.requires_grad and p.ndim > 1]
     no_decay = [p for p in model.parameters() if p.requires_grad and p.ndim <= 1]
     groups = [

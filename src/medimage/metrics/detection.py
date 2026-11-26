@@ -45,13 +45,17 @@ def box_iou(a: np.ndarray, b: np.ndarray) -> np.ndarray:
 
 @dataclass
 class ImageResult:
-    """Per-image match results, reused by every bootstrap replicate."""
+    """Per-image match results, reused by every bootstrap replicate.
 
-    # Per class: detection scores (sorted, descending), TP flags (T, D), and ground-truth count.
+    Per class: detection scores in descending order, true-positive flags shaped
+    (IoU thresholds, detections), and the ground-truth count. For FROC, class-agnostic:
+    scores, outcomes (1 true positive, 0 false positive, -1 a repeat hit on a lesion already
+    found), and the lesion count.
+    """
+
     class_scores: list[np.ndarray]
     class_tp: list[np.ndarray]
     class_gt: np.ndarray
-    # FROC, class-agnostic: scores and outcomes (1 TP, 0 FP, -1 ignored) and lesion count.
     froc_scores: np.ndarray
     froc_outcome: np.ndarray
     froc_gt: int
@@ -125,13 +129,13 @@ class DetectionEvaluator:
         for d in range(len(order)):
             candidates = np.flatnonzero(iou[d] >= self.froc_iou)
             if len(candidates) == 0:
-                continue  # false positive
+                continue
             free = candidates[~hit[candidates]]
             if len(free):
                 hit[free[np.argmax(iou[d, free])]] = True
                 outcome[d] = 1
             else:
-                outcome[d] = -1  # a second hit on a lesion already found
+                outcome[d] = -1
         return ImageResult(
             class_scores, class_tp, class_gt, pred_scores[order], outcome, len(gt_boxes)
         )

@@ -64,7 +64,6 @@ def _dicom_pixels(dataset: Any, apply_voi: bool) -> np.ndarray:
     from pydicom.pixels import apply_modality_lut, apply_voi_lut
 
     pixels = dataset.pixel_array
-    # Modality LUT: stored values to physical units (Hounsfield units for CT).
     pixels = apply_modality_lut(pixels, dataset)
     if apply_voi:
         pixels = apply_voi_lut(pixels, dataset)
@@ -88,7 +87,7 @@ def load_dicom(path: str | Path, apply_voi: bool = False) -> ImageData:
     pixels = _dicom_pixels(dataset, apply_voi)
     samples_per_pixel = int(getattr(dataset, "SamplesPerPixel", 1))
     if samples_per_pixel > 1:
-        pixels = np.moveaxis(pixels, -1, 0)  # (rows, cols, 3) -> (3, rows, cols)
+        pixels = np.moveaxis(pixels, -1, 0)
     else:
         pixels = pixels[None]
     row, col = (float(v) for v in getattr(dataset, "PixelSpacing", (1.0, 1.0)))
