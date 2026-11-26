@@ -198,3 +198,6 @@ cython_debug/
 # Generated docs
 docs/notebook/
 /site/
+
+# xpt expectation records
+.xpt/

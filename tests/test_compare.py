@@ -2,7 +2,9 @@ import csv
 
 import numpy as np
 import pytest
+from xpt import expect
 
+from medimage.cli import main
 from medimage.metrics.compare import compare, read_predictions
 
 
@@ -65,3 +67,20 @@ def test_runs_on_different_samples_are_refused(tmp_path, labels):
     b = _write(tmp_path / "b.csv", ids[:300], patients[:300], target[:300], rng.random(300))
     with pytest.raises(ValueError, match="same split"):
         compare(a, b)
+
+
+def test_cli_reports_the_difference_interval_and_p_value(tmp_path, labels, capsys):
+    rng, ids, patients, target = labels
+    _write(tmp_path / "a.csv", ids, patients, target, np.round(rng.random(400) + 0.3 * target, 6))
+    _write(tmp_path / "b.csv", ids, patients, target, np.round(rng.random(400) + 1.0 * target, 6))
+    assert (
+        main(["compare", str(tmp_path / "a.csv"), str(tmp_path / "b.csv"), "--replicates", "200"])
+        == 0
+    )
+    expect(
+        capsys.readouterr().out,
+        """auroc: A 0.7800, B 1.0000
+B - A = +0.2200 [95% CI +0.1847, +0.2596], p < 0.0050
+400 samples from 200 patients, 200 of 200 replicates valid
+""",
+    )

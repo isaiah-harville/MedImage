@@ -1,4 +1,5 @@
 import pytest
+from xpt import expect
 
 from medimage.config import ConfigError, apply_overrides, dump_config, load_config, parse_config
 
@@ -17,16 +18,17 @@ def test_minimal_config_fills_defaults():
     assert config.eval.bootstrap_unit == "patient"
 
 
-def test_unknown_key_is_rejected():
-    with pytest.raises(ConfigError, match=r"train\.epoch: Extra inputs are not permitted"):
-        parse_config({**MINIMAL, "train": {"epoch": 3}})
-
-
-def test_wrong_type_is_rejected():
-    with pytest.raises(ConfigError, match=r"train\.epochs: Input should be a valid integer"):
-        parse_config({**MINIMAL, "train": {"epochs": "3"}})
-    with pytest.raises(ConfigError, match="deterministic: Input should be"):
-        parse_config({**MINIMAL, "deterministic": "yes"})
+def test_unknown_keys_and_wrong_types_are_reported_with_their_paths():
+    data = {**MINIMAL, "train": {"epoch": 3, "epochs": "3"}, "deterministic": "yes"}
+    with pytest.raises(ConfigError) as error:
+        parse_config(data, "x.yaml")
+    expect(
+        str(error.value),
+        """x.yaml is not a valid experiment config:
+  train.epochs: Input should be a valid integer
+  train.epoch: Extra inputs are not permitted
+  deterministic: Input should be 'strict', 'warn' or 'off'""",
+    )
 
 
 def test_overrides_parse_yaml_values():

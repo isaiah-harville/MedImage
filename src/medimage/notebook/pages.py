@@ -104,7 +104,7 @@ def leaderboard(project: Project) -> str:
                 [
                     f"[{baseline.method}]({baseline.url})",
                     fmt(baseline.metrics[metric]),
-                    fmt(baseline.metrics.get(extra, float("nan"))),
+                    fmt(baseline.metrics[extra]) if extra in baseline.metrics else "",
                     versus(baseline, metric, best),
                 ],
             )

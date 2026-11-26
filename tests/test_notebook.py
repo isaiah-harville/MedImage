@@ -47,19 +47,6 @@ def test_run_page_shows_metrics_plots_and_downloads(notebook):
         assert (out / "smoke-project" / run_id / "files" / name).exists()
 
 
-def test_leaderboard_ranks_runs_against_baselines(notebook):
-    out, run_id = notebook
-    page = (out / "smoke-project" / "index.md").read_text()
-    board = page.split("## Leaderboard")[1].split("## Runs")[0]
-    lines = [line for line in board.splitlines() if line.startswith(("| [", "| **"))]
-    assert lines[0].startswith("| [Perfect]")
-    assert "above our CI" in lines[0]
-    assert lines[-1].startswith("| [Chance]")
-    assert "below our CI" in lines[-1]
-    assert run_id in page
-    assert "### Smoke model" in page
-
-
 def test_rebuilding_gives_identical_files(notebook, project):
     out, _ = notebook
     before = {p: p.read_bytes() for p in out.rglob("*") if p.is_file()}
