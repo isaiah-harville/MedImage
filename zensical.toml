@@ -12,6 +12,7 @@ nav = [
   { "Lab notebook" = "notebook/index.md" },
   { "Datasets" = [
     "datasets.md",
+    { "Bar to beat" = "benchmarks.md" },
     { "Chest X-ray" = "datasets/chest-xray.md" },
     { "MRI and CT" = "datasets/mri-ct.md" },
     { "Other modalities" = "datasets/other-modalities.md" },

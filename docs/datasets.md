@@ -188,6 +188,28 @@ Not chosen first:
 * **Duke Breast MRI and PI-CAI:** 3D, and CC BY-NC.
 * **NIH ChestX-ray14's own boxes:** only 983 images.
 
+## The bar to beat
+
+The published results a new model has to beat on each shortlisted benchmark, under that
+benchmark's protocol. The [benchmarks page](benchmarks.md) gives the source of every number,
+whether the test labels are public, and the protocol pitfalls that make many published
+numbers incomparable.
+
+| Benchmark | Metric | Best published | By | Test labels public |
+|---|---|---|---|---|
+| PneumoniaMNIST | test AUC / ACC | 0.997 / 0.966 (preprint); 0.995 / 0.961 (MedViT-S); 0.9892 / 0.9156 (mean of 3 seeds) | C-Mixer; MedViT-S; MedMNIST+ DINO ViT-B | yes |
+| NIH ChestX-ray14, official split | mean AUROC, 14 findings | 0.833 (self-reported), 0.828 (rerun by another group) | EVA-X-S | yes |
+| CheXpert, radiologist test set | mean AUROC, 5 findings | 0.930 (ensemble) | DeepAUC-v1 | yes, competition closed |
+| RSNA Pneumonia | Kaggle private mAP | 0.25475 | Ian Pan and Alexandre Cadrin | late submissions on Kaggle |
+| VinDr-CXR (VinBigData) | Kaggle private mAP@0.4 | 0.314 | ℳS²Ƒ | via PhysioNet, credentialed |
+| ISIC 2020 | Kaggle private AUROC | 0.9490 (used ISIC 2018 and 2019 data) | All Data Are Ext | no, scored by submission |
+| CBIS-DDSM, official split | two-view AUROC | 0.8643 (0.8658 with test-time augmentation) | arXiv 2503.19945 | yes |
+| LUNA16, 10-fold CV | CPM | 0.951 to 0.952 | PAtech; Liu et al. 2019 | yes, self-reported CV |
+| Kermany OCT, 1,000-image test | accuracy | 99.80% | OpticNet-71 | yes |
+
+A benchmark whose test labels are public invites test-set tuning, so a win there counts
+only with selection on validation, means over seeds, and the code to rerun it.
+
 ## Leakage traps to remember
 
 * RSNA Pneumonia and SIIM-ACR reuse NIH ChestX-ray14 images. CheXpert Plus reuses CheXpert
