@@ -2,9 +2,9 @@
 
 A published run is ``models/<project>/runs/<run-id>/``. It holds the small files from the run
 directory, which are committed to git and served by the docs site, and ``artifacts.yaml``,
-which lists the large files (the checkpoint) by size, SHA-256, and download URL. Large
-files are uploaded to external storage separately; see docs/design.md. Example figures
-(``examples/``) are copied only when the dataset's license allows sharing its images.
+which lists the large files (the checkpoint) by size and SHA-256. The checkpoint itself is
+committed through Git LFS when the dataset's license allows sharing trained weights, and so
+are the example figures (``examples/``); otherwise neither is copied.
 """
 
 from __future__ import annotations
@@ -22,9 +22,10 @@ LARGE_FILES = ("checkpoint.ckpt",)
 MAX_SMALL_FILE_BYTES = 20 * 1024 * 1024
 EXAMPLES = "examples"
 EXAMPLES_MANIFEST = "examples.json"
-# Licenses that allow redistributing a dataset's images, so example figures may be committed.
-# Anything else, including credentialed data and unknown licenses, publishes no images.
-OPEN_IMAGE_LICENSES = frozenset({"CC0 1.0", "CC BY 3.0", "CC BY 4.0", "CC BY-NC 4.0", "generated"})
+# Licenses that allow redistributing a dataset's images and models trained on it, so example
+# figures and checkpoints may be committed. Anything else, including credentialed data and
+# unknown licenses, publishes neither.
+OPEN_LICENSES = frozenset({"CC0 1.0", "CC BY 3.0", "CC BY 4.0", "CC BY-NC 4.0", "generated"})
 
 
 class PublishError(RuntimeError):
@@ -60,9 +61,9 @@ def load_artifacts(path: Path) -> Artifacts:
     return Artifacts.model_validate(yaml.safe_load(path.read_text()) or {"files": []})
 
 
-def _images_may_be_shared(run_dir: Path) -> bool:
+def _license_allows_sharing(run_dir: Path) -> bool:
     record = json.loads((run_dir / "run.json").read_text())
-    return record.get("dataset", {}).get("license") in OPEN_IMAGE_LICENSES
+    return record.get("dataset", {}).get("license") in OPEN_LICENSES
 
 
 def publish_run(
@@ -70,10 +71,14 @@ def publish_run(
     project_dir: Path,
     include_predictions: bool = True,
     allow_dirty: bool = False,
+    include_checkpoint: bool = True,
 ) -> Path:
-    """Copy ``run_dir``'s small files into ``project_dir/runs/<run-id>`` and list its large files.
+    """Copy a finished run into ``project_dir/runs/<run-id>``.
 
-    Rerunning on the same run gives the same result and keeps any URLs already recorded.
+    The small files are committed as they are. The checkpoint is copied too, for Git LFS
+    (see ``.gitattributes``), when the dataset's license allows sharing trained weights and
+    ``include_checkpoint`` is true; ``artifacts.yaml`` records its size and SHA-256 either
+    way. Rerunning on the same run gives the same result and keeps any URLs already recorded.
     """
     run_dir, project_dir = Path(run_dir), Path(project_dir)
     if not (run_dir / "metrics.json").exists():
@@ -102,7 +107,7 @@ def publish_run(
 
     examples = run_dir / EXAMPLES
     shutil.rmtree(target / EXAMPLES, ignore_errors=True)
-    if include_predictions and examples.is_dir() and _images_may_be_shared(run_dir):
+    if include_predictions and examples.is_dir() and _license_allows_sharing(run_dir):
         shutil.copytree(examples, target / EXAMPLES)
 
     known = {a.file: a for a in load_artifacts(target / "artifacts.yaml").files}
@@ -115,6 +120,12 @@ def publish_run(
         previous = known.get(name)
         url = previous.url if previous is not None and previous.sha256 == digest else None
         artifacts.append(Artifact(file=name, bytes=source.stat().st_size, sha256=digest, url=url))
+        committed = target / name
+        if include_checkpoint and _license_allows_sharing(run_dir):
+            if not committed.exists() or sha256(committed) != digest:
+                shutil.copyfile(source, committed)
+        else:
+            committed.unlink(missing_ok=True)
     (target / "artifacts.yaml").write_text(
         yaml.safe_dump(Artifacts(files=artifacts).model_dump(), sort_keys=False)
     )

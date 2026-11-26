@@ -366,6 +366,11 @@ def _parser() -> argparse.ArgumentParser:
         action="store_true",
         help="leave out per-sample predictions (when the dataset license forbids sharing them)",
     )
+    publish.add_argument(
+        "--no-checkpoint",
+        action="store_true",
+        help="leave the checkpoint out of git (it is otherwise committed through Git LFS)",
+    )
     publish.add_argument("--allow-dirty", action="store_true", help="publish a dirty-tree run")
     publish.set_defaults(handler=_publish)
 

@@ -4,9 +4,9 @@
 
 For each project under ``models/`` with a published run, the latest run is bundled into
 ``OUT/<project>/``: its ``config.yaml``, ``metrics.json``, license-cleared ``examples/``, a
-``RUN_ID`` file, and ``checkpoint.ckpt``. The checkpoint comes from ``--runs`` (the local
-training output, ``<runs>/<run name>/<run id>/checkpoint.ckpt``) when present, otherwise
-from the URL in the run's ``artifacts.yaml``. Either way its SHA-256 must match
+``RUN_ID`` file, and ``checkpoint.ckpt``. The checkpoint comes from the published run folder
+(committed through Git LFS; run ``git lfs pull`` first), else from ``--runs`` (the local
+training output), else from the URL in ``artifacts.yaml``. Its SHA-256 must match
 ``artifacts.yaml``.
 """
 
@@ -47,12 +47,16 @@ def bundle(project: Path, out: Path, runs: Path) -> Path | None:
     run = published[-1]
     artifact = _artifact(run)
     name = yaml.safe_load((run / "config.yaml").read_text())["name"]
+    committed = run / CHECKPOINT
     local = runs / name / run.name / CHECKPOINT
     target = out / project.name
     if target.exists():
         shutil.rmtree(target)
     target.mkdir(parents=True)
-    if local.is_file():
+    # A Git LFS pointer that was never pulled is small; its SHA-256 will not match.
+    if committed.is_file() and _sha256(committed) == artifact["sha256"]:
+        shutil.copyfile(committed, target / CHECKPOINT)
+    elif local.is_file():
         shutil.copyfile(local, target / CHECKPOINT)
     elif artifact.get("url"):
         with (

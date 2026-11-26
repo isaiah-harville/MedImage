@@ -28,19 +28,30 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
+      # Published checkpoints are in Git LFS (about 200 MB each). Cache them by the hash of
+      # their pointers, so a build downloads only checkpoints that changed.
+      - name: List the LFS checkpoints
+        run: git lfs ls-files --long --include "models/*/runs/*/checkpoint.ckpt" > .lfs-checkpoints
+      - uses: actions/cache@v4
+        with:
+          path: .git/lfs/objects
+          key: lfs-checkpoints-${{ hashFiles('.lfs-checkpoints') }}
+          restore-keys: lfs-checkpoints-
+      - name: Pull the LFS checkpoints
+        run: git lfs pull --include "models/*/runs/*/checkpoint.ckpt"
       - uses: astral-sh/setup-uv@v10.4.0
         with:
           python-version: "3.12"
           enable-cache: true
-      # Downloads each published run's checkpoint from the URL in its artifacts.yaml and
-      # checks the SHA-256. Until a run has a URL there is nothing to serve.
+      # Takes each project's latest published run and checks its checkpoint's SHA-256.
+      # Until a run is published there is nothing to serve.
       - name: Bundle the published models
         id: bundle
         run: |
           if uv run --no-project --with pyyaml python scripts/bundle_models.py weights; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
           else
-            echo "::notice::No published run has a downloadable checkpoint yet; skipping the image."
+            echo "::notice::No published run with a checkpoint yet; skipping the image."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           fi
       # A sortable tag (UTC time, then commit) that Flux image automation in the homelab repo

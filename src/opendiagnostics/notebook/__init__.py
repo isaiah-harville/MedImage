@@ -12,7 +12,9 @@ from pathlib import Path
 
 from opendiagnostics.notebook import pages, plots
 from opendiagnostics.notebook.model import Project, Run, load_projects
-from opendiagnostics.publish import EXAMPLES
+from opendiagnostics.publish import EXAMPLES, LARGE_FILES
+
+REPOSITORY = "https://github.com/isaiah-harville/opendiagnostics"
 
 MARKER = ".generated-by-opendiagnostics"
 
@@ -38,15 +40,20 @@ def _write_run(run: Run, out_dir: Path) -> None:
     files.mkdir(parents=True)
     downloads = []
     for source in sorted(run.path.iterdir()):
-        if source.is_file():
+        # Checkpoints are in Git LFS and far too large for the site; they link to the repo.
+        if source.is_file() and source.name not in LARGE_FILES:
             shutil.copyfile(source, files / source.name)
             downloads.append(
                 pages.Download(source.name, f"files/{source.name}", source.stat().st_size)
             )
     for artifact in run.artifacts.files:
-        downloads.append(
-            pages.Download(artifact.file, artifact.url or "", artifact.bytes, artifact.sha256)
+        committed = (run.path / artifact.file).is_file()
+        href = artifact.url or (
+            f"{REPOSITORY}/raw/main/models/{run.project}/runs/{run.run_id}/{artifact.file}"
+            if committed
+            else ""
         )
+        downloads.append(pages.Download(artifact.file, href, artifact.bytes, artifact.sha256))
     if (run.path / EXAMPLES).is_dir():
         shutil.copytree(run.path / EXAMPLES, files / EXAMPLES)
     figures = []

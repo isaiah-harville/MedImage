@@ -42,7 +42,11 @@ def test_run_page_shows_metrics_plots_and_downloads(notebook):
     assert "![Training curves](files/training.svg)" in page
     assert "![ROC and precision-recall on test](files/roc_pr.svg)" in page
     assert "[metrics.json](files/metrics.json)" in page
-    assert "checkpoint.ckpt (not uploaded yet)" in page
+    assert (
+        f"[checkpoint.ckpt](https://github.com/isaiah-harville/opendiagnostics/raw/main/"
+        f"models/smoke-project/runs/{run_id}/checkpoint.ckpt)"
+    ) in page
+    assert not (out / "smoke-project" / run_id / "files" / "checkpoint.ckpt").exists()
     assert "## Examples" in page
     assert "](files/examples/01-input.png)" in page
     assert (out / "smoke-project" / run_id / "files" / "examples" / "01-attribution.png").exists()

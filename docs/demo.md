@@ -51,10 +51,10 @@ must update the privacy page in the same change; see invariant 9 in `AGENTS.md`.
 
 ## Run it locally
 
-Bundle the published models, with checkpoints from your local `runs/` or the URLs in each
-run's `artifacts.yaml`, then start the API:
+Pull the published checkpoints from Git LFS, bundle them, then start the API:
 
 ```bash
+git lfs pull
 uv run python scripts/bundle_models.py weights
 WEIGHTS_DIR=weights uv run --extra serve opendiagnostics-serve
 ```
@@ -63,11 +63,11 @@ Then start the frontend against it (`API_URL=http://localhost:8080`); see `web/R
 
 ## Model weights
 
-The image carries the weights (about 200 MB per model). `scripts/bundle_models.py` takes
-each project's latest published run and checks its checkpoint against the SHA-256 in
-`artifacts.yaml`. CI downloads checkpoints from the `url` in that file, so a run is
-servable once its checkpoint is uploaded somewhere CI can reach and the URL is recorded.
-Until then the image workflow skips the build. Weights trained on CC BY-NC data
+The image carries the weights (about 200 MB per model). `opendiagnostics publish` commits
+each run's checkpoint through Git LFS. CI pulls the checkpoints, with a cache so a rebuild
+downloads only changed ones, and `scripts/bundle_models.py` takes each project's latest
+published run, checking its checkpoint against the SHA-256 in `artifacts.yaml`. Until a run
+is published, the image workflow skips the build. Weights trained on CC BY-NC data
 (DermaMNIST) may be used only non-commercially.
 
 ## Deployment

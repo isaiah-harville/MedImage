@@ -237,39 +237,34 @@ they cannot go stale.
 | Artifact | Size | Where | Why |
 |---|---|---|---|
 | Config, run record, metrics, history, split summary, predictions | KB to a few MB | git, under `models/<project>/runs/<run-id>/`; served by the docs site | Reviewed with the code, versioned with it, and rendered and downloadable from the run page. `opendiagnostics publish` refuses files over 20 MB. |
-| Checkpoints | MB to GB | A Hugging Face Hub model repo per project, one folder per run | Built for model weights. The run page links the file and shows its SHA-256 from `artifacts.yaml`. |
+| Checkpoints | about 200 MB each | git through Git LFS, next to the run's other files, when the dataset's license allows sharing weights | One place for a run and its weights, versioned with the code; CI pulls them to build the demo image. The run page links the file in the repository and shows its SHA-256 from `artifacts.yaml`. |
 | Citable snapshots | the repository at a release | Zenodo, through its GitHub release integration | A DOI per version plus a concept DOI for all versions, for papers that cite our results. |
 
 We weighed four hosts for checkpoints, against limits taken from each host's documentation
 on 2026-11-26:
 
-* **Hugging Face Hub (chosen).**
-  * No per-repo size limit. Files up to 500 GB (under 200 GB recommended).
-  * The README renders as a model card, with license, datasets, and evaluation results
-    in its metadata.
-  * Downloads use stable URLs: `https://huggingface.co/<org>/<repo>/resolve/<revision>/<path>`.
-  * `huggingface_hub` is already installed through timm.
-  * Free public storage is "best-effort" beyond the first few gigabytes, so publish
-    checkpoints for runs worth keeping, not every experiment.
-* **GitHub Releases.**
-  * Each asset must be under 2 GiB, with up to 1,000 assets per release and no total
-    size or bandwidth limit.
-  * A good fallback, but releases are tied to code tags rather than runs, are flat lists
-    with no folders, and are not discoverable as models.
-* **Zenodo.**
-  * 50 GB and 100 files per record, with DOIs for every version.
-  * Right for archival snapshots that papers cite, too heavy for every run.
-* **Git LFS on GitHub Pages (rejected).**
-  * GitHub's documentation says Git LFS cannot be used with GitHub Pages sites.
-  * A Pages site is capped at 1 GB.
-  * The free LFS quota is 10 GiB of storage and 10 GiB of bandwidth a month.
+* **Git LFS in this repository (chosen).**
+  * The free quota is 10 GiB of storage and 10 GiB of bandwidth a month. Twelve MedMNIST
+    checkpoints are about 2.4 GB.
+  * Every LFS object stays in storage after it is replaced, so publish runs worth keeping,
+    not every experiment.
+  * GitHub Pages cannot serve LFS files, so the notebook does not copy checkpoints into
+    the site; the run page links them in the repository instead.
+  * The demo image's CI caches LFS objects by their pointers, so a rebuild downloads only
+    checkpoints that changed.
+* **Hugging Face Hub.** Built for model weights, with no per-repo size limit, but it needs
+  an organization and a second place to keep in step with the runs. Revisit if LFS storage
+  or bandwidth runs short.
+* **GitHub Releases.** Assets under 2 GiB, no total or bandwidth limit, but tied to code
+  tags rather than runs, with no folders.
+* **Zenodo.** 50 GB and 100 files per record, with DOIs. Right for archival snapshots that
+  papers cite, too heavy for every run.
 
-Uploading is a separate, deliberate step because it publishes data. Upload the checkpoint
-to the project's Hugging Face repo, put its URL in the run's `artifacts.yaml`, and rebuild
-the notebook. Rerunning `opendiagnostics publish` keeps that URL while the checkpoint's SHA-256 is
-unchanged. Check the dataset's license before uploading weights or predictions; for
-credentialed data, publish metrics only (`opendiagnostics publish --no-predictions`) unless the
-agreement allows more.
+`opendiagnostics publish` copies the checkpoint into the published run folder, where
+`.gitattributes` routes it through Git LFS, only when the dataset's license is in
+`OPEN_LICENSES` (`publish.py`). For credentialed data, publish metrics only
+(`opendiagnostics publish --no-predictions --no-checkpoint`) unless the agreement allows more.
+Run `git lfs install` once on any machine that publishes.
 
 ## Roadmap
 
@@ -281,6 +276,5 @@ agreement allows more.
 * Training features for state-of-the-art results: weight EMA, test-time augmentation,
   higher-resolution pretrained backbones, and GPU recipes per benchmark.
 * Multi-seed runs aggregated on the project page, to match papers that report means.
-* An upload command for checkpoints, once the Hugging Face organization exists.
 * Subgroup reports (sex, age, site or scanner) when the manifest provides those columns.
 * Dataset adapters for the starter datasets in [datasets.md](datasets.md).

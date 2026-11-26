@@ -1,0 +1,2 @@
+# Published checkpoints are committed through Git LFS (see opendiagnostics.publish).
+models/*/runs/*/checkpoint.ckpt filter=lfs diff=lfs merge=lfs -text
