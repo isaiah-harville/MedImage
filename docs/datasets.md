@@ -51,7 +51,7 @@ detail file gives both.
 
 | Dataset | Task | Labels | Size | Patient IDs | Format | License | Access |
 |---|---|---|---|---|---|---|---|
-| [BraTS (2026)](datasets/mri-ct.md#brats-brain-tumors--2026-edition-plus-the-brats-lineage) | segmentation; some cls tasks | tumor sub-regions | 2,040 patients (2021); METS 2026: 1,778 cases | yes | NIfTI, 3D, 4 sequences | CC BY-NC 4.0 | registration |
+| [BraTS (2026)](datasets/mri-ct.md#brats-brain-tumors-2026-edition-and-lineage) | segmentation; some cls tasks | tumor sub-regions | 2,040 patients (2021); METS 2026: 1,778 cases | yes | NIfTI, 3D, 4 sequences | CC BY-NC 4.0 | registration |
 | [fastMRI](datasets/mri-ct.md#fastmri-knee-brain-prostate-breast) | reconstruction; fastMRI+ boxes | k-space; fastMRI+ pathology boxes (MIT) | knee ≈1,500 raw, brain ≈7,000 | not stated | HDF5 k-space, DICOM | NYU fastMRI Dataset Sharing Agreement | credentialed |
 | [OASIS-1/2/3](datasets/mri-ct.md#oasis-oasis-1-oasis-2-oasis-3-oasis-4-noted) | cls, regression | dementia status, CDR, age | OASIS-3: 1,378 participants | yes | 3D MRI | OASIS Data Use Agreement, non-commercial | credentialed |
 | [ADNI](datasets/mri-ct.md#adni-alzheimers-disease-neuroimaging-initiative) | cls, progression | CN / MCI / AD | 2,470 participants | yes | 3D MRI | ADNI Data Use Agreement, no redistribution | credentialed |
@@ -82,10 +82,10 @@ detail file gives both.
 | [CAMELYON16/17](datasets/other-modalities.md#camelyon16) | WSI cls, detection | metastases; pN stage | 399 / 1,000 WSIs | slide; patient (C17) | pyramidal TIFF | CC0 | open |
 | [PCam](datasets/other-modalities.md#pcam-patchcamelyon) | binary patch cls | tumor in center region | 327,680 patches | WSI-disjoint splits | HDF5 96² | CC0 | open |
 | [PANDA](datasets/other-modalities.md#panda-prostate-cancer-grade-assessment) | WSI grading | ISUP grade, some masks | 10,616 biopsies / 2,113 patients | **no** | TIFF | CC BY-NC-SA 4.0 | registration |
-| [Kermany OCT and pediatric CXR](datasets/other-modalities.md#kermany-oct-and-pediatric-chest-x-ray--large-dataset-of-labeled-oct-and-chest-x-ray-images) | 4-class OCT, binary CXR | tiered expert graders | 109,312 OCT / 5,319 patients | yes (filenames) | JPEG | CC BY 4.0 | open |
+| [Kermany OCT and pediatric CXR](datasets/other-modalities.md#kermany-oct-and-pediatric-chest-x-ray) | 4-class OCT, binary CXR | tiered expert graders | 109,312 OCT / 5,319 patients | yes (filenames) | JPEG | CC BY 4.0 | open |
 | [IDRiD](datasets/other-modalities.md#idrid-indian-diabetic-retinopathy-image-dataset) | DR grade, lesion seg | grades; 81 masks | 516 | not stated | JPG | CC BY 4.0 | registration |
 | [APTOS 2019](datasets/other-modalities.md#aptos-2019-blindness-detection) | DR grade | 0–4 | ≈5,590 | no | PNG | Kaggle rules, non-commercial, no redistribution | registration |
-| [EyePACS (Kaggle 2015)](datasets/other-modalities.md#eyepacs--kaggle-diabetic-retinopathy-detection-2015) | DR grade | 0–4 | ≈88 GB | yes (filenames) | JPEG | Kaggle rules: competition use only | registration |
+| [EyePACS (Kaggle 2015)](datasets/other-modalities.md#eyepacs-kaggle-diabetic-retinopathy-detection-2015) | DR grade | 0–4 | ≈88 GB | yes (filenames) | JPEG | Kaggle rules: competition use only | registration |
 | [Messidor-2](datasets/other-modalities.md#messidor-2) | images only | no official labels | 1,748 | exam pairing | PNG, JPG | custom: research only, no redistribution | registration |
 | [VinDr-Mammo](datasets/other-modalities.md#vindr-mammo) | **detection**, BI-RADS, density | radiologist boxes for BI-RADS 3–5 | 5,000 exams | **no** | DICOM | PhysioNet Restricted Health Data License 1.5.0 | registration |
 | [CBIS-DDSM](datasets/other-modalities.md#cbis-ddsm) | cls, seg (boxes from masks) | pathology-verified | 10,239 images / 1,566 participants | yes (prefix) | DICOM (film) | CC BY 3.0 | open |

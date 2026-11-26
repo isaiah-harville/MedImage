@@ -8,7 +8,7 @@ Access classes: **open** (direct download, at most a click-through license), **r
 
 ## MRI
 
-### BraTS (Brain TumorS) — 2026 edition, plus the BraTS lineage
+### BraTS (Brain TumorS), 2026 edition and lineage
 
 - **Name and maintainer:** BraTS 2026, "The 15th BraTS Cluster of Challenges at MICCAI 2026" (Synapse project syn74274097). The acronym is now "Brain TumorS" (formerly "Brain Tumor Segmentation"). Organizers include S. Bakas (Indiana University) and others; it is hosted on Synapse by Sage Bionetworks. Source: https://www.synapse.org/Synapse:syn74274097/wiki/639571
 - **Tasks and labels:**
