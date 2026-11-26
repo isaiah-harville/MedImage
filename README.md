@@ -79,7 +79,7 @@ To add a model, see [models/README.md](models/README.md).
 ## Develop
 
 ```bash
-uv sync --extra cpu --extra monai && uv run ruff format --check && uv run ruff check && uv run pytest
+uv sync --locked --extra cpu --extra monai && uv run ruff format --check && uv run ruff check && uv run ty check && uv run pytest
 ```
 
 CI runs the same checks on Linux with Python 3.11 to 3.14, and on macOS and Windows, and

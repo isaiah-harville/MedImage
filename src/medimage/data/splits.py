@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import warnings
 from collections import Counter, defaultdict
-from collections.abc import Hashable, Sequence
+from collections.abc import Hashable, Mapping, Sequence
 
 import numpy as np
 
@@ -76,7 +76,7 @@ def patient_split(
     return {name: sorted(i for p in assigned[name] for i in by_patient[p]) for name in SPLIT_NAMES}
 
 
-def check_disjoint(splits: dict[str, Sequence[int]], patient_ids: Sequence[str]) -> None:
+def check_disjoint(splits: Mapping[str, Sequence[int]], patient_ids: Sequence[str]) -> None:
     """Raise :class:`LeakageError` if a patient or a sample index is in two splits."""
     owner: dict[str, str] = {}
     seen: dict[int, str] = {}
@@ -93,7 +93,7 @@ def check_disjoint(splits: dict[str, Sequence[int]], patient_ids: Sequence[str])
 
 
 def summarize(
-    splits: dict[str, Sequence[int]],
+    splits: Mapping[str, Sequence[int]],
     patient_ids: Sequence[str],
     strata: Sequence[Hashable] | None = None,
 ) -> dict[str, dict]:

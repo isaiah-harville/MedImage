@@ -11,7 +11,10 @@ A metric that is undefined for the given data (AUROC with one class present) ret
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 import numpy as np
+from numpy.typing import ArrayLike
 
 
 def _midranks(scores: np.ndarray) -> np.ndarray:
@@ -26,7 +29,7 @@ def _midranks(scores: np.ndarray) -> np.ndarray:
     return ranks
 
 
-def auroc(y_true: np.ndarray, y_score: np.ndarray) -> float:
+def auroc(y_true: ArrayLike, y_score: ArrayLike) -> float:
     y_true = np.asarray(y_true).astype(bool)
     y_score = np.asarray(y_score, dtype=np.float64)
     n_pos = int(y_true.sum())
@@ -37,7 +40,7 @@ def auroc(y_true: np.ndarray, y_score: np.ndarray) -> float:
     return float((ranks[y_true].sum() - n_pos * (n_pos + 1) / 2) / (n_pos * n_neg))
 
 
-def auprc(y_true: np.ndarray, y_score: np.ndarray) -> float:
+def auprc(y_true: ArrayLike, y_score: ArrayLike) -> float:
     y_true = np.asarray(y_true).astype(np.float64)
     y_score = np.asarray(y_score, dtype=np.float64)
     if y_true.sum() == 0:
@@ -52,7 +55,7 @@ def auprc(y_true: np.ndarray, y_score: np.ndarray) -> float:
     return float(np.sum(np.diff(np.r_[0.0, recall]) * precision))
 
 
-def youden_threshold(y_true: np.ndarray, y_score: np.ndarray) -> float:
+def youden_threshold(y_true: ArrayLike, y_score: ArrayLike) -> float:
     """The score threshold that maximizes sensitivity + specificity - 1.
 
     Choose it on validation data and apply it unchanged to the test set.
@@ -70,9 +73,7 @@ def youden_threshold(y_true: np.ndarray, y_score: np.ndarray) -> float:
     return float(sorted_scores[last_of_tie[np.argmax(tpr - fpr)]])
 
 
-def threshold_metrics(
-    y_true: np.ndarray, y_score: np.ndarray, threshold: float
-) -> dict[str, float]:
+def threshold_metrics(y_true: ArrayLike, y_score: ArrayLike, threshold: float) -> dict[str, float]:
     y_true = np.asarray(y_true).astype(bool)
     predicted = np.asarray(y_score) >= threshold
     tp = float(np.sum(predicted & y_true))
@@ -93,11 +94,11 @@ def threshold_metrics(
     }
 
 
-def brier(y_true: np.ndarray, y_prob: np.ndarray) -> float:
+def brier(y_true: ArrayLike, y_prob: ArrayLike) -> float:
     return float(np.mean((np.asarray(y_prob, float) - np.asarray(y_true, float)) ** 2))
 
 
-def expected_calibration_error(y_true: np.ndarray, y_prob: np.ndarray, bins: int = 15) -> float:
+def expected_calibration_error(y_true: ArrayLike, y_prob: ArrayLike, bins: int = 15) -> float:
     """Equal-width-bin ECE: the bin-size-weighted gap between confidence and accuracy."""
     y_true = np.asarray(y_true, float)
     y_prob = np.asarray(y_prob, float)
@@ -111,9 +112,10 @@ def expected_calibration_error(y_true: np.ndarray, y_prob: np.ndarray, bins: int
     return float(error)
 
 
-def multiclass_ovr(y_true: np.ndarray, y_prob: np.ndarray, metric) -> np.ndarray:
+def multiclass_ovr(
+    y_true: np.ndarray, y_prob: np.ndarray, metric: Callable[[ArrayLike, ArrayLike], float]
+) -> np.ndarray:
     """Apply a binary metric one-vs-rest to each class column."""
-    y_true = np.asarray(y_true)
     return np.array([metric(y_true == k, y_prob[:, k]) for k in range(y_prob.shape[1])])
 
 

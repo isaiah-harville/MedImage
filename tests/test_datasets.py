@@ -12,12 +12,19 @@ from medimage.registry import DATASETS
 
 def test_medmnist_reads_verified_npz(tmp_path, monkeypatch):
     rng = np.random.default_rng(0)
-    arrays = {}
-    for split, n in (("train", 6), ("val", 2), ("test", 3)):
-        arrays[f"{split}_images"] = rng.integers(0, 256, size=(n, 28, 28), dtype=np.uint8)
-        arrays[f"{split}_labels"] = rng.integers(0, 2, size=(n, 1))
+    sizes = {"train": 6, "val": 2, "test": 3}
+    images = {s: rng.integers(0, 256, size=(n, 28, 28), dtype=np.uint8) for s, n in sizes.items()}
+    labels = {s: rng.integers(0, 2, size=(n, 1)) for s, n in sizes.items()}
     path = tmp_path / "pneumoniamnist.npz"
-    np.savez(path, **arrays)
+    np.savez(
+        path,
+        train_images=images["train"],
+        train_labels=labels["train"],
+        val_images=images["val"],
+        val_labels=labels["val"],
+        test_images=images["test"],
+        test_labels=labels["test"],
+    )
     md5 = hashlib.md5(path.read_bytes()).hexdigest()
     subset = {**medmnist_info.SUBSETS["pneumoniamnist"], "md5": {"28": md5}}
     monkeypatch.setitem(medmnist_info.SUBSETS, "pneumoniamnist", subset)
@@ -32,7 +39,7 @@ def test_medmnist_reads_verified_npz(tmp_path, monkeypatch):
     sample = source[7]
     assert sample["image"].shape == (1, 28, 28)
     assert 0 <= sample["image"].min() <= sample["image"].max() <= 1
-    assert sample["label"].item() == arrays["val_labels"][1, 0]
+    assert sample["label"].item() == labels["val"][1, 0]
     assert source.info.label_mode == "binary"
     assert source.info.license == "CC BY 4.0"
     assert not source.info.patient_ids_available

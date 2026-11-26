@@ -24,7 +24,7 @@ from dataclasses import dataclass
 
 import numpy as np
 
-COCO_IOUS = np.linspace(0.5, 0.95, 10)
+COCO_IOUS = tuple(float(t) for t in np.linspace(0.5, 0.95, 10))
 RECALL_POINTS = np.linspace(0.0, 1.0, 101)
 FROC_RATES = (0.125, 0.25, 0.5, 1.0, 2.0, 4.0, 8.0)
 

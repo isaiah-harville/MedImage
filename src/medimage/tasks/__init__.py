@@ -300,7 +300,7 @@ class Detection(Task):
             for t in batch["target"]
         ]
         losses = model(images, targets)
-        return sum(losses.values())  # type: ignore[return-value]
+        return torch.stack(list(losses.values())).sum()
 
     @torch.no_grad()
     def predict(self, model: nn.Module, batch: dict, device: torch.device) -> list[Prediction]:
