@@ -42,22 +42,19 @@ def cluster_indices(groups: Sequence[str]) -> list[np.ndarray]:
     return [np.asarray(v, dtype=np.int64) for v in order.values()]
 
 
-def bootstrap(
+def bootstrap_draws(
     statistic: Callable[[np.ndarray], dict[str, float]],
     n: int,
     groups: Sequence[str] | None = None,
     replicates: int = 1000,
-    confidence: float = 0.95,
     seed: int = 0,
-) -> dict[str, Estimate]:
-    """Bootstrap every metric returned by ``statistic``.
+) -> tuple[dict[str, float], dict[str, np.ndarray]]:
+    """The point estimates and every replicate's values, NaN where a metric was undefined.
 
-    ``statistic`` takes an index array into the data and returns named metric values.
-    Replicates where a metric is NaN (for example AUROC on a resample with no positives) are
-    left out of that metric's interval, and ``valid_replicates`` reports how many remained.
+    ``statistic`` takes an index array into the data and returns named metric values. With
+    ``groups``, each replicate resamples whole groups (patients) with replacement.
     """
     point = statistic(np.arange(n))
-    unit = "sample" if groups is None else "patient"
     clusters = cluster_indices(groups) if groups is not None else None
     rng = np.random.default_rng(seed)
     draws: dict[str, list[float]] = {k: [] for k in point}
@@ -69,11 +66,27 @@ def bootstrap(
             index = np.concatenate([clusters[c] for c in chosen])
         for key, value in statistic(index).items():
             draws[key].append(value)
+    return point, {k: np.asarray(v, dtype=np.float64) for k, v in draws.items()}
+
+
+def bootstrap(
+    statistic: Callable[[np.ndarray], dict[str, float]],
+    n: int,
+    groups: Sequence[str] | None = None,
+    replicates: int = 1000,
+    confidence: float = 0.95,
+    seed: int = 0,
+) -> dict[str, Estimate]:
+    """Bootstrap every metric returned by ``statistic`` into a percentile interval.
+
+    Replicates where a metric is NaN (for example AUROC on a resample with no positives) are
+    left out of that metric's interval, and ``valid_replicates`` reports how many remained.
+    """
+    point, draws = bootstrap_draws(statistic, n, groups, replicates, seed)
     alpha = (1 - confidence) / 2
     result = {}
     for key, value in point.items():
-        values = np.asarray(draws[key], dtype=np.float64)
-        values = values[~np.isnan(values)]
+        values = draws[key][~np.isnan(draws[key])]
         if len(values):
             lower, upper = np.quantile(values, [alpha, 1 - alpha])
         else:
@@ -85,6 +98,6 @@ def bootstrap(
             confidence=confidence,
             replicates=replicates,
             valid_replicates=len(values),
-            unit=unit,
+            unit="sample" if groups is None else "patient",
         )
     return result
