@@ -6,6 +6,9 @@ trainer:
   accelerator: cpu
   max_epochs: 3
   enable_progress_bar: false
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+      init_args: {logging_interval: epoch}
 model:
   class_path: opendiagnostics.modules.ImageClassifier
   init_args:

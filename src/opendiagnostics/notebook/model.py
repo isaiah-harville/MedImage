@@ -78,6 +78,8 @@ def read_history(path: Path) -> list[dict[str, Any]]:
     epochs: dict[int, dict[str, Any]] = {}
     with path.open(newline="") as handle:
         for row in csv.DictReader(handle):
+            if not row.get("epoch"):
+                continue
             entry = epochs.setdefault(int(row["epoch"]), {"epoch": int(row["epoch"]), "val": {}})
             for key, value in row.items():
                 if value in ("", None) or key in ("epoch", "step"):

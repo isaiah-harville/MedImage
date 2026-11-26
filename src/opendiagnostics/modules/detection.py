@@ -36,6 +36,7 @@ class ObjectDetector(DiagnosticModule):
         self.log("train/loss", loss, on_step=False, on_epoch=True, batch_size=len(targets))
         return loss
 
+    @torch.no_grad()
     def predict_batch(self, batch: dict) -> list[Prediction]:
         outputs = self.network(batch["image"])
         return [

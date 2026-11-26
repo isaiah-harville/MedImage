@@ -78,6 +78,7 @@ class ImageClassifier(DiagnosticModule):
             probs.append(logits.softmax(1) if self.mode == "multiclass" else logits.sigmoid())
         return torch.stack(probs).mean(0)
 
+    @torch.no_grad()
     def predict_batch(self, batch: dict) -> list[Prediction]:
         probs = self._probs(batch["image"]).cpu().numpy()
         target = batch["target"].cpu().numpy()
@@ -118,6 +119,7 @@ class ImageClassifier(DiagnosticModule):
             t, p = target[index], prob[index]
             if self.mode == "binary":
                 return {
+                    "accuracy_at_0.5": cm.threshold_metrics(t, p[:, 0], 0.5)["accuracy"],
                     "auroc": cm.auroc(t, p[:, 0]),
                     "auprc": cm.auprc(t, p[:, 0]),
                     "brier": cm.brier(t, p[:, 0]),

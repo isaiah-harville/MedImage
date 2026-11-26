@@ -39,7 +39,7 @@ def test_smoke_config_trains_end_to_end(name, tmp_path):
     assert record["git"]["commit"]
     assert record["environment"]["packages"]["lightning"]
     with (run_dir / "metrics.csv").open() as handle:
-        epochs = {row["epoch"] for row in csv.DictReader(handle)}
+        epochs = {row["epoch"] for row in csv.DictReader(handle) if row["epoch"]}
     expected = 3 if name == "classification" else 2
     assert len(epochs) == expected
 
