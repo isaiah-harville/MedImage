@@ -41,7 +41,7 @@ cu132 = ["torch>=2.6", "torchvision>=0.21"]
 opendiagnostics = "opendiagnostics.cli:main"
 
 [project.urls]
-Repository = "https://github.com/isaiah-harville/MedImage"
+Repository = "https://github.com/isaiah-harville/opendiagnostics"
 
 [dependency-groups]
 dev = [

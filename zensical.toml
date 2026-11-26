@@ -1,9 +1,9 @@
 [project]
 site_name = "OpenDiagnostics lab notebook"
 site_description = "Open research models for medical image diagnosis. Not a medical device."
-site_url = "https://isaiah-harville.github.io/MedImage/"
-repo_url = "https://github.com/isaiah-harville/MedImage"
-repo_name = "isaiah-harville/MedImage"
+site_url = "https://isaiah-harville.github.io/opendiagnostics/"
+repo_url = "https://github.com/isaiah-harville/opendiagnostics"
+repo_name = "isaiah-harville/opendiagnostics"
 docs_dir = "docs"
 site_dir = "site"
 nav = [
