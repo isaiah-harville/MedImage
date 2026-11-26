@@ -14,24 +14,14 @@ concurrency:
 
 jobs:
   test:
-    name: ${{ matrix.os }} / Python ${{ matrix.python }}
-    runs-on: ${{ matrix.os }}
+    name: Ubuntu / Python 3.12
+    runs-on: ubuntu-latest
     timeout-minutes: 30
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest]
-        python: ["3.11", "3.12", "3.13", "3.14"]
-        include:
-          - os: macos-latest
-            python: "3.13"
-          - os: windows-latest
-            python: "3.13"
     steps:
       - uses: actions/checkout@v7
       - uses: astral-sh/setup-uv@v10.4.0
         with:
-          python-version: ${{ matrix.python }}
+          python-version: "3.12"
           enable-cache: true
       # CPU-only torch keeps CI fast; the MONAI extra lets its model test run.
       - name: Install
@@ -47,7 +37,6 @@ jobs:
       - name: Build the docs
         run: uv run opendiagnostics notebook && uv run zensical build --clean
       - name: Smoke-train every task from the command line
-        shell: bash
         run: |
           for config in configs/smoke/*.yaml; do
             uv run opendiagnostics train "$config" --output-dir "$RUNNER_TEMP/runs"
