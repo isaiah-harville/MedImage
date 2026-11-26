@@ -988,6 +988,7 @@ dev = [
     { name = "ruff" },
     { name = "scikit-learn" },
     { name = "ty" },
+    { name = "xpt" },
 ]
 docs = [
     { name = "matplotlib" },
@@ -1021,6 +1022,7 @@ dev = [
     { name = "ruff", specifier = ">=0.8" },
     { name = "scikit-learn", specifier = ">=1.5" },
     { name = "ty", specifier = ">=0.0.111" },
+    { name = "xpt", specifier = ">=0.2.0" },
 ]
 docs = [
     { name = "matplotlib", specifier = ">=3.9" },
@@ -2842,6 +2844,15 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/31/57/ff9edd8e7c1b9a0749c5db4dd154667140a3b8414659960fe182d18d6b4e/watchdog-7.1.1-py3-none-win_amd64.whl", hash = "sha256:f6e0da274cc1610b37ff7afe0c2a2b454308a0684efea0bfb7bedaa530b08106", size = 116063, upload-time = "2026-11-21T13:21:07.254Z" },
     { url = "https://files.pythonhosted.org/packages/07/af/1022a429f58cd84302a5b9aca7c78e22078867f30eab862eccdcbfd601c5/watchdog-7.1.1-py3-none-win_arm64.whl", hash = "sha256:7bc7f4389b1634e874ffd0d6c84c9680c6adbb48c3aece8e087bb25ee9b93f0e", size = 116062, upload-time = "2026-11-21T13:21:08.204Z" },
     { url = "https://files.pythonhosted.org/packages/4d/ff/bd007a0bded2f68bf2f23c28eae1e0567cbd8a2e80ea4f217ebc359ce4d0/watchdog-7.1.1-py3-none-win_ia64.whl", hash = "sha256:31a0e81dca2cbe5f1f2d46906277ae3aeb64cf9506d60cf10fa9ad00cbdaa6c8", size = 116060, upload-time = "2026-11-21T13:21:09.168Z" },
+]
+
+[[package]]
+name = "xpt"
+version = "0.2.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/56/38/732546a208acc44db7335ec56a5e52b46ff2443bc2143fe104a01fec52cb/xpt-0.2.0.tar.gz", hash = "sha256:c3d0ae5b2d18f7de67e4af8cdaf490d0868611af8436e9c3de546bf2fd93cc12", size = 47505, upload-time = "2026-11-19T19:16:53.985Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/bd/56/513bb4c9dab7c2c478b883762307d8d9ab38a26bdb8c68ced09cc1bb59db/xpt-0.2.0-py3-none-any.whl", hash = "sha256:3d8a995498e0489bd1f0601e36d02d3694259fcd04c7a7f037920cc02c1fb2d0", size = 57299, upload-time = "2026-11-19T19:16:52.577Z" },
 ]
 
 [[package]]

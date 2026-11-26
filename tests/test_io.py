@@ -4,6 +4,7 @@ import pytest
 from PIL import Image
 from pydicom.dataset import Dataset, FileMetaDataset
 from pydicom.uid import CTImageStorage, ExplicitVRLittleEndian, generate_uid
+from xpt import expect
 
 from medimage.io import load_image
 
@@ -45,7 +46,16 @@ def test_dicom_applies_rescale_to_hounsfield_units(tmp_path):
     assert image.array.shape == (1, 2, 2)
     assert image.array[0].tolist() == [[-1024, 0], [1024, -24]]
     assert image.spacing == (0.5, 0.75)
-    assert image.meta["patient_id"] == "P001"
+    expect(
+        {k: v for k, v in image.meta.items() if k != "series_uid"},
+        {
+            "format": "dicom",
+            "modality": "CT",
+            "patient_id": "P001",
+            "study_uid": "",
+            "photometric": "MONOCHROME2",
+        },
+    )
 
 
 def test_dicom_monochrome1_is_inverted(tmp_path):

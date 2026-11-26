@@ -48,6 +48,7 @@ dev = [
     "ruff>=0.8",
     "scikit-learn>=1.5",
     "ty>=0.0.111",
+    "xpt>=0.2.0",
 ]
 docs = [
     "matplotlib>=3.9",
@@ -96,7 +97,7 @@ ignore = ["E501", "SIM108"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
-addopts = "-ra --strict-markers"
+addopts = "--strict-markers"
 markers = [
     "network: needs internet access (deselect with -m 'not network')",
     "slow: takes more than a few seconds",

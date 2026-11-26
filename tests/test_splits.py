@@ -1,6 +1,7 @@
 import pytest
+from xpt import expect
 
-from medimage.data.splits import LeakageError, check_disjoint, patient_split
+from medimage.data.splits import LeakageError, check_disjoint, patient_split, summarize
 
 
 def test_patients_never_span_splits():
@@ -36,3 +37,15 @@ def test_leakage_is_detected():
 def test_bad_fractions():
     with pytest.raises(ValueError, match="sum to 1"):
         patient_split(["a", "b"], (0.5, 0.5, 0.5))
+
+
+def test_summary_counts_samples_patients_and_labels():
+    patients = ["a", "a", "b", "c", "c", "d"]
+    strata = [1, 1, 0, 0, 0, 1]
+    expect(
+        summarize({"train": [0, 1, 2], "test": [3, 4, 5]}, patients, strata),
+        {
+            "train": {"samples": 3, "patients": 2, "strata": {"0": 1, "1": 2}},
+            "test": {"samples": 3, "patients": 2, "strata": {"0": 2, "1": 1}},
+        },
+    )
