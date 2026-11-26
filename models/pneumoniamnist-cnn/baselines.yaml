@@ -1,8 +1,21 @@
 benchmark: PneumoniaMNIST (MedMNIST v2), official test split of 624 images
 protocol: >-
-  Published values are test AUC and ACC from Yang et al. (2023), Table 3, each the mean of at
-  least 3 trials. ACC there uses each method's own decision rule, so compare AUROC first.
+  Test AUC and ACC on the official arrays. Image size and training protocol differ by source and
+  are named in each method; MedMNIST v2's "224" is the 28-pixel image upsampled. ACC uses each
+  method's own decision rule, so compare AUROC first. See docs/benchmarks.md.
 baselines:
+  - method: C-Mixer (28, preprint, checkpoint selection not stated)
+    metrics: {auroc: 0.997, accuracy: 0.966}
+    source: Zheng and Jia, arXiv 2304.10054 (2023), Table II
+    url: https://arxiv.org/abs/2304.10054
+  - method: MedViT-S (28 upsampled to 224)
+    metrics: {auroc: 0.995, accuracy: 0.961}
+    source: Manzari et al., arXiv 2302.09462 (2023), Table 3
+    url: https://arxiv.org/abs/2302.09462
+  - method: DINO ViT-B/16 linear probe (native 224, mean of 3 seeds)
+    metrics: {auroc: 0.9892, accuracy: 0.9156}
+    source: Doerrich et al., MedMNIST+, arXiv 2404.15786
+    url: https://arxiv.org/abs/2404.15786
   - method: Google AutoML Vision
     metrics: {auroc: 0.991, accuracy: 0.946}
     source: Yang et al., Sci Data 10:41 (2023), Table 3
