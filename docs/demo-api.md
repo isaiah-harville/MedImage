@@ -2,7 +2,8 @@
 
 The contract between the demo frontend (`web/`) and the inference service
 (`opendiagnostics.serve`). All responses are JSON unless stated. The service runs on CPU and
-holds no state: uploads are processed in memory and never stored or logged.
+holds no state: uploads are processed in memory and never stored or logged, and every
+response carries `Cache-Control: no-store`.
 
 ## `GET /healthz`
 

@@ -65,6 +65,12 @@ smoke-trains every config in `configs/smoke/`. On an NVIDIA machine, use
    credentialed or unknown-license data.
 8. **Config parsing is strict.** Unknown keys and wrong types are errors. LightningCLI
    (jsonargparse) enforces this; keep components typed so it can.
+9. **Uploads to the demo site are never kept.** Images are processed in memory for one
+   request and never written to disk, stored, logged, or used for training. Nothing logs
+   client IP addresses. A change that keeps any uploaded data, adds request logging,
+   analytics, or a third-party script, or changes retention must update the privacy page
+   (`web/src/routes/privacy`) and `docs/demo.md` in the same change, and needs the
+   user's approval first.
 
 ## Stop and ask first
 

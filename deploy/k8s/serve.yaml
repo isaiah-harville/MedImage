@@ -1,5 +1,5 @@
 # The inference API (Dockerfile.serve). CPU only; the weights are in the image. It holds
-# no state and writes nothing but /tmp.
+# no state and writes nothing but /tmp, which is in memory. Uploads are never stored.
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -78,8 +78,10 @@ spec:
             - name: tmp
               mountPath: /tmp
       volumes:
+        # RAM-backed, so nothing a library spools can reach the node's disk.
         - name: tmp
           emptyDir:
+            medium: Memory
             sizeLimit: 256Mi
 ---
 apiVersion: v1

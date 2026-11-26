@@ -1,7 +1,10 @@
 """The inference HTTP API. The contract is docs/demo-api.md.
 
-Uploads are decoded in memory and never written to disk or logged. Predictions run in a
-bounded number of worker threads so a burst of requests cannot exhaust memory.
+Uploads stay in memory for the length of one request and are never written to disk, stored,
+or logged: the body is read into memory with a size cap and parsed there, and Starlette's
+multipart parser is set never to spool a part to a temporary file. Every response carries
+``Cache-Control: no-store``. Predictions run in a bounded number of threads so a burst of
+requests cannot exhaust memory.
 """
 
 from __future__ import annotations
@@ -10,13 +13,20 @@ import io
 import threading
 from typing import Any
 
-from fastapi import FastAPI, HTTPException, UploadFile
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import FileResponse
 from PIL import Image, UnidentifiedImageError
+from starlette.datastructures import UploadFile as StarletteUploadFile
+from starlette.formparsers import MultiPartParser
 
 from opendiagnostics.serve.models import ServedModel, predict
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
+# The multipart envelope around the file adds a few hundred bytes.
+MAX_BODY_BYTES = MAX_UPLOAD_BYTES + 64 * 1024
+# Keep every multipart part in memory; the body cap above bounds how much that can be.
+MultiPartParser.spool_max_size = MAX_BODY_BYTES
 MAX_SIDE = 4096
 FORMATS = {"PNG", "JPEG"}
 Image.MAX_IMAGE_PIXELS = MAX_SIDE * MAX_SIDE
@@ -36,6 +46,34 @@ def _decode(data: bytes) -> Image.Image:
     except (OSError, Image.DecompressionBombError) as error:
         raise HTTPException(422, "the file could not be decoded as an image") from error
     return image
+
+
+async def _read_limited(request: Request) -> bytes:
+    """The request body, refusing anything over the cap before it is all read."""
+    declared = request.headers.get("content-length")
+    if declared and declared.isdigit() and int(declared) > MAX_BODY_BYTES:
+        raise HTTPException(413, "files may be at most 10 MB")
+    chunks, size = [], 0
+    async for chunk in request.stream():
+        size += len(chunk)
+        if size > MAX_BODY_BYTES:
+            raise HTTPException(413, "files may be at most 10 MB")
+        chunks.append(chunk)
+    return b"".join(chunks)
+
+
+def _buffered(request: Request, body: bytes) -> Request:
+    """A copy of ``request`` whose body is the in-memory ``body``."""
+    sent = False
+
+    async def receive() -> dict[str, Any]:
+        nonlocal sent
+        if sent:
+            return {"type": "http.disconnect"}
+        sent = True
+        return {"type": "http.request", "body": body, "more_body": False}
+
+    return Request(request.scope, receive)
 
 
 def create_app(
@@ -92,11 +130,25 @@ def create_app(
             return run(model, image, demo.truth)
 
     @app.post("/models/{model_id}/predict")
-    def predict_upload(model_id: str, file: UploadFile) -> dict[str, Any]:
+    async def predict_upload(model_id: str, request: Request) -> dict[str, Any]:
         model = model_for(model_id)
-        data = file.file.read(MAX_UPLOAD_BYTES + 1)
+        body = await _read_limited(request)
+        form = await _buffered(request, body).form(max_files=1, max_fields=0)
+        upload = form.get("file")
+        if not isinstance(upload, StarletteUploadFile):
+            raise HTTPException(422, "send the image as a multipart form field named file")
+        data = await upload.read()
+        await form.close()
         if len(data) > MAX_UPLOAD_BYTES:
             raise HTTPException(413, "files may be at most 10 MB")
-        return run(model, _decode(data), None)
+        image = _decode(data)
+        del data, body
+        return await run_in_threadpool(run, model, image, None)
+
+    @app.middleware("http")
+    async def no_store(request: Request, call_next):
+        response = await call_next(request)
+        response.headers["Cache-Control"] = "no-store"
+        return response
 
     return app

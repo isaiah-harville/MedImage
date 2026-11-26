@@ -1,5 +1,5 @@
-# The API takes traffic only from the two frontends and makes no outbound connections.
-# Each frontend takes traffic only from its Traefik and talks only to DNS and the API.
+# The API takes traffic only from the frontend and makes no outbound connections.
+# The frontend takes traffic only from traefik-public and talks only to DNS and the API.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -23,58 +23,17 @@ spec:
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
-  name: opendiagnostics-web-public
+  name: opendiagnostics-web
 spec:
   podSelector:
     matchLabels:
-      app.kubernetes.io/name: opendiagnostics-web-public
+      app.kubernetes.io/name: opendiagnostics-web
   policyTypes: [Ingress, Egress]
   ingress:
     - from:
         - namespaceSelector:
             matchLabels:
               kubernetes.io/metadata.name: traefik-public
-          podSelector:
-            matchLabels:
-              app.kubernetes.io/name: traefik
-      ports:
-        - protocol: TCP
-          port: 3000
-  egress:
-    - to:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: kube-system
-          podSelector:
-            matchLabels:
-              k8s-app: kube-dns
-      ports:
-        - protocol: UDP
-          port: 53
-        - protocol: TCP
-          port: 53
-    - to:
-        - podSelector:
-            matchLabels:
-              app.kubernetes.io/name: opendiagnostics-serve
-      ports:
-        - protocol: TCP
-          port: 8080
----
-apiVersion: networking.k8s.io/v1
-kind: NetworkPolicy
-metadata:
-  name: opendiagnostics-web-internal
-spec:
-  podSelector:
-    matchLabels:
-      app.kubernetes.io/name: opendiagnostics-web-internal
-  policyTypes: [Ingress, Egress]
-  ingress:
-    - from:
-        - namespaceSelector:
-            matchLabels:
-              kubernetes.io/metadata.name: traefik-internal
           podSelector:
             matchLabels:
               app.kubernetes.io/name: traefik

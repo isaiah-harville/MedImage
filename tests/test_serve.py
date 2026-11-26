@@ -1,6 +1,7 @@
 import importlib.util
 import io
 import shutil
+import tempfile
 
 import numpy as np
 import pytest
@@ -101,3 +102,26 @@ def test_settings_require_an_existing_weights_dir(tmp_path):
     assert settings_from({"WEIGHTS_DIR": str(tmp_path)}).host_port == ("0.0.0.0", 8080)
     with pytest.raises(SystemExit, match="WEIGHTS_DIR"):
         settings_from({})
+
+
+def test_every_response_is_marked_no_store(client):
+    assert client.get("/models").headers["cache-control"] == "no-store"
+    response = client.post(
+        "/models/smoke-project/predict", files={"file": ("x.png", _png(), "image/png")}
+    )
+    assert response.headers["cache-control"] == "no-store"
+
+
+def test_large_uploads_never_touch_disk(client, monkeypatch):
+    def refuse(self, *args, **kwargs):
+        raise AssertionError("an upload was spooled to a temporary file on disk")
+
+    monkeypatch.setattr(tempfile.SpooledTemporaryFile, "rollover", refuse)
+    noise = np.random.default_rng(0).integers(0, 256, (1024, 1024, 3), dtype=np.uint8)
+    buffer = io.BytesIO()
+    Image.fromarray(noise).save(buffer, "PNG")
+    assert buffer.tell() > 2 * 1024 * 1024
+    response = client.post(
+        "/models/smoke-project/predict", files={"file": ("x.png", buffer.getvalue(), "image/png")}
+    )
+    assert response.status_code == 200
