@@ -13,10 +13,10 @@ Research only. Not a medical device. State what it must not be used for.
 - Label source (radiologist, NLP-extracted, pathology) and known label noise.
 
 ## Training
-Config: `config.yaml`. Commit: from `results/run.json`. Hardware and training time.
+Config: `config.yaml`. Commit, hardware, and training time: from the run's `run.json`.
 
 ## Results
-Test split, best-validation checkpoint, 95% patient-level bootstrap CIs from `results/metrics.json`.
+Test split, best-validation checkpoint, 95% patient-level bootstrap CIs from the run's `metrics.json`.
 
 | Metric | Value | 95% CI |
 |---|---|---|
