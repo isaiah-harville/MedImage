@@ -1,0 +1,33 @@
+benchmark: PneumoniaMNIST (MedMNIST v2), official test split of 624 images
+protocol: >-
+  Published values are test AUC and ACC from Yang et al. (2023), Table 3, each the mean of at
+  least 3 trials. ACC there uses each method's own decision rule, so compare AUROC first.
+baselines:
+  - method: Google AutoML Vision
+    metrics: {auroc: 0.991, accuracy: 0.946}
+    source: Yang et al., Sci Data 10:41 (2023), Table 3
+    url: https://doi.org/10.1038/s41597-022-01721-8
+  - method: ResNet-50 (224)
+    metrics: {auroc: 0.962, accuracy: 0.884}
+    source: Yang et al., Sci Data 10:41 (2023), Table 3
+    url: https://doi.org/10.1038/s41597-022-01721-8
+  - method: ResNet-18 (224)
+    metrics: {auroc: 0.956, accuracy: 0.864}
+    source: Yang et al., Sci Data 10:41 (2023), Table 3
+    url: https://doi.org/10.1038/s41597-022-01721-8
+  - method: ResNet-50 (28)
+    metrics: {auroc: 0.948, accuracy: 0.854}
+    source: Yang et al., Sci Data 10:41 (2023), Table 3
+    url: https://doi.org/10.1038/s41597-022-01721-8
+  - method: AutoKeras
+    metrics: {auroc: 0.947, accuracy: 0.878}
+    source: Yang et al., Sci Data 10:41 (2023), Table 3
+    url: https://doi.org/10.1038/s41597-022-01721-8
+  - method: ResNet-18 (28)
+    metrics: {auroc: 0.944, accuracy: 0.854}
+    source: Yang et al., Sci Data 10:41 (2023), Table 3
+    url: https://doi.org/10.1038/s41597-022-01721-8
+  - method: auto-sklearn
+    metrics: {auroc: 0.942, accuracy: 0.855}
+    source: Yang et al., Sci Data 10:41 (2023), Table 3
+    url: https://doi.org/10.1038/s41597-022-01721-8

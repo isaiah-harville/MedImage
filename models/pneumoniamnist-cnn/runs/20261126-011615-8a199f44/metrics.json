@@ -1,0 +1,211 @@
+{
+  "checkpoint_epoch": 9,
+  "calibration": {
+    "threshold": 0.5697912573814392,
+    "threshold_source": "youden on val"
+  },
+  "bootstrap": {
+    "replicates": 2000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.9971055888793678,
+      "lower": 0.9933958427523715,
+      "upper": 0.9996230837892716,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "auprc": {
+      "value": 0.9990818024297977,
+      "lower": 0.9979607288389366,
+      "upper": 0.9998699097147123,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "brier": {
+      "value": 0.013355756723765924,
+      "lower": 0.006614214864776951,
+      "upper": 0.021471061552528353,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "ece": {
+      "value": 0.019509408782999692,
+      "lower": 0.014025667328644813,
+      "upper": 0.030514242861583926,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "sensitivity": {
+      "value": 0.9948586118251928,
+      "lower": 0.9869109947643979,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "specificity": {
+      "value": 0.9703703703703703,
+      "lower": 0.9401565995525727,
+      "upper": 0.993006993006993,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "ppv": {
+      "value": 0.989769820971867,
+      "lower": 0.97911227154047,
+      "upper": 0.9975062344139651,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "npv": {
+      "value": 0.9849624060150376,
+      "lower": 0.9615384615384616,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "accuracy": {
+      "value": 0.9885496183206107,
+      "lower": 0.9790076335877863,
+      "upper": 0.9961832061068703,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "f1": {
+      "value": 0.9923076923076923,
+      "lower": 0.9855072463768116,
+      "upper": 0.9975001558603491,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "n_samples": 524,
+    "n_patients": 524,
+    "prevalence": 0.7423664122137404,
+    "threshold": 0.5697912573814392
+  },
+  "test": {
+    "auroc": {
+      "value": 0.9615877712031559,
+      "lower": 0.944180574364481,
+      "upper": 0.9770352048950923,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "auprc": {
+      "value": 0.9671511672345116,
+      "lower": 0.9475991971307685,
+      "upper": 0.9839075829440338,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "brier": {
+      "value": 0.10002195491828095,
+      "lower": 0.08061560297899902,
+      "upper": 0.12086066074833654,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "ece": {
+      "value": 0.11910494151439588,
+      "lower": 0.09845150395980007,
+      "upper": 0.14332386741987677,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "sensitivity": {
+      "value": 0.9897435897435898,
+      "lower": 0.9785493882919145,
+      "upper": 0.9975370971060625,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "specificity": {
+      "value": 0.7094017094017094,
+      "lower": 0.6544639227642276,
+      "upper": 0.7661388020463265,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "ppv": {
+      "value": 0.8502202643171806,
+      "lower": 0.8169568452380952,
+      "upper": 0.8807420280483369,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "npv": {
+      "value": 0.9764705882352941,
+      "lower": 0.9512161983032873,
+      "upper": 0.9945362615823236,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "accuracy": {
+      "value": 0.8846153846153846,
+      "lower": 0.860536858974359,
+      "upper": 0.9086538461538461,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "f1": {
+      "value": 0.9146919431279621,
+      "lower": 0.8950660943025601,
+      "upper": 0.9328703703703703,
+      "confidence": 0.95,
+      "replicates": 2000,
+      "valid_replicates": 2000,
+      "unit": "patient"
+    },
+    "n_samples": 624,
+    "n_patients": 624,
+    "prevalence": 0.625,
+    "threshold": 0.5697912573814392
+  },
+  "selection": {
+    "monitor": "auroc",
+    "mode": "max",
+    "best_epoch": 9
+  }
+}
