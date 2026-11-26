@@ -92,8 +92,19 @@ Open datasets that need no account (MedMNIST, for example) can be downloaded wit
   `uv run pytest --expect-create` to fill in the value. Read the filled value before you
   commit: xpt records what the code did, not what it should do.
 - **Intended changes go through xpt.** When an output changes on purpose, run
-  `uv run xpt failures`, read each diff, then `uv run xpt accept <id>` for the ones you mean.
-  Don't run `xpt accept --all` on diffs you haven't read.
+  `uv run xpt failures`, read each diff, then `uv run xpt accept --verify <id>` for the ones
+  you mean. `--verify` reruns only the tests that hit those call sites. Don't run
+  `xpt accept --all` on diffs you haven't read.
+- **A bug is not accepted.** Fix the code. If you can't now, `uv run xpt reject <id>`.
+  When accept reports `suspect`, the value looks like a failure (an exception repr, `None`
+  or an empty list where there was data, a new `nan`). Use `--force` only when it is the
+  intended result.
+- **A `flaky:` line under a diff** means the path changed with no source change. Add the
+  option it names (`ignore=`, `unordered=True`, `atol=`, or the `xpt_deterministic`
+  fixture) instead of accepting the value.
+- **Before you report done**, run `uv run xpt coverage -- pytest` and add tests for changed
+  lines no test ran, or say why they need none. Use `uv run xpt show <id>` after
+  `pytest --lf --xpt-trace` to see which changed code a failing test ran.
 - **Rules use plain asserts.** Invariants and properties (a metric matches scikit-learn,
   patients never span splits, a run reproduces) use `assert`.
 - **Tests stay hermetic.** No network except tests marked `network`, no real datasets, and
