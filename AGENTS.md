@@ -20,6 +20,7 @@ Windows, plus a smoke run of every config in `configs/smoke/`. On an NVIDIA mach
 | Task | Command |
 |---|---|
 | One test file | `uv run pytest tests/test_metrics_detection.py` |
+| Fill or update expectations | `uv run pytest --expect-create`, then `uv run xpt failures` and `uv run xpt accept <id>` |
 | Train | `uv run medimage train models/<name>/config.yaml [key.path=value ...]` |
 | Compare two runs, paired | `uv run medimage compare <a>/predictions_test.csv <b>/predictions_test.csv` |
 | Publish a run | `uv run medimage publish runs/<name>/<run-id> models/<name>` |
@@ -82,6 +83,20 @@ Open datasets that need no account (MedMNIST, for example) can be downloaded wit
   against a reference implementation when one exists.
 - **Start a model project.** Copy `models/_template/` and follow
   [models/README.md](models/README.md).
+
+## Tests
+
+- **Whole outputs use xpt.** For a test whose expected value is a whole output (rendered
+  Markdown, CLI text, error messages, summaries), write `expect(actual)` from `xpt` and run
+  `uv run pytest --expect-create` to fill in the value. Read the filled value before you
+  commit: xpt records what the code did, not what it should do.
+- **Intended changes go through xpt.** When an output changes on purpose, run
+  `uv run xpt failures`, read each diff, then `uv run xpt accept <id>` for the ones you mean.
+  Don't run `xpt accept --all` on diffs you haven't read.
+- **Rules use plain asserts.** Invariants and properties (a metric matches scikit-learn,
+  patients never span splits, a run reproduces) use `assert`.
+- **Tests stay hermetic.** No network except tests marked `network`, no real datasets, and
+  no files outside `tmp_path`.
 
 ## Deliberate hand-rolls
 
