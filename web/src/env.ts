@@ -8,6 +8,7 @@ export const variables = defineEnvVars({
   },
   ALLOW_UPLOADS: {
     schema: allowUploadsSchema,
-    description: 'Set to "true" on the internal site to enable image uploads. Defaults to false.',
+    description:
+      'Uploads are on by default, as on diagnostics.harville.dev. Set to "false" only to turn them off.',
   },
 });

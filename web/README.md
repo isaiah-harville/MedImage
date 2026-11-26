@@ -4,12 +4,12 @@ A SvelteKit site where people pick a scan type, run an OpenDiagnostics research 
 and see the prediction with an attribution map. These are research models, not a medical device,
 and every page says so.
 
-The site runs in two modes from the same image:
+The public site (diagnostics.harville.dev) shows demo scans from each model's open test set and lets
+anyone upload their own PNG or JPEG, after ticking a consent box. Uploads are processed in memory
+and never stored; see `/privacy`.
 
-- **Uploads on** (the default, used by the public site): demo images from each model's open test
-  set, plus an upload form for a PNG or JPEG. The user must tick a consent box first.
-- **Read-only** (`ALLOW_UPLOADS=false`): demo images only. The upload form is absent and the upload
-  action returns 404.
+`ALLOW_UPLOADS=false` is an off switch for uploads, for example during an incident: the upload form
+disappears and the upload action returns 404. Production leaves uploads on.
 
 Only the SvelteKit server talks to the inference service, through page loads, form actions, and an
 image proxy. The browser never sees `API_URL`. The contract between the two is
