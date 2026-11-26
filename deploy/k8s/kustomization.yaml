@@ -1,6 +1,7 @@
 # The OpenDiagnostics demo: an inference API and its frontend. Applied by Flux from the
-# homelab repo, which owns the namespace, the Ingress, and the GHCR pull secret.
-# CI (.github/workflows/serve-image.yml and web-image.yml) bumps the tags on every build.
+# homelab repo, which owns the namespace, the Ingress, and the GHCR pull secret. CI pushes
+# a sortable <UTC time>-<sha> tag per build; Flux image automation in the homelab repo
+# pins the newest one in its Kustomization's `images:`, which overrides the tags below.
 apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 resources:

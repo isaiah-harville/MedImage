@@ -21,7 +21,7 @@ jobs:
   image:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
     concurrency:
       group: serve-image-main
@@ -43,6 +43,11 @@ jobs:
             echo "::notice::No published run has a downloadable checkpoint yet; skipping the image."
             echo "ready=false" >> "$GITHUB_OUTPUT"
           fi
+      # A sortable tag (UTC time, then commit) that Flux image automation in the homelab repo
+      # watches; it pins the newest one there, so this workflow never pushes to main.
+      - if: steps.bundle.outputs.ready == 'true'
+        id: stamp
+        run: echo "tag=$(date -u +%Y%m%d%H%M%S)-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
       - if: steps.bundle.outputs.ready == 'true'
         uses: docker/setup-buildx-action@v3
       - if: steps.bundle.outputs.ready == 'true'
@@ -60,16 +65,4 @@ jobs:
           tags: |
             ghcr.io/isaiah-harville/opendiagnostics-serve:main
             ghcr.io/isaiah-harville/opendiagnostics-serve:sha-${{ github.sha }}
-      # Flux deploys whatever tag the kustomization names; pin it to this build.
-      - name: Update the GitOps image tag
-        if: steps.bundle.outputs.ready == 'true'
-        env:
-          IMAGE_TAG: sha-${{ github.sha }}
-        run: |
-          sed -i "/name: ghcr.io\/isaiah-harville\/opendiagnostics-serve$/{n;s/newTag: .*/newTag: ${IMAGE_TAG}/}" deploy/k8s/kustomization.yaml
-          git config user.name "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add deploy/k8s/kustomization.yaml
-          git commit -m "chore(serve): deploy ${IMAGE_TAG}" || exit 0
-          git pull --rebase origin main
-          git push origin HEAD:main
+            ghcr.io/isaiah-harville/opendiagnostics-serve:${{ steps.stamp.outputs.tag }}

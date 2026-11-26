@@ -76,5 +76,5 @@ Until then the image workflow skips the build. Weights trained on CC BY-NC data
 |---|---|
 | Images | `ghcr.io/isaiah-harville/opendiagnostics-serve`, `ghcr.io/isaiah-harville/opendiagnostics-web` |
 | Manifests | `deploy/k8s/` (Kustomize), applied by Flux from the homelab repo |
-| Tags | CI pins `newTag` in `deploy/k8s/kustomization.yaml` to `sha-<commit>` on each build |
+| Tags | CI pushes `main`, `sha-<commit>`, and a sortable `<UTC time>-<short sha>` per build. Flux image automation in the homelab repo pins the newest sortable tag; CI never pushes to `main`. |
 | Owned by homelab | namespace, the Ingress and its host, TLS, rate and body-size limits, the `ghcr-pull-secret` |
