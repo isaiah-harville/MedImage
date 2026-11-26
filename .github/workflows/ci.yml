@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: ${{ matrix.os }} / Python ${{ matrix.python }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        python: ["3.11", "3.12", "3.13", "3.14"]
+        include:
+          - os: macos-latest
+            python: "3.13"
+          - os: windows-latest
+            python: "3.13"
+    steps:
+      - uses: actions/checkout@v7
+      - uses: astral-sh/setup-uv@v10
+        with:
+          python-version: ${{ matrix.python }}
+          enable-cache: true
+      # CPU-only torch keeps CI fast; the MONAI extra lets its model test run.
+      - name: Install
+        run: uv sync --locked --extra cpu --extra monai
+      - name: Format
+        run: uv run ruff format --check
+      - name: Lint
+        run: uv run ruff check
+      - name: Test
+        run: uv run pytest -m "not network"
+      - name: Smoke-train every task from the command line
+        shell: bash
+        run: |
+          for config in configs/smoke/*.yaml; do
+            uv run medimage train "$config" --output-dir "$RUNNER_TEMP/runs"
+          done
