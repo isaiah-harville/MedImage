@@ -1,11 +1,11 @@
 import tomllib
 
-import medimage
+import opendiagnostics
 
 
 def test_version_matches_pyproject(root):
     pyproject = tomllib.loads((root / "pyproject.toml").read_text())
-    assert medimage.__version__ == pyproject["project"]["version"]
+    assert opendiagnostics.__version__ == pyproject["project"]["version"]
 
 
 def test_core_dependencies_exclude_monai(root):

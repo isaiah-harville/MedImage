@@ -1,6 +1,6 @@
 # Design
 
-This document records how the `medimage` pipeline is put together and why. Read it before
+This document records how the `opendiagnostics` pipeline is put together and why. Read it before
 changing behaviour. When a decision changes, update this file in the same change.
 
 ## Goals
@@ -21,7 +21,7 @@ changing behaviour. When a decision changes, update this file in the same change
 ## Repository layout
 
 ```
-src/medimage/        the shared core package
+src/opendiagnostics/        the shared core package
   registry.py        DATASETS, MODELS, TASKS, TRANSFORMS registries and plugin loading
   config.py          the experiment schema (strict Pydantic models) and the YAML loader
   data/              the sample contract, patient-level splits, collation
@@ -35,7 +35,7 @@ src/medimage/        the shared core package
   publish.py         copy a finished run into a model project
   notebook/          generate the lab notebook pages from model projects
   repro.py           seeding, deterministic mode, provenance
-  cli.py             `medimage train | evaluate | compare | publish | notebook | list`
+  cli.py             `opendiagnostics train | evaluate | compare | publish | notebook | list`
 models/<name>/       one project per trained model: config.yaml, MODEL_CARD.md,
                      baselines.yaml, runs/<run-id>/
 configs/smoke/       seconds-long configs on generated data, run by CI
@@ -55,7 +55,7 @@ Every extensible piece is a `Registry` that maps a name to a builder. Builders r
 their module is imported:
 
 ```python
-from medimage.registry import MODELS
+from opendiagnostics.registry import MODELS
 
 
 @MODELS.register("my_net")
@@ -63,7 +63,7 @@ def my_net(in_channels: int, num_classes: int, spatial_dims: int = 2, depth: int
 ```
 
 Plugins come from three places: the built-in modules; installed packages that declare a
-`medimage.plugins` entry point; and modules or `.py` files listed under `plugins:` in a
+`opendiagnostics.plugins` entry point; and modules or `.py` files listed under `plugins:` in a
 config. Importing a plugin runs its code, so configs should list only trusted plugins.
 
 The **task** is the seam that keeps the loop generic. A `Task`:
@@ -80,7 +80,7 @@ added as new tasks without touching the loop.
 
 ## The sample contract
 
-Datasets return plain dicts (see `src/medimage/data/base.py`):
+Datasets return plain dicts (see `src/opendiagnostics/data/base.py`):
 
 | key | type | notes |
 |---|---|---|
@@ -114,7 +114,7 @@ timm and MONAI Apache-2.0) and actively maintained.
 * **timm is a core dependency.** It is the broadest, best-maintained source of 2D
   classification backbones and pretrained weights, and its models are ordinary modules.
   The `timm` model builder takes any `model_name`.
-* **MONAI is an optional extra (`medimage[monai]`).** It is the right source for 3D
+* **MONAI is an optional extra (`opendiagnostics[monai]`).** It is the right source for 3D
   networks. The `monai` model builder wraps any `monai.networks.nets` class and passes
   sizing arguments when the constructor accepts them. MONAI stays out of the core
   because adopting its transforms, `MetaTensor`, and engines would make it a second
@@ -159,7 +159,7 @@ The run logs a warning and `run.json` records `patient_ids_available: false`.
 
 ## Training
 
-* One loop for every task (`src/medimage/engine/__init__.py`). AdamW, Adam, or SGD. No
+* One loop for every task (`src/opendiagnostics/engine/__init__.py`). AdamW, Adam, or SGD. No
   weight decay on biases and normalization parameters. Cosine or step schedule with linear
   warmup. Optional AMP on CUDA and gradient clipping. A non-finite loss stops the run.
 * **Model selection** uses only the validation split: the checkpoint with the best
@@ -223,7 +223,7 @@ same benchmark, is the difference bigger than the noise, and would it hold on a 
 * **Bigger than the noise.** The leaderboard on each project page places every published
   number against our best run's 95% interval: above it, inside it, or below it. A published
   number inside our interval is a tie, whatever the point estimates say. Between our own
-  models, `medimage compare` runs a paired patient-level bootstrap on the same test
+  models, `opendiagnostics compare` runs a paired patient-level bootstrap on the same test
   samples and reports the difference, its interval, and a p-value. When a baseline's code
   is public, reproduce it in this pipeline and compare paired, because a paired test is
   far more sensitive than comparing two intervals.
@@ -237,7 +237,7 @@ same benchmark, is the difference bigger than the noise, and would it hold on a 
 ## Lab notebook and artifact hosting
 
 The docs site, built with [Zensical](https://zensical.org), is the project's lab notebook.
-`medimage notebook` generates `docs/notebook/` from `models/` before each build:
+`opendiagnostics notebook` generates `docs/notebook/` from `models/` before each build:
 
 * a home page listing every project and its latest result;
 * a page per project: the leaderboard against published baselines, the runs, and the
@@ -253,7 +253,7 @@ they cannot go stale.
 
 | Artifact | Size | Where | Why |
 |---|---|---|---|
-| Config, run record, metrics, history, split summary, predictions | KB to a few MB | git, under `models/<project>/runs/<run-id>/`; served by the docs site | Reviewed with the code, versioned with it, and rendered and downloadable from the run page. `medimage publish` refuses files over 20 MB. |
+| Config, run record, metrics, history, split summary, predictions | KB to a few MB | git, under `models/<project>/runs/<run-id>/`; served by the docs site | Reviewed with the code, versioned with it, and rendered and downloadable from the run page. `opendiagnostics publish` refuses files over 20 MB. |
 | Checkpoints | MB to GB | A Hugging Face Hub model repo per project, one folder per run | Built for model weights. The run page links the file and shows its SHA-256 from `artifacts.yaml`. |
 | Citable snapshots | the repository at a release | Zenodo, through its GitHub release integration | A DOI per version plus a concept DOI for all versions, for papers that cite our results. |
 
@@ -283,9 +283,9 @@ on 2026-11-26:
 
 Uploading is a separate, deliberate step because it publishes data. Upload the checkpoint
 to the project's Hugging Face repo, put its URL in the run's `artifacts.yaml`, and rebuild
-the notebook. Rerunning `medimage publish` keeps that URL while the checkpoint's SHA-256 is
+the notebook. Rerunning `opendiagnostics publish` keeps that URL while the checkpoint's SHA-256 is
 unchanged. Check the dataset's license before uploading weights or predictions; for
-credentialed data, publish metrics only (`medimage publish --no-predictions`) unless the
+credentialed data, publish metrics only (`opendiagnostics publish --no-predictions`) unless the
 agreement allows more.
 
 ## Roadmap

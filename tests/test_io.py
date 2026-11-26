@@ -6,7 +6,7 @@ from pydicom.dataset import Dataset, FileMetaDataset
 from pydicom.uid import CTImageStorage, ExplicitVRLittleEndian, generate_uid
 from xpt import expect
 
-from medimage.io import load_image
+from opendiagnostics.io import load_image
 
 
 def _write_dicom(

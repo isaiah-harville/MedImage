@@ -1,3 +1,3 @@
 # Tasks
 
-::: medimage.tasks
+::: opendiagnostics.tasks

@@ -1,3 +1,3 @@
 # Command line
 
-::: medimage.cli
+::: opendiagnostics.cli

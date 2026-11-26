@@ -1,7 +1,9 @@
-# MedImage
+# OpenDiagnostics
 
-MedImage is an open-source monorepo of PyTorch models for medical image classification and
-detection. The goal is models that beat published results, shown with the statistics to
+**Open research models for medical image diagnosis. Not a medical device.**
+
+OpenDiagnostics is an open-source monorepo of PyTorch models for medical image
+classification and detection. The goal is models that beat published results, shown with the statistics to
 back the claim.
 
 This site is the project's lab notebook. Every published run has a page with its config,

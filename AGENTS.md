@@ -1,8 +1,9 @@
 # AGENTS.md
 
-MedImage is a monorepo of PyTorch models for medical image classification and detection.
-The goal is models that beat published results, with the statistics to back the claim.
-Everything runs through one pipeline in `src/medimage`. The docs site is the lab notebook.
+OpenDiagnostics is a monorepo of PyTorch models for medical image classification and
+detection: open research models, not a medical device. The goal is models that beat
+published results, with the statistics to back the claim.
+Everything runs through one pipeline in `src/opendiagnostics`. The docs site is the lab notebook.
 Read [docs/design.md](docs/design.md) before changing behavior; it holds the data shapes,
 the evaluation rules, the hosting decision, and the roadmap. The dataset survey, with
 licenses and access terms, is in [docs/datasets.md](docs/datasets.md).
@@ -21,17 +22,17 @@ Windows, plus a smoke run of every config in `configs/smoke/`. On an NVIDIA mach
 |---|---|
 | One test file | `uv run pytest tests/test_metrics_detection.py` |
 | Fill or update expectations | `uv run pytest --expect-create`, then `uv run xpt failures` and `uv run xpt accept <id>` |
-| Train | `uv run medimage train models/<name>/config.yaml [key.path=value ...]` |
-| Compare two runs, paired | `uv run medimage compare <a>/predictions_test.csv <b>/predictions_test.csv` |
-| Publish a run | `uv run medimage publish runs/<name>/<run-id> models/<name>` |
-| Docs | `uv run medimage notebook && uv run zensical serve` |
-| Registered components | `uv run medimage list` |
+| Train | `uv run opendiagnostics train models/<name>/config.yaml [key.path=value ...]` |
+| Compare two runs, paired | `uv run opendiagnostics compare <a>/predictions_test.csv <b>/predictions_test.csv` |
+| Publish a run | `uv run opendiagnostics publish runs/<name>/<run-id> models/<name>` |
+| Docs | `uv run opendiagnostics notebook && uv run zensical serve` |
+| Registered components | `uv run opendiagnostics list` |
 
 ## Layout
 
 | Path | Owns |
 |---|---|
-| `src/medimage/` | the pipeline: registries, config, I/O, transforms, datasets, models, tasks, metrics, engine, publish, notebook |
+| `src/opendiagnostics/` | the pipeline: registries, config, I/O, transforms, datasets, models, tasks, metrics, engine, publish, notebook |
 | `models/<name>/` | one model on one benchmark: `config.yaml`, `MODEL_CARD.md`, `baselines.yaml`, `runs/<run-id>/` |
 | `configs/smoke/` | seconds-long configs on generated data |
 | `docs/` | design, dataset survey, site home page; `docs/notebook/` is generated and ignored |
@@ -45,11 +46,11 @@ Windows, plus a smoke run of every config in `configs/smoke/`. On an NVIDIA mach
 2. **The test split is for final numbers.** Model selection, thresholds, and calibration
    use validation data only.
 3. **Every headline metric has an interval.** A percentile bootstrap that resamples
-   patients. A claim that one model beats another needs `medimage compare` (a paired
+   patients. A claim that one model beats another needs `opendiagnostics compare` (a paired
    test) or a published value outside our interval.
 4. **Comparisons with published results use the benchmark's protocol.** Same split, same
    metric definition. Every number in `baselines.yaml` has a source.
-5. **Published runs come from clean commits.** `medimage publish` refuses a dirty-tree run.
+5. **Published runs come from clean commits.** `opendiagnostics publish` refuses a dirty-tree run.
    Runs are deterministic on CPU with `deterministic: strict`, and a test checks that.
 6. **Respect dataset licenses.** Never commit or upload data, weights, or per-image
    predictions that a dataset's terms forbid sharing. The survey lists each dataset's terms.
@@ -71,15 +72,15 @@ Open datasets that need no account (MedMNIST, for example) can be downloaded wit
 
 ## How to make common changes
 
-- **Add a dataset.** Write a `DatasetSource` subclass in `src/medimage/datasets/`. Register
+- **Add a dataset.** Write a `DatasetSource` subclass in `src/opendiagnostics/datasets/`. Register
   it with `@DATASETS.register("<name>")` and import it in `datasets/__init__.py`. Expose
   `patient_ids`, `strata`, and `predefined_splits()` without reading pixels. Test it on a
   tiny fixture written to `tmp_path`, never on real data.
-- **Add a model.** Register a builder in `src/medimage/models/` that takes `in_channels`,
+- **Add a model.** Register a builder in `src/opendiagnostics/models/` that takes `in_channels`,
   `num_classes`, and `spatial_dims`. Add a forward-shape test.
-- **Add a task.** Subclass `Task` in `src/medimage/tasks/` and register it. The engine
+- **Add a task.** Subclass `Task` in `src/opendiagnostics/tasks/` and register it. The engine
   must not change.
-- **Add a metric.** Put it in `src/medimage/metrics/` as a pure NumPy function. Test it
+- **Add a metric.** Put it in `src/opendiagnostics/metrics/` as a pure NumPy function. Test it
   against a reference implementation when one exists.
 - **Start a model project.** Copy `models/_template/` and follow
   [models/README.md](models/README.md).

@@ -1,9 +1,9 @@
 # Lab notebook generator
 
-::: medimage.notebook
+::: opendiagnostics.notebook
 
-::: medimage.notebook.model
+::: opendiagnostics.notebook.model
 
-::: medimage.notebook.pages
+::: opendiagnostics.notebook.pages
 
-::: medimage.notebook.plots
+::: opendiagnostics.notebook.plots

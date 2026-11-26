@@ -1,6 +1,6 @@
 [project]
-site_name = "MedImage lab notebook"
-site_description = "Reproducible PyTorch models for medical image classification and detection"
+site_name = "OpenDiagnostics lab notebook"
+site_description = "Open research models for medical image diagnosis. Not a medical device."
 site_url = "https://isaiah-harville.github.io/MedImage/"
 repo_url = "https://github.com/isaiah-harville/MedImage"
 repo_name = "isaiah-harville/MedImage"

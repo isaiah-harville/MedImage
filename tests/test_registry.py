@@ -1,6 +1,6 @@
 import pytest
 
-from medimage.registry import (
+from opendiagnostics.registry import (
     DATASETS,
     MODELS,
     TASKS,
@@ -35,7 +35,7 @@ def test_duplicate_registration_is_an_error():
 def test_file_plugin_registers_components(tmp_path):
     plugin = tmp_path / "plugin.py"
     plugin.write_text(
-        "from medimage.registry import MODELS\n"
+        "from opendiagnostics.registry import MODELS\n"
         "@MODELS.register('test_plugin_model')\n"
         "def build(**kwargs):\n"
         "    return kwargs\n"

@@ -1,9 +1,9 @@
 # Metrics
 
-::: medimage.metrics.classification
+::: opendiagnostics.metrics.classification
 
-::: medimage.metrics.detection
+::: opendiagnostics.metrics.detection
 
-::: medimage.metrics.bootstrap
+::: opendiagnostics.metrics.bootstrap
 
-::: medimage.metrics.compare
+::: opendiagnostics.metrics.compare

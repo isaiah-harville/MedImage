@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from medimage.metrics.detection import DetectionEvaluator, box_iou
+from opendiagnostics.metrics.detection import DetectionEvaluator, box_iou
 
 
 def _random_scene(seed, num_images=25, num_classes=3):

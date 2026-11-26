@@ -11,8 +11,8 @@ from typing import Any
 import numpy as np
 import torch
 
-from medimage.data.base import DatasetInfo, DatasetSource, LabelMode, Sample
-from medimage.registry import DATASETS
+from opendiagnostics.data.base import DatasetInfo, DatasetSource, LabelMode, Sample
+from opendiagnostics.registry import DATASETS
 
 
 class _Synthetic(DatasetSource):

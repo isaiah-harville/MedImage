@@ -1,3 +1,3 @@
 # Reproducibility
 
-::: medimage.repro
+::: opendiagnostics.repro

@@ -2,8 +2,8 @@ import numpy as np
 import pytest
 from sklearn import metrics as sk
 
-from medimage.metrics import auprc, auroc, bootstrap, threshold_metrics, youden_threshold
-from medimage.metrics.bootstrap import cluster_indices
+from opendiagnostics.metrics import auprc, auroc, bootstrap, threshold_metrics, youden_threshold
+from opendiagnostics.metrics.bootstrap import cluster_indices
 
 
 @pytest.mark.parametrize("seed", range(5))

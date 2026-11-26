@@ -1,6 +1,6 @@
 """Sample transforms that work on 2D and 3D images alike.
 
-Each transform takes and returns a sample dict (see :mod:`medimage.data.base`). Spatial
+Each transform takes and returns a sample dict (see :mod:`opendiagnostics.data.base`). Spatial
 transforms also update detection ``boxes`` so images and annotations stay aligned. Boxes are
 supported for 2D images; a spatial transform given 3D boxes raises instead of guessing.
 
@@ -23,8 +23,8 @@ from typing import Any
 import torch
 import torch.nn.functional as F
 
-from medimage.data.base import Sample
-from medimage.registry import TRANSFORMS
+from opendiagnostics.data.base import Sample
+from opendiagnostics.registry import TRANSFORMS
 
 
 class Compose:

@@ -1,3 +1,3 @@
 # Publishing runs
 
-::: medimage.publish
+::: opendiagnostics.publish

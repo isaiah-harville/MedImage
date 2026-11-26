@@ -1,3 +1,3 @@
 # Registry and plugins
 
-::: medimage.registry
+::: opendiagnostics.registry

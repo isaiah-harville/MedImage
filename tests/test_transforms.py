@@ -1,8 +1,8 @@
 import pytest
 import torch
 
-from medimage.config import Component
-from medimage.transforms import (
+from opendiagnostics.config import Component
+from opendiagnostics.transforms import (
     NormalizeIntensity,
     RandomFlip,
     Resize,
