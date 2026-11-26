@@ -9,61 +9,74 @@ This guide takes one experiment from config to a published, comparable result. T
 uv sync --locked --extra cpu
 ```
 
-Use `--extra cu132` on an NVIDIA machine, and add `--extra monai` for MONAI's 3D networks.
+Use `--extra cu132` on an NVIDIA machine.
 
 ## Write an experiment
 
-An experiment is one YAML file. Everything not given takes the default shown in the
-[config reference](reference/config.md). Unknown keys and wrong types are errors.
+An experiment is one `LightningCLI` YAML file. Components are named by import path
+(`class_path`) with their arguments (`init_args`). Unknown keys and wrong types are errors.
+`uv run opendiagnostics fit --help` lists every option, and
+`uv run opendiagnostics fit --print_config` prints a full config with the defaults.
 
 ```yaml
-name: pneumoniamnist-cnn
-seed: 0
-deterministic: strict          # strict | warn | off
-task:
-  name: classification
-  params: {threshold: youden}  # binary threshold chosen on validation
-data:
-  dataset:
-    name: medmnist             # any registered dataset; see `opendiagnostics list`
-    params: {subset: pneumoniamnist, size: 64, download: true}
-  split: {method: predefined}  # or: {method: patient, fractions: [0.7, 0.15, 0.15]}
-  train_transforms:
-    - {name: random_flip, params: {axes: [-1]}}
-    - {name: normalize, params: {mean: [0.5], std: [0.25]}}
-  eval_transforms:
-    - {name: normalize, params: {mean: [0.5], std: [0.25]}}
-  batch_size: 64
+name: pneumoniamnist-convnext
+seed_everything: 0
+trainer:
+  precision: bf16-mixed
+  deterministic: warn            # true on CPU; some CUDA kernels have no deterministic version
+  max_epochs: 40
+  callbacks:
+    - class_path: lightning.pytorch.callbacks.EMAWeightAveraging
+      init_args: {decay: 0.998}
 model:
-  name: timm                   # simple_cnn | timm | monai | fasterrcnn | retinanet | fcos
-  params: {model_name: resnet18, pretrained: true}
-optim: {name: adamw, lr: 1.0e-3, scheduler: cosine, warmup_epochs: 1}
-train: {epochs: 10, device: auto}
+  class_path: opendiagnostics.modules.ImageClassifier
+  init_args:
+    network:
+      class_path: timm.create_model
+      init_args: {model_name: convnext_small.fb_in22k_ft_in1k, pretrained: true}
+      dict_kwargs: {num_classes: 1, in_chans: 1}   # binary: 1 logit
+    threshold: youden            # binary threshold chosen on validation
+data:
+  class_path: opendiagnostics.data.MedMNISTDataModule
+  init_args:
+    flag: pneumoniamnist
+    size: 224
+    split: predefined            # or patient, with fractions: [0.7, 0.15, 0.15]
+    batch_size: 64
+    train_transforms:
+      class_path: torchvision.transforms.v2.RandomResizedCrop
+      init_args: {size: 224, scale: [0.7, 1.0]}
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args: {lr: 1.0e-4, weight_decay: 0.05}
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CosineAnnealingLR
+  init_args: {T_max: 40}
+checkpoint: {monitor: val/auroc, mode: max}
 eval: {bootstrap_samples: 2000, bootstrap_unit: patient}
 ```
 
-The task derives `in_channels`, `spatial_dims`, and `num_classes` from the dataset, so
-`model.params` never sets them.
+The network's output size must match the task: one logit for binary, one per class for
+multiclass, one per label for multilabel. A mismatch stops the run at the first batch.
 
 ## Train
 
 ```bash
-uv run opendiagnostics train models/pneumoniamnist-cnn/config.yaml
+uv run opendiagnostics fit -c models/pneumoniamnist-convnext/config.yaml
 ```
 
-Override any value from the command line with `key.path=value`, for example
-`train.epochs=2` or `model.params.model_name=convnext_tiny`. Each run writes
-`runs/<name>/<timestamp>-<commit>/`:
+Override any value on the command line, for example `--trainer.max_epochs=2` or
+`--data.init_args.batch_size=32`. Each run writes `runs/<name>/<timestamp>-<commit>/`:
 
 | File | Holds |
 |---|---|
 | `config.yaml` | the fully resolved config |
 | `run.json` | seed, git commit and dirty flag, package versions, hardware, data fingerprint |
 | `splits.json` | the sample IDs in each split, with patient and label counts |
-| `history.jsonl` | per epoch: training loss, validation metrics, learning rate |
+| `metrics.csv` | per epoch: training loss, validation metrics, learning rate |
 | `metrics.json` | validation and test metrics with bootstrap intervals |
 | `predictions_<split>.csv` | per-sample outputs |
-| `checkpoint.pt` | weights from the best validation epoch |
+| `checkpoint.ckpt` | weights from the best validation epoch |
 
 ## Compare
 
@@ -83,7 +96,7 @@ Commit first, then train, so that the commit reproduces the run. Then publish th
 its model project and rebuild the notebook:
 
 ```bash
-uv run opendiagnostics publish runs/pneumoniamnist-cnn/<run> models/pneumoniamnist-cnn
+uv run opendiagnostics publish runs/pneumoniamnist-convnext/<run> models/pneumoniamnist-convnext
 uv run opendiagnostics notebook
 uv run zensical serve
 ```
@@ -93,5 +106,6 @@ See [design](design.md#beating-published-results) for the rules a comparison has
 
 ## Extend
 
-New datasets, models, tasks, and transforms are registered builders. See
-[design](design.md#extension-points) and the [registry reference](reference/registry.md).
+Networks and transforms need no code: name any importable class in the config. A new
+dataset is a `MedicalDataModule` subclass, and a new task is a `DiagnosticModule` subclass.
+See [design](design.md#extension-points).

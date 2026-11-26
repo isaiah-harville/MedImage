@@ -10,8 +10,9 @@ changing behaviour. When a decision changes, update this file in the same change
    and a claim that one model beats another rests on a paired test on the same test
    samples, not on two numbers side by side.
 2. **One pipeline for many models.** Classification and detection, 2D and 3D, X-ray, CT,
-   MRI and other modalities all run through one training and evaluation loop. A new
-   dataset or model is a registered builder plus a config file, with no fork of the loop.
+   MRI and other modalities all train with Lightning through one `LightningCLI`. A new
+   network or transform is a `class_path` in a config file; a new dataset is a
+   `LightningDataModule` subclass.
 3. **Results that hold up to scrutiny.** No patient-level leakage, confidence intervals on
    every headline metric, decision thresholds chosen on validation data only, and enough
    provenance to rerun any result.
@@ -21,137 +22,115 @@ changing behaviour. When a decision changes, update this file in the same change
 ## Repository layout
 
 ```
-src/opendiagnostics/        the shared core package
-  registry.py        DATASETS, MODELS, TASKS, TRANSFORMS registries and plugin loading
-  config.py          the experiment schema (strict Pydantic models) and the YAML loader
-  data/              the sample contract, patient-level splits, collation
-  io/                DICOM, DICOM series, NIfTI, PNG/JPEG/TIFF, and NPY loaders
-  transforms/        2D/3D-aware sample transforms that keep boxes aligned
-  datasets/          built-in datasets (MedMNIST, CSV manifest, COCO manifest, synthetic)
-  models/            built-in model builders (simple CNN, timm, torchvision detectors, MONAI)
-  tasks/             classification and detection: loss, prediction, metrics
-  metrics/           AUROC, AUPRC, calibration, mAP, FROC, cluster bootstrap, paired comparison
-  engine/            the training and evaluation loop and the run directory
+src/opendiagnostics/
+  cli.py             `opendiagnostics fit | evaluate | compare | publish | notebook`; the LightningCLI
+  data/              the data module base class, patient-level splits, MedMNIST, CSV manifests,
+                     synthetic smoke data
+  modules/           Lightning modules: ImageClassifier, ObjectDetector, and their base
+  evaluation.py      final evaluation of the selected checkpoint with bootstrap intervals
+  metrics/           torchmetrics-backed classification metrics, cluster bootstrap, paired compare
+  provenance.py      git state and package versions for run.json
   publish.py         copy a finished run into a model project
   notebook/          generate the lab notebook pages from model projects
-  repro.py           seeding, deterministic mode, provenance
-  cli.py             `opendiagnostics train | evaluate | compare | publish | notebook | list`
 models/<name>/       one project per trained model: config.yaml, MODEL_CARD.md,
                      baselines.yaml, runs/<run-id>/
 configs/smoke/       seconds-long configs on generated data, run by CI
+scripts/             generators, such as the MedMNIST recipe configs
 docs/                the docs site: this file, the dataset survey, the generated notebook
-zensical.toml        the docs site config
 tests/               pytest suite
 ```
 
-The core is one installable package. Per-model projects under `models/` hold configs, model
-cards, and committed results, plus an optional `plugin.py` for code that applies to one
-dataset only (a custom label parser, say). Code that more than one project needs moves into
-the core.
+## Libraries, and what stays ours
+
+The pipeline is Lightning and existing libraries wherever one does the job:
+
+| Concern | Library |
+|---|---|
+| Config, CLI, strict parsing | `LightningCLI` (jsonargparse) |
+| Training loop, precision, gradient clipping, determinism | `lightning.Trainer` |
+| Optimizer and schedule | `torch.optim` through LightningCLI's `optimizer:` and `lr_scheduler:` |
+| Checkpoint selection, early stopping, EMA | `ModelCheckpoint`, `EarlyStopping`, `EMAWeightAveraging` |
+| Per-epoch logs | `CSVLogger` |
+| 2D networks and pretrained weights | timm (`timm.create_model`) |
+| Detectors | torchvision (`torchvision.models.detection`) |
+| 3D networks, medical image reading | MONAI (`monai.networks.nets`, `LoadImage`) |
+| 2D transforms, keeping boxes aligned | `torchvision.transforms.v2` |
+| MedMNIST metadata and archives | `medmnist`, torchvision's `download_url` |
+| Patient-level split | scikit-learn `train_test_split` over patients |
+| Metrics | `torchmetrics` (functional AUROC, AP, calibration, ROC; `MeanAveragePrecision`) |
+
+What no library does stays here, and is small:
+
+* **The patient-level cluster bootstrap and the paired comparison.** `torchmetrics`'
+  `BootStrapper` resamples single images, which makes intervals too narrow when a patient
+  has several images. Each replicate calls `torchmetrics`, so no metric is computed by hand.
+* **The data contract and leakage check.** Every data module serves the same batch shape
+  and refuses a split in which a patient appears twice.
+* **Run provenance, publishing, and the lab notebook.**
 
 ## Extension points
 
-Every extensible piece is a `Registry` that maps a name to a builder. Builders register when
-their module is imported:
+Configs name components by import path, so any importable class or factory works without
+registration:
 
-```python
-from opendiagnostics.registry import MODELS
-
-
-@MODELS.register("my_net")
-def my_net(in_channels: int, num_classes: int, spatial_dims: int = 2, depth: int = 3): ...
+```yaml
+model:
+  class_path: opendiagnostics.modules.ImageClassifier
+  init_args:
+    network:
+      class_path: timm.create_model
+      init_args: {model_name: convnext_small.fb_in22k_ft_in1k, pretrained: true}
+      dict_kwargs: {num_classes: 9, in_chans: 3}
 ```
 
-Plugins come from three places: the built-in modules; installed packages that declare a
-`opendiagnostics.plugins` entry point; and modules or `.py` files listed under `plugins:` in a
-config. Importing a plugin runs its code, so configs should list only trusted plugins.
+`dict_kwargs` passes arguments that a factory takes through `**kwargs`. A typo there fails
+when the network is built, before training starts.
 
-The **task** is the seam that keeps the loop generic. A `Task`:
+* **A dataset** is a `MedicalDataModule` subclass that sets `info` (a `DatasetInfo`) in
+  `__init__` and returns a `Source` from `load()`: indexable `(image, target)` pairs plus
+  one sample ID and one patient ID per item, and the official split if there is one.
+* **A task** is a `DiagnosticModule` subclass: loss, per-sample predictions, calibration on
+  validation, and scoring with bootstrap intervals.
+* **A network or transform** needs no code: name its class in the config.
 
-* sizes the model from the dataset (`model_kwargs`: channels, spatial dims, outputs);
-* collates samples into batches;
-* computes the training loss;
-* turns model output into per-sample predictions;
-* fits any calibration on validation predictions (the binary threshold);
-* scores predictions, with bootstrap intervals when asked.
+The CLI links `data.info` into the model, so the module knows the label mode and class
+names. The network's output size is set in the config; a mismatch is an error at the first
+batch that says which argument to change.
 
-The engine never branches on the task type. Segmentation, regression, or survival can be
-added as new tasks without touching the loop.
+## The data contract
 
-## The sample contract
-
-Datasets return plain dicts (see `src/opendiagnostics/data/base.py`):
+Data modules serve batches of dicts:
 
 | key | type | notes |
 |---|---|---|
-| `image` | `float32 (C, H, W)` or `(C, D, H, W)` | channel-first, 2D or 3D |
-| `label` | `int64` scalar, or `float32 (K,)` for multilabel | classification |
-| `boxes` | `float32 (N, 4)`, pixel `(x1, y1, x2, y2)` | detection, 2D |
-| `labels` | `int64 (N,)`, foreground classes from 0 | detection |
-| `id`, `patient_id` | `str` | `patient_id` drives splits and the bootstrap |
+| `image` | `float32 (B, C, H, W)` or `(B, C, D, H, W)`; a list for detection | values in `[0, 1]` before the configured transforms |
+| `target` | `int64 (B,)`, `float32 (B, K)` for multilabel, or a list of `{boxes, labels}` | boxes are pixel `(x1, y1, x2, y2)`, labels start at 0 |
+| `id`, `patient_id` | `list[str]` | `patient_id` drives splits and the bootstrap |
 
-Sources also expose `patient_ids`, `strata`, and `predefined_splits()` **without loading
-pixels**, so splits are computed and checked before training starts. A `DatasetInfo` says
-what the dataset holds (task type, dims, channels, class names, label mode, license,
-citation) and whether patient IDs exist.
-
-## Framework decision: torchvision, timm, and MONAI
-
-We weighed three libraries. All three are permissively licensed (torchvision BSD-3-Clause;
-timm and MONAI Apache-2.0) and actively maintained.
-
-| | torchvision | timm | MONAI |
-|---|---|---|---|
-| What it offers | Detection models (Faster R-CNN, RetinaNet, FCOS), box ops, natural-image backbones | About a thousand 2D classification backbones with pretrained weights; `in_chans` adapts first-layer weights for grayscale input | Medical-specific: 3D networks, a large dictionary transform library, loaders, detection (RetinaNet 3D), and its own training engines |
-| 3D support | None | None | Extensive |
-| Dependencies | torch, numpy, pillow | torch, torchvision, huggingface-hub, safetensors, pyyaml | torch, numpy (many features need further optional packages) |
-| Abstraction cost | Low; plain `nn.Module`s | Low; plain `nn.Module`s | Higher; `MetaTensor`, its own transform and engine conventions |
-
-**Decision.**
-
-* **torchvision is a core dependency.** It supplies the 2D detectors. Writing our own
-  Faster R-CNN would add risk and no value.
-* **timm is a core dependency.** It is the broadest, best-maintained source of 2D
-  classification backbones and pretrained weights, and its models are ordinary modules.
-  The `timm` model builder takes any `model_name`.
-* **MONAI is an optional extra (`opendiagnostics[monai]`).** It is the right source for 3D
-  networks. The `monai` model builder wraps any `monai.networks.nets` class and passes
-  sizing arguments when the constructor accepts them. MONAI stays out of the core
-  because adopting its transforms, `MetaTensor`, and engines would make it a second
-  framework the pipeline has to follow: the sample contract, the training loop, and the
-  metrics with patient-level bootstrap intervals (which MONAI's metrics do not provide)
-  are owned here, so what a run does stays auditable in one small codebase. A plugin is
-  free to call MONAI transforms inside a dataset or transform.
-
-We wrote our own loaders and transforms on top of pydicom and nibabel, not MONAI's,
-because the set we need is small (load, window, normalize, resize, flip) and box-aware
-spatial transforms must follow our box convention. If transform needs outgrow this set,
-revisit: a MONAI adapter transform is the likely next step.
+Datasets hold only picklable data. MedMNIST arrays are unpacked to `.npy` files that each
+DataLoader worker memory-maps, because Windows workers start by pickling the dataset.
 
 ## Data handling
 
 ### Loading
 
-* **DICOM**: the modality LUT (rescale slope and intercept) is always applied, so CT is in
-  Hounsfield units. The VOI LUT (display windowing) is applied only on request, because
-  windowing discards information. `MONOCHROME1` is inverted so that higher always means
-  brighter. A directory is read as one series, slices sorted along the slice normal, and
-  unevenly spaced slices are an error instead of a silent distortion.
-* **NIfTI**: reoriented to the closest canonical RAS+ orientation, then transposed to
-  `(z, y, x)`.
-* DICOM (LPS) and NIfTI (RAS) still use different patient coordinate systems. Do not mix
-  the two in one dataset without resampling to a common orientation.
+* **MedMNIST** comes from the official Zenodo archives, MD5-checked, using the
+  `medmnist` package's URLs and metadata. Each array is streamed out of the archive to its
+  own `.npy` file, so no split is held in memory.
+* **Image files** listed in a CSV manifest are read with MONAI's `LoadImage` (DICOM,
+  NIfTI, PNG, and more) and min-max scaled per image. DICOM (LPS) and NIfTI (RAS) use
+  different patient coordinate systems; do not mix them in one dataset without resampling.
 
 ### Splits and leakage
 
 Images of one patient are correlated. Splitting them across train and test inflates test
 metrics. So:
 
-* `split.method: patient` splits **patients**, not images, stratified by each patient's
-  majority label.
-* `split.method: predefined` uses the dataset's official split.
-* Either way, `check_disjoint` runs before training and raises `LeakageError` if a patient
-  appears in two splits.
+* `split: patient` splits **patients**, not images, stratified by each patient's majority
+  label.
+* `split: predefined` uses the dataset's official split.
+* Either way, `check_disjoint` runs in `setup()`, before training, and raises
+  `LeakageError` if a patient appears in two splits.
 * `splits.json` in each run records the sample IDs in every split.
 
 Some datasets publish no patient IDs (MedMNIST, VinDr-CXR). Leakage then cannot be checked.
@@ -159,31 +138,28 @@ The run logs a warning and `run.json` records `patient_ids_available: false`.
 
 ## Training
 
-* One loop for every task (`src/opendiagnostics/engine/__init__.py`). AdamW, Adam, or SGD. No
-  weight decay on biases and normalization parameters. Cosine or step schedule with linear
-  warmup. Optional AMP on CUDA and gradient clipping. A non-finite loss stops the run.
-* **Model selection** uses only the validation split: the checkpoint with the best
-  `train.monitor` (AUROC for classification, mAP@0.5 for detection, by default). There is
-  optional early stopping.
-* The test split is scored once, after selection.
+* Lightning's `Trainer`, configured under `trainer:`. A non-finite loss stops the run.
+* **Model selection** uses only the validation split: `ModelCheckpoint` keeps the epoch with
+  the best `checkpoint.monitor` (`val/auroc` by default; `val/map_50` for detection). With
+  `EMAWeightAveraging`, validation and the checkpoint use the averaged weights.
+* The test split is scored once, after selection, with the selected checkpoint.
 
 ## Evaluation and metrics
 
 * **Classification.**
   * Binary: AUROC, AUPRC (average precision), Brier score, expected calibration error,
-    and sensitivity, specificity, PPV, NPV, accuracy and F1 at a decision threshold.
+    and sensitivity, specificity, PPV, NPV, accuracy and F1 at the decision threshold,
+    plus `accuracy_at_0.5` for benchmarks that fix the threshold at 0.5.
   * Multiclass: macro one-vs-rest AUROC and AUPRC, accuracy, balanced accuracy, and
     per-class values.
-  * Multilabel: per-label and macro AUROC and AUPRC.
-  * AUROC and AUPRC match scikit-learn exactly, including ties. The tests check this.
+  * Multilabel: per-label and macro AUROC and AUPRC, and accuracy at 0.5.
+  * Metrics come from `torchmetrics`, which computes in float32; tests pin AUROC and AUPRC
+    to scikit-learn within 1e-6, ties included.
 * **Threshold.** The binary threshold is fitted on validation predictions (Youden's J by
-  default, or a fixed value) and applied unchanged to test. Choosing a threshold on the
-  test set is a common source of optimistic sensitivity and specificity.
-* **Detection.**
-  * COCO-protocol mAP (averaged over IoU 0.50 to 0.95), mAP@0.5, mAP@0.75 and per-class
-    AP@0.5. These match `pycocotools` to 1e-6 on randomized scenes; the tests check this.
-  * Lesion-level FROC: sensitivity at 1/8 to 8 false positives per image, and the CPM
-    (their mean), as in LUNA16. Repeat hits on an already-found lesion are ignored.
+  default, or a fixed value) and applied unchanged to test. A sample counts as positive at
+  `score >= threshold`, the convention ROC thresholds use.
+* **Detection.** COCO mAP, mAP@0.5, mAP@0.75 and mAR@100 from `torchmetrics`'
+  `MeanAveragePrecision` (pycocotools backend).
 * **Confidence intervals.**
   * Every metric gets a percentile bootstrap interval, 1,000 replicates by default.
   * The default unit is the **patient** (a cluster bootstrap): resampling images when
@@ -195,21 +171,18 @@ The run logs a warning and `run.json` records `patient_ids_available: false`.
 
 ## Reproducibility
 
-* `seed` seeds Python, NumPy and torch. DataLoader workers get derived seeds, and shuffling
-  uses a seeded generator.
-* `deterministic` sets the policy for nondeterministic operations:
-  * `strict` (the default) errors on them;
-  * `warn` only warns. Some CUDA backward passes used by the detectors have no
-    deterministic implementation, so detection on a GPU may need this;
-  * `off` allows them.
+* `seed_everything` seeds Python, NumPy and torch, and DataLoader workers.
+* `trainer.deterministic` sets the policy for nondeterministic operations: `true` (the
+  default) errors on them, `warn` only warns. Several CUDA backward passes have no
+  deterministic kernel, so GPU recipes use `warn`.
 * The tests check that two CPU runs of one config give bit-identical metrics.
 * `run.json` records:
   * the git commit, branch, and whether the tree had uncommitted changes (and warns if so);
   * Python and package versions, platform, and GPU;
-  * the dataset's license, citation and fingerprint (for MedMNIST, the verified MD5);
+  * the dataset's license, citation and fingerprint (for MedMNIST, the archive MD5);
   * the command line and start and end times.
-* `config.yaml` in the run is the fully resolved config. Config parsing is strict: unknown
-  keys and wrong types are errors, so a typo cannot silently fall back to a default.
+* `config.yaml` in the run is the fully resolved config. Parsing is strict: unknown keys
+  and wrong types are errors, so a typo cannot silently fall back to a default.
 
 ## Beating published results
 

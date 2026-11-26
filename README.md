@@ -6,21 +6,19 @@ An open-source monorepo of PyTorch models for medical image classification and o
 detection. The goal is models that beat published results, shown with the statistics to
 back the claim. All of them are built on one generic, reproducible pipeline.
 
-* **One loop, many tasks.** Classification (binary, multiclass, multilabel) and 2D
-  detection share one training and evaluation loop. Datasets, models, tasks, and transforms
-  are registries, so new ones plug in without touching the loop.
-* **Medical images.** DICOM (with rescale to Hounsfield units, `MONOCHROME1`, and series
-  stacking), NIfTI (canonical orientation), and PNG/JPEG/TIFF. Transforms work in 2D and
-  3D and keep boxes aligned.
+* **Built on Lightning.** Experiments are `LightningCLI` configs. Networks come from timm,
+  torchvision, and MONAI by import path; data modules, transforms (`torchvision.transforms.v2`,
+  MONAI), metrics (`torchmetrics`), checkpointing, mixed precision, and EMA are the libraries'
+  own.
 * **Sound evaluation.**
   * Patient-level splits, with a leakage check that runs before training.
-  * AUROC, AUPRC, and calibration for classification; COCO mAP and FROC for detection.
-    Our values match scikit-learn and pycocotools.
-  * A patient-level bootstrap 95% CI on every metric.
+  * AUROC, AUPRC, and calibration for classification; COCO mAP for detection.
+  * A patient-level bootstrap 95% CI on every metric, and a paired bootstrap to compare
+    two models on the same test samples.
   * Decision thresholds chosen on validation data only.
 * **Reproducible runs.** Each run records its seed, resolved config, git commit (and
   whether the tree was dirty), package versions, hardware, and data fingerprint. With
-  `deterministic: strict`, two CPU runs give bit-identical metrics.
+  `trainer.deterministic: true`, two CPU runs give bit-identical metrics.
 
 Read [docs/design.md](docs/design.md) for the design and its reasoning, and
 [docs/datasets.md](docs/datasets.md) for a survey of public datasets: their tasks, sizes,
@@ -39,42 +37,45 @@ uv sync --extra cpu
 uv sync --extra cu132
 ```
 
-Add `--extra monai` for MONAI's 3D networks. Outside uv, `pip install .` takes torch from
-PyPI as usual.
+Outside uv, `pip install .` takes torch from PyPI as usual.
 
-## Train the worked example
+## Train
 
-PneumoniaMNIST is open (CC BY 4.0) and needs no account. The first run downloads a 21 MB
-file from Zenodo and checks its MD5. On a laptop CPU, training takes about three minutes:
+Every MedMNIST 2D subset has a project under `models/` with a recipe for one 12 GB GPU:
+ConvNeXt-S pretrained on ImageNet-22k, fine-tuned at 224 px with bf16 and EMA. MedMNIST is
+open and needs no account; the first run downloads the subset from Zenodo and checks its
+MD5. At 224 px the twelve subsets need about 50 GB of disk once unpacked.
 
 ```bash
-uv run opendiagnostics train models/pneumoniamnist-cnn/config.yaml
+uv run opendiagnostics fit -c models/pneumoniamnist-convnext/config.yaml
 ```
 
-For a quick check, override any config value from the command line:
+Override any value from the command line:
 
 ```bash
-uv run opendiagnostics train models/pneumoniamnist-cnn/config.yaml train.epochs=2
+uv run opendiagnostics fit -c models/pneumoniamnist-convnext/config.yaml --trainer.max_epochs=2
 ```
 
 Each run writes `runs/<name>/<timestamp>-<commit>/`, which holds `metrics.json` (with
-CIs), `run.json` (provenance), `splits.json`, `history.jsonl`, per-sample predictions, and
+CIs), `run.json` (provenance), `splits.json`, `metrics.csv`, per-sample predictions, and
 the best checkpoint. To re-score a finished run:
 
 ```bash
-uv run opendiagnostics evaluate runs/pneumoniamnist-cnn/<run>
+uv run opendiagnostics evaluate runs/pneumoniamnist-convnext/<run>
 ```
 
-`uv run opendiagnostics list` shows every registered dataset, model, task, and transform.
+The recipes are generated: edit `scripts/medmnist_recipes.py`, then run
+`uv run python scripts/medmnist_recipes.py`.
 
 ## Layout
 
 ```
-src/opendiagnostics/     shared core: registry, config, io, transforms, datasets, models, tasks, metrics, engine
-models/<name>/    one project per trained model: config.yaml, MODEL_CARD.md, results/
-configs/smoke/    tiny configs on generated data, run in CI
-docs/             design.md, datasets.md
-tests/            pytest suite
+src/opendiagnostics/     LightningCLI, data modules, Lightning modules, evaluation, metrics, notebook
+models/<name>/           one project per model: config.yaml, baselines.yaml, MODEL_CARD.md, runs/
+configs/smoke/           tiny configs on generated data, run in CI
+scripts/                 generators, such as the MedMNIST recipe configs
+docs/                    design.md, datasets.md, guide.md
+tests/                   pytest suite
 ```
 
 To add a model, see [models/README.md](models/README.md).
@@ -82,7 +83,7 @@ To add a model, see [models/README.md](models/README.md).
 ## Develop
 
 ```bash
-uv sync --locked --extra cpu --extra monai && uv run ruff format --check && uv run ruff check && uv run ty check && uv run pytest
+uv sync --locked --extra cpu && uv run ruff format --check && uv run ruff check && uv run ty check && uv run pytest
 ```
 
 CI runs the same checks on Ubuntu with Python 3.12, builds the docs, and smoke-trains every
