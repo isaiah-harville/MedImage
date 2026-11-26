@@ -41,7 +41,7 @@ def test_every_hand_written_page_is_in_the_site_nav(root):
     listed = set(pages(nav))
     docs = root / "docs"
     written = {
-        str(p.relative_to(docs))
+        p.relative_to(docs).as_posix()
         for p in docs.rglob("*.md")
         if p.relative_to(docs).parts[0] != "notebook"
     }

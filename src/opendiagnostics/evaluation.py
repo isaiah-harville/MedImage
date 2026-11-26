@@ -75,10 +75,11 @@ def evaluate(
     val = predict(trainer, module, data, "val", checkpoint)
     calibration = module.calibrate(val)
     epoch = torch.load(checkpoint, map_location="cpu", weights_only=True)["epoch"]
+    unit = settings.bootstrap_unit if data.info.patient_ids_available else "sample"
     bootstrap = {
         "replicates": settings.bootstrap_samples,
         "confidence": settings.confidence,
-        "unit": settings.bootstrap_unit,
+        "unit": unit,
         "seed": seed,
     }
     results: dict[str, Any] = {
@@ -87,9 +88,7 @@ def evaluate(
         "bootstrap": bootstrap
         | {
             "method": "percentile",
-            "unit": settings.bootstrap_unit
-            if data.info.patient_ids_available
-            else "sample (no patient IDs)",
+            "unit": unit if data.info.patient_ids_available else "sample (no patient IDs)",
         },
     }
     for split in settings.splits:

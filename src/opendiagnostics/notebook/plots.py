@@ -6,8 +6,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
-import torch
-from torchmetrics.functional import classification as tmc
+from sklearn import metrics as skm
 
 from opendiagnostics.metrics import classification as cm
 from opendiagnostics.metrics.compare import read_predictions
@@ -54,9 +53,8 @@ def roc_and_pr(predictions_csv: Path, path: Path) -> bool:
         return False
     plt = _pyplot()
     y, score = predictions.target.astype(bool), predictions.prob[:, 0]
-    scores, labels = torch.as_tensor(score), torch.as_tensor(y, dtype=torch.long)
-    fpr, tpr, _ = tmc.binary_roc(scores, labels)
-    precision, recall, _ = tmc.binary_precision_recall_curve(scores, labels)
+    fpr, tpr, _ = skm.roc_curve(y, score)
+    precision, recall, _ = skm.precision_recall_curve(y, score)
     fig, (left, right) = plt.subplots(1, 2, figsize=(8, 3.4))
     left.plot(fpr, tpr, label=f"AUROC {cm.auroc(y, score):.4f}")
     left.plot([0, 1], [0, 1], color="0.6", linestyle="--", linewidth=1)

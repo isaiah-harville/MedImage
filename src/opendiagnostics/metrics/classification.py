@@ -1,4 +1,9 @@
-"""Classification metrics on NumPy arrays, computed by ``torchmetrics.functional``.
+"""Classification metrics on NumPy arrays.
+
+AUROC, average precision, and the ROC curve come from scikit-learn in float64, as in the
+official MedMNIST evaluator; torchmetrics computes them in float32, which drifted from
+scikit-learn by up to 1e-4 on the Windows CUDA build. Calibration and the threshold counts
+come from ``torchmetrics.functional``.
 
 Each function returns NaN where the metric is undefined (AUROC on one class, for example),
 so the bootstrap can leave that replicate out instead of averaging a misleading zero.
@@ -9,6 +14,7 @@ from __future__ import annotations
 import numpy as np
 import torch
 from numpy.typing import ArrayLike
+from sklearn import metrics as skm
 from torchmetrics.functional import classification as tmc
 
 
@@ -24,13 +30,13 @@ def _both_classes(target: ArrayLike) -> bool:
 def auroc(target: ArrayLike, score: ArrayLike) -> float:
     if not _both_classes(target):
         return float("nan")
-    return float(tmc.binary_auroc(_t(score), _t(target, torch.long)))
+    return float(skm.roc_auc_score(np.asarray(target), np.asarray(score, np.float64)))
 
 
 def auprc(target: ArrayLike, score: ArrayLike) -> float:
     if not np.any(np.asarray(target) == 1):
         return float("nan")
-    return float(tmc.binary_average_precision(_t(score), _t(target, torch.long)))
+    return float(skm.average_precision_score(np.asarray(target), np.asarray(score, np.float64)))
 
 
 def brier(target: np.ndarray, prob: np.ndarray) -> float:
@@ -45,8 +51,8 @@ def youden_threshold(target: ArrayLike, score: ArrayLike) -> float:
     """The threshold that maximizes sensitivity + specificity - 1 on these scores."""
     if not _both_classes(target):
         return 0.5
-    fpr, tpr, thresholds = tmc.binary_roc(_t(score), _t(target, torch.long))
-    return float(thresholds[int(torch.argmax(tpr - fpr))])
+    fpr, tpr, thresholds = skm.roc_curve(np.asarray(target), np.asarray(score, np.float64))
+    return float(min(thresholds[int(np.argmax(tpr - fpr))], 1.0))
 
 
 def threshold_metrics(target: np.ndarray, score: np.ndarray, threshold: float) -> dict[str, float]:

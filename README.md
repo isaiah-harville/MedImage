@@ -37,6 +37,9 @@ uv sync --extra cpu
 uv sync --extra cu132
 ```
 
+On a CUDA machine, pass the extra to every `uv run` as well (`uv run --extra cu132 ...`), or
+uv re-syncs the CPU build of torch.
+
 Outside uv, `pip install .` takes torch from PyPI as usual.
 
 ## Train
