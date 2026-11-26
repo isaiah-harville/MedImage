@@ -50,7 +50,7 @@ dev = [
     "ruff>=0.8",
     "scikit-learn>=1.5",
     "ty>=0.0.111",
-    "xpt>=0.2.0",
+    "xpt>=0.3.0",
 ]
 docs = [
     "matplotlib>=3.9",
