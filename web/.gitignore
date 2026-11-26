@@ -1,0 +1,9 @@
+node_modules
+build
+.svelte-kit
+.env
+.env.*
+!.env.example
+
+# The repository root ignores lib/ for Python packaging; this app keeps its code in src/lib.
+!src/lib/

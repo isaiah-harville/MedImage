@@ -1,0 +1,82 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+
+  --color-canvas: #f6f7f7;
+  --color-surface: #ffffff;
+  --color-muted: #eef0f0;
+  --color-line: #e2e5e5;
+  --color-fg: #161a1a;
+  --color-fg-secondary: #545b5b;
+  --color-accent: #0f766e;
+  --color-accent-hover: #0b5f58;
+  --color-accent-soft: #e6f2f1;
+  --color-accent-fg: #ffffff;
+  --color-warning: #8a4b06;
+  --color-warning-soft: #fff4e2;
+  --color-warning-line: #f1d3a4;
+  --color-success: #166534;
+  --color-success-soft: #e9f8ee;
+  --color-danger: #b42318;
+  --color-danger-soft: #fdeeec;
+
+  --shadow-card: 0 1px 2px rgb(0 0 0 / 0.05), 0 0 0 1px var(--color-line);
+  --shadow-btn: 0 1px 2px rgb(0 0 0 / 0.08), 0 0 0 1px var(--color-line);
+  --shadow-card-hover: 0 4px 16px rgb(0 0 0 / 0.08), 0 0 0 1px var(--color-line);
+
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --color-canvas: #0e1111;
+    --color-surface: #161a1a;
+    --color-muted: #1f2424;
+    --color-line: rgb(255 255 255 / 0.1);
+    --color-fg: #f2f4f4;
+    --color-fg-secondary: #a9b1b1;
+    --color-accent: #2dd4bf;
+    --color-accent-hover: #5eead4;
+    --color-accent-soft: rgb(45 212 191 / 0.12);
+    --color-accent-fg: #062b27;
+    --color-warning: #f5c27a;
+    --color-warning-soft: rgb(245 194 122 / 0.1);
+    --color-warning-line: rgb(245 194 122 / 0.3);
+    --color-success: #86efac;
+    --color-success-soft: rgb(134 239 172 / 0.1);
+    --color-danger: #fca5a5;
+    --color-danger-soft: rgb(252 165 165 / 0.1);
+    --shadow-card: 0 0 0 1px var(--color-line);
+    --shadow-btn: 0 0 0 1px var(--color-line);
+    --shadow-card-hover: 0 0 0 1px var(--color-fg-secondary);
+  }
+}
+
+@layer base {
+  html {
+    -webkit-font-smoothing: antialiased;
+    color-scheme: light dark;
+  }
+
+  body {
+    @apply bg-canvas font-sans text-fg;
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0.01ms;
+    animation-duration: 0.01ms;
+  }
+}

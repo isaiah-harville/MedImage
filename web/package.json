@@ -1,0 +1,41 @@
+{
+  "name": "opendiagnostics-web",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "engines": {
+    "node": ">=22.17"
+  },
+  "imports": {
+    "#lib/*": "./src/lib/*"
+  },
+  "scripts": {
+    "dev": "vite dev",
+    "build": "vite build",
+    "preview": "vite preview",
+    "start": "node build",
+    "format": "biome format --write .",
+    "lint": "biome check .",
+    "typecheck": "svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --fail-on-warnings",
+    "test": "vitest run",
+    "check": "biome check . && npm run typecheck && vitest run",
+    "mock-api": "node tests/mock-api.ts"
+  },
+  "dependencies": {
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.9",
+    "@sveltejs/adapter-node": "6.0.6",
+    "@sveltejs/kit": "3.4.1",
+    "@sveltejs/vite-plugin-svelte": "7.3.2",
+    "@tailwindcss/vite": "4.3.5",
+    "@types/node": "22.20.7",
+    "svelte": "5.59.2",
+    "svelte-check": "4.7.8",
+    "tailwindcss": "4.3.5",
+    "typescript": "6.0.3",
+    "vite": "8.4.0",
+    "vitest": "5.1.2"
+  }
+}
