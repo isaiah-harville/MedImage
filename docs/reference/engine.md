@@ -1,3 +1,0 @@
-# Engine
-
-::: opendiagnostics.engine

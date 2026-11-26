@@ -16,8 +16,8 @@ from pathlib import Path
 import yaml
 from pydantic import BaseModel, ConfigDict
 
-SMALL_FILES = ("config.yaml", "run.json", "metrics.json", "history.jsonl", "splits.json")
-LARGE_FILES = ("checkpoint.pt",)
+SMALL_FILES = ("config.yaml", "run.json", "metrics.json", "metrics.csv", "splits.json")
+LARGE_FILES = ("checkpoint.ckpt",)
 MAX_SMALL_FILE_BYTES = 20 * 1024 * 1024
 
 

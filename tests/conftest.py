@@ -4,12 +4,7 @@ from pathlib import Path
 
 import pytest
 
-from opendiagnostics.config import load_config
-from opendiagnostics.registry import load_builtins
-
 ROOT = Path(__file__).resolve().parents[1]
-
-load_builtins()
 
 
 @pytest.fixture
@@ -25,14 +20,16 @@ def _isolated_matplotlib(tmp_path_factory: pytest.TempPathFactory) -> Iterator[N
     mp.undo()
 
 
+def fit_smoke(name: str, out: Path, *overrides: str) -> Path:
+    from opendiagnostics.cli import fit
+
+    return fit(["-c", str(ROOT / f"configs/smoke/{name}.yaml"), f"--output_dir={out}", *overrides])
+
+
 @pytest.fixture(scope="session")
 def finished_run(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """A smoke classification run, marked as made on a clean tree."""
-    from opendiagnostics.engine import train
-
-    out = tmp_path_factory.mktemp("runs")
-    config = load_config(ROOT / "configs/smoke/classification.yaml", [f"output_dir={out}"])
-    run_dir = train(config, ROOT)
+    run_dir = fit_smoke("classification", tmp_path_factory.mktemp("runs"))
     record = json.loads((run_dir / "run.json").read_text())
     record["git"] = {"commit": "0" * 40, "branch": "main", "dirty": False}
     (run_dir / "run.json").write_text(json.dumps(record))

@@ -6,6 +6,8 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import torch
+from torchmetrics.functional import classification as tmc
 
 from opendiagnostics.metrics import classification as cm
 from opendiagnostics.metrics.compare import read_predictions
@@ -30,7 +32,7 @@ def training_curves(history: list[dict[str, Any]], monitor: str, path: Path) -> 
     plt = _pyplot()
     epochs = [h["epoch"] for h in history]
     fig, (left, right) = plt.subplots(1, 2, figsize=(8, 3))
-    left.plot(epochs, [h["train_loss"] for h in history], marker="o")
+    left.plot(epochs, [h.get("train_loss", np.nan) for h in history], marker="o")
     left.set(xlabel="epoch", ylabel="training loss", title="Training loss")
     values = [h["val"].get(monitor, np.nan) for h in history]
     right.plot(epochs, values, marker="o", color="C1")
@@ -52,17 +54,14 @@ def roc_and_pr(predictions_csv: Path, path: Path) -> bool:
         return False
     plt = _pyplot()
     y, score = predictions.target.astype(bool), predictions.prob[:, 0]
-    order = np.argsort(-score, kind="mergesort")
-    y_sorted = y[order]
-    tps = np.r_[0, np.cumsum(y_sorted)]
-    fps = np.r_[0, np.cumsum(~y_sorted)]
-    tpr, fpr = tps / max(tps[-1], 1), fps / max(fps[-1], 1)
-    precision = np.where(tps + fps > 0, tps / np.maximum(tps + fps, 1), 1.0)
+    scores, labels = torch.as_tensor(score), torch.as_tensor(y, dtype=torch.long)
+    fpr, tpr, _ = tmc.binary_roc(scores, labels)
+    precision, recall, _ = tmc.binary_precision_recall_curve(scores, labels)
     fig, (left, right) = plt.subplots(1, 2, figsize=(8, 3.4))
     left.plot(fpr, tpr, label=f"AUROC {cm.auroc(y, score):.4f}")
     left.plot([0, 1], [0, 1], color="0.6", linestyle="--", linewidth=1)
     left.set(xlabel="1 - specificity", ylabel="sensitivity", title="ROC (test)")
-    right.step(tpr, precision, where="post", label=f"AUPRC {cm.auprc(y, score):.4f}")
+    right.step(recall, precision, where="post", label=f"AUPRC {cm.auprc(y, score):.4f}")
     right.axhline(
         y.mean(), color="0.6", linestyle="--", linewidth=1, label=f"prevalence {y.mean():.3f}"
     )

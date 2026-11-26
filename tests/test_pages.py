@@ -24,7 +24,7 @@ def _run(run_id, auroc):
             "device": "cpu",
             "parameters": 1234,
             "seed": 0,
-            "deterministic": "strict",
+            "deterministic": True,
             "environment": {"python": "3.13", "platform": "test", "packages": {"torch": "2.15.0"}},
             "dataset": {
                 "name": "medmnist",
@@ -82,7 +82,13 @@ def _project():
         name="demo",
         path=Path("demo"),
         card="",
-        config={"task": "classification", "data": {"dataset": {"name": "medmnist"}}},
+        config={
+            "model": {"class_path": "opendiagnostics.modules.ImageClassifier"},
+            "data": {
+                "class_path": "opendiagnostics.data.MedMNISTDataModule",
+                "init_args": {"flag": "pneumoniamnist"},
+            },
+        },
         baselines=baselines,
         runs=[_run("run-2", (0.96, 0.94, 0.97)), _run("run-1", (0.93, 0.91, 0.95))],
     )
@@ -132,7 +138,7 @@ Every trained model has a project, and every published run has a page with its c
 
 | Project | Dataset | Task | Runs | Latest test result |
 |---|---|---|---|---|
-| [demo](demo/index.md) | medmnist | classification | 2 | auroc 0.9600 [0.9400, 0.9700] |
+| [demo](demo/index.md) | pneumoniamnist | ImageClassifier | 2 | auroc 0.9600 [0.9400, 0.9700] |
 """,
     )
 
@@ -158,11 +164,17 @@ def test_run_page_downloads_section():
 
 def test_reproduce_uses_the_command_the_run_recorded():
     old = _run("old", (0.96, 0.94, 0.97))
-    old.record["command"] = ["medimage", "train", "models/demo/config.yaml", "--output-dir", "out"]
+    old.record["command"] = [
+        "opendiagnostics",
+        "fit",
+        "-c",
+        "models/demo/config.yaml",
+        "--output_dir=out",
+    ]
     expect(
         [pages.reproduce_command(old), pages.reproduce_command(_run("new", (0.9, 0.8, 0.95)))],
         [
-            "medimage train models/demo/config.yaml --output-dir out",
-            "opendiagnostics train models/demo/config.yaml",
+            "opendiagnostics fit -c models/demo/config.yaml --output_dir=out",
+            "opendiagnostics fit -c models/demo/config.yaml",
         ],
     )

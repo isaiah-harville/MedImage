@@ -1,5 +1,9 @@
-# Data contract and splits
+# Data modules and splits
 
 ::: opendiagnostics.data.base
 
-::: opendiagnostics.data.splits
+::: opendiagnostics.data.medmnist
+
+::: opendiagnostics.data.manifest
+
+::: opendiagnostics.data.synthetic

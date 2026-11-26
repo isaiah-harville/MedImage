@@ -1,18 +1,35 @@
-# A short CPU run of a tiny Faster R-CNN on generated boxes.
+# A short CPU run of a small torchvision Faster R-CNN on generated blobs.
 name: smoke-detection
-seed: 0
-task: detection
-data:
-  dataset:
-    name: synthetic_detection
-    params: {num_samples: 48, image_size: 64}
-  split: {method: patient, fractions: [0.5, 0.25, 0.25]}
-  train_transforms:
-    - {name: random_flip, params: {axes: [-1, -2]}}
-  batch_size: 8
+seed_everything: 0
+trainer:
+  accelerator: cpu
+  max_epochs: 2
+  enable_progress_bar: false
 model:
-  name: fasterrcnn
-  params: {backbone: tiny, min_size: 64, max_size: 64}
-optim: {lr: 0.001}
-train: {epochs: 2, device: cpu, log_every: 0}
+  class_path: opendiagnostics.modules.ObjectDetector
+  init_args:
+    network:
+      class_path: torchvision.models.detection.fasterrcnn_mobilenet_v3_large_fpn
+      init_args: {num_classes: 2, weights_backbone: null}
+      dict_kwargs: {min_size: 64, max_size: 64}
+data:
+  class_path: opendiagnostics.data.SyntheticDetectionDataModule
+  init_args:
+    num_samples: 48
+    image_size: 64
+    split: patient
+    fractions: [0.5, 0.25, 0.25]
+    batch_size: 8
+    train_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+          - class_path: torchvision.transforms.v2.RGB
+          - class_path: torchvision.transforms.v2.RandomHorizontalFlip
+    eval_transforms:
+      class_path: torchvision.transforms.v2.RGB
+optimizer:
+  class_path: torch.optim.SGD
+  init_args: {lr: 0.01, momentum: 0.9}
+checkpoint: {monitor: val/map_50}
 eval: {bootstrap_samples: 100}

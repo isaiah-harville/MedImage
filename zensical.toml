@@ -20,20 +20,13 @@ nav = [
   { "Design" = "design.md" },
   { "Code reference" = [
     "reference/index.md",
-    "reference/config.md",
-    "reference/registry.md",
+    "reference/cli.md",
     "reference/data.md",
-    "reference/io.md",
-    "reference/transforms.md",
-    "reference/datasets.md",
-    "reference/models.md",
-    "reference/tasks.md",
+    "reference/modules.md",
+    "reference/evaluation.md",
     "reference/metrics.md",
-    "reference/engine.md",
-    "reference/repro.md",
     "reference/publish.md",
     "reference/notebook.md",
-    "reference/cli.md",
   ] },
 ]
 

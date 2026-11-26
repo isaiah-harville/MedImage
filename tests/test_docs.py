@@ -13,12 +13,12 @@ def test_every_module_has_a_code_reference_page(root):
         name = ".".join(parts)
         if name in {
             "opendiagnostics",
-            "opendiagnostics.datasets",
             "opendiagnostics.data",
             "opendiagnostics.metrics",
+            "opendiagnostics.modules",
         }:
             continue
-        if parts[-1].startswith("_") or name == "opendiagnostics.datasets.medmnist_info":
+        if parts[-1].startswith("_"):
             continue
         modules.add(name)
     missing = sorted(modules - referenced)

@@ -6,6 +6,7 @@ edited or written by earlier runs), so the YAML ones are parsed with strict sche
 
 from __future__ import annotations
 
+import csv
 import json
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -51,7 +52,7 @@ class Run:
 
     @property
     def monitor(self) -> str:
-        return self.metrics["selection"]["monitor"]
+        return self.metrics["selection"]["monitor"].removeprefix("val/")
 
     def headline(self, split: str = "test") -> dict[str, Any] | None:
         value = self.metrics.get(split, {}).get(self.monitor)
@@ -72,10 +73,24 @@ def _json(path: Path) -> Any:
     return json.loads(path.read_text())
 
 
+def read_history(path: Path) -> list[dict[str, Any]]:
+    """Lightning's CSVLogger rows, merged into one entry per epoch."""
+    epochs: dict[int, dict[str, Any]] = {}
+    with path.open(newline="") as handle:
+        for row in csv.DictReader(handle):
+            entry = epochs.setdefault(int(row["epoch"]), {"epoch": int(row["epoch"]), "val": {}})
+            for key, value in row.items():
+                if value in ("", None) or key in ("epoch", "step"):
+                    continue
+                if key == "train/loss":
+                    entry["train_loss"] = float(value)
+                elif key.startswith("val/"):
+                    entry["val"][key.removeprefix("val/")] = float(value)
+    return [epochs[e] for e in sorted(epochs)]
+
+
 def load_run(project: str, path: Path) -> Run:
-    history = [
-        json.loads(line) for line in (path / "history.jsonl").read_text().splitlines() if line
-    ]
+    history = read_history(path / "metrics.csv")
     splits = _json(path / "splits.json")
     return Run(
         project=project,

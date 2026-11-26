@@ -15,12 +15,12 @@ def test_publish_copies_small_files_and_lists_the_checkpoint(finished_run, proje
     target = publish_run(finished_run, project)
     assert target == project / "runs" / finished_run.name
     names = {p.name for p in target.iterdir()}
-    assert {"config.yaml", "run.json", "metrics.json", "history.jsonl", "splits.json"} <= names
+    assert {"config.yaml", "run.json", "metrics.json", "metrics.csv", "splits.json"} <= names
     assert {"predictions_val.csv", "predictions_test.csv", "artifacts.yaml"} <= names
-    assert "checkpoint.pt" not in names
+    assert "checkpoint.ckpt" not in names
     [checkpoint] = _artifacts(target)
-    assert checkpoint["file"] == "checkpoint.pt"
-    assert checkpoint["bytes"] == (finished_run / "checkpoint.pt").stat().st_size
+    assert checkpoint["file"] == "checkpoint.ckpt"
+    assert checkpoint["bytes"] == (finished_run / "checkpoint.ckpt").stat().st_size
     assert checkpoint["url"] is None
 
 
@@ -29,16 +29,16 @@ def test_republish_keeps_a_recorded_url_while_the_checkpoint_is_unchanged(
 ):
     target = publish_run(finished_run, project)
     files = _artifacts(target)
-    files[0]["url"] = "https://example.org/checkpoint.pt"
+    files[0]["url"] = "https://example.org/checkpoint.ckpt"
     (target / "artifacts.yaml").write_text(yaml.safe_dump({"files": files}))
     assert (
         _artifacts(publish_run(finished_run, project))[0]["url"]
-        == "https://example.org/checkpoint.pt"
+        == "https://example.org/checkpoint.ckpt"
     )
 
     changed = tmp_path / finished_run.name
     shutil.copytree(finished_run, changed)
-    (changed / "checkpoint.pt").write_bytes(b"different weights")
+    (changed / "checkpoint.ckpt").write_bytes(b"different weights")
     assert _artifacts(publish_run(changed, project))[0]["url"] is None
 
 

@@ -10,10 +10,10 @@ from opendiagnostics.metrics.bootstrap import cluster_indices
 def test_ranking_metrics_match_sklearn(seed):
     rng = np.random.default_rng(seed)
     y = rng.integers(0, 2, size=300)
-    # Rounding creates many ties, the case naive implementations get wrong.
+    # Rounding creates many ties. torchmetrics computes in float32, hence 1e-6.
     score = np.round(rng.normal(size=300) + y * 0.8, 1)
-    assert auroc(y, score) == pytest.approx(sk.roc_auc_score(y, score), abs=1e-12)
-    assert auprc(y, score) == pytest.approx(sk.average_precision_score(y, score), abs=1e-12)
+    assert auroc(y, score) == pytest.approx(sk.roc_auc_score(y, score), abs=1e-6)
+    assert auprc(y, score) == pytest.approx(sk.average_precision_score(y, score), abs=1e-6)
 
 
 def test_undefined_metrics_are_nan():

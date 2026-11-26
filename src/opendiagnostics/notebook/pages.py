@@ -137,12 +137,8 @@ def index_page(projects: Sequence[Project]) -> str:
         rows.append(
             [
                 f"[{project.name}]({project.name}/index.md)",
-                str(project.config["data"]["dataset"]["name"]),
-                str(
-                    project.config["task"]
-                    if isinstance(project.config["task"], str)
-                    else project.config["task"]["name"]
-                ),
+                dataset_label(project.config),
+                project.config["model"]["class_path"].rsplit(".", 1)[-1],
                 str(len(project.runs)),
                 f"{latest.monitor} {fmt(head)}" if latest and head else "no runs",
             ]
@@ -281,12 +277,18 @@ def run_page(run: Run, plots: Sequence[tuple[str, str]], downloads: Sequence[Dow
     return "".join(parts)
 
 
+def dataset_label(config: dict[str, Any]) -> str:
+    """The MedMNIST subset, or the data module's class name."""
+    data = config["data"]
+    return str((data.get("init_args") or {}).get("flag") or data["class_path"].rsplit(".", 1)[-1])
+
+
 def reproduce_command(run: Run) -> str:
-    """The command that made the run, as recorded, so old runs keep their old CLI name."""
+    """The command that made the run, as recorded."""
     command = run.record.get("command") or []
-    if len(command) >= 2 and command[1] == "train":
+    if len(command) >= 2 and command[1] == "fit":
         return " ".join([Path(command[0]).name, *command[1:]])
-    return f"opendiagnostics train models/{run.project}/config.yaml"
+    return f"opendiagnostics fit -c models/{run.project}/config.yaml"
 
 
 def _indent(text: str) -> str:

@@ -1,18 +1,13 @@
 # Code reference
 
-Generated from the docstrings in `src/opendiagnostics`. Start with the [engine](engine.md) for the training loop, [config](config.md) for the experiment schema, and [registry](registry.md) for extension points.
+Generated from the docstrings in `src/opendiagnostics`. Training runs through Lightning's
+`LightningCLI`; start with the [command line](cli.md), then the [data modules](data.md) and
+[Lightning modules](modules.md).
 
-- [Config](config.md)
-- [Registry and plugins](registry.md)
-- [Data contract and splits](data.md)
-- [Image loading](io.md)
-- [Transforms](transforms.md)
-- [Datasets](datasets.md)
-- [Models](models.md)
-- [Tasks](tasks.md)
+- [Command line](cli.md)
+- [Data modules and splits](data.md)
+- [Lightning modules](modules.md)
+- [Evaluation and provenance](evaluation.md)
 - [Metrics](metrics.md)
-- [Engine](engine.md)
-- [Reproducibility](repro.md)
 - [Publishing runs](publish.md)
 - [Lab notebook generator](notebook.md)
-- [Command line](cli.md)

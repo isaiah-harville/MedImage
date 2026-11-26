@@ -70,8 +70,7 @@ def score(metric: str, target: np.ndarray, prob: np.ndarray) -> float:
     fn = METRICS[metric]
     if prob.shape[1] == 1:
         return fn(target, prob[:, 0])
-    per_class = cm.multiclass_ovr(target, prob, fn)
-    return float(np.nanmean(per_class)) if np.isfinite(per_class).any() else float("nan")
+    return cm.nanmean(cm.per_class(target, prob, fn))
 
 
 def compare(

@@ -23,9 +23,9 @@ jobs:
         with:
           python-version: "3.12"
           enable-cache: true
-      # CPU-only torch keeps CI fast; the MONAI extra lets its model test run.
+      # CPU-only torch keeps CI fast.
       - name: Install
-        run: uv sync --locked --extra cpu --extra monai
+        run: uv sync --locked --extra cpu
       - name: Format
         run: uv run ruff format --check
       - name: Lint
@@ -39,5 +39,5 @@ jobs:
       - name: Smoke-train every task from the command line
         run: |
           for config in configs/smoke/*.yaml; do
-            uv run opendiagnostics train "$config" --output-dir "$RUNNER_TEMP/runs"
+            uv run opendiagnostics fit -c "$config" --output_dir "$RUNNER_TEMP/runs"
           done

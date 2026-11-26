@@ -16,20 +16,25 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
 ]
 dependencies = [
+    "jsonargparse[signatures]>=4.40",
+    "lightning>=2.5",
+    "medmnist>=3.0",
+    "monai>=1.4",
     "nibabel>=5.2",
     "numpy>=1.26",
     "pillow>=10.0",
+    "pycocotools>=2.0.8",
     "pydantic>=2.9",
     "pydicom>=3.0",
     "pyyaml>=6.0",
+    "scikit-learn>=1.5",
     "timm>=1.0",
     "torch>=2.6",
+    "torchmetrics>=1.6",
     "torchvision>=0.21",
 ]
 
 [project.optional-dependencies]
-# MONAI supplies 3D networks. It is optional; see docs/design.md.
-monai = ["monai>=1.4"]
 # Accelerator choice for development with uv. Pick at most one:
 #   uv sync --extra cpu      (CI, laptops)
 #   uv sync --extra cu132    (NVIDIA GPUs, CUDA 13.2)
@@ -45,10 +50,8 @@ Repository = "https://github.com/isaiah-harville/opendiagnostics"
 
 [dependency-groups]
 dev = [
-    "pycocotools>=2.0.8",
     "pytest>=8.3",
     "ruff>=0.8",
-    "scikit-learn>=1.5",
     "ty>=0.0.111",
     "xpt>=0.3.0",
 ]

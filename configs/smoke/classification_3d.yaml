@@ -1,17 +1,35 @@
-# The same pipeline on generated 3D volumes.
+# The same pipeline on generated 3D volumes with a MONAI network.
 name: smoke-classification-3d
-seed: 0
-task: classification
-data:
-  dataset:
-    name: synthetic_classification
-    params: {num_samples: 80, image_size: 16, spatial_dims: 3, num_classes: 3, label_mode: multiclass}
-  split: {method: patient}
-  train_transforms:
-    - {name: random_flip, params: {axes: [0, 1, 2]}}
-  batch_size: 8
+seed_everything: 0
+trainer:
+  accelerator: cpu
+  max_epochs: 2
+  enable_progress_bar: false
 model:
-  name: simple_cnn
-  params: {width: 4, depth: 2}
-train: {epochs: 2, device: cpu, log_every: 0}
+  class_path: opendiagnostics.modules.ImageClassifier
+  init_args:
+    network:
+      class_path: monai.networks.nets.DenseNet
+      init_args:
+        spatial_dims: 3
+        in_channels: 1
+        out_channels: 3
+        init_features: 16
+        growth_rate: 8
+        block_config: [2, 2]
+data:
+  class_path: opendiagnostics.data.SyntheticClassificationDataModule
+  init_args:
+    num_samples: 60
+    image_size: 16
+    spatial_dims: 3
+    num_classes: 3
+    split: patient
+    batch_size: 8
+    train_transforms:
+      class_path: monai.transforms.RandFlip
+      init_args: {prob: 0.5, spatial_axis: 0}
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args: {lr: 0.001}
 eval: {bootstrap_samples: 100}

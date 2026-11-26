@@ -1,24 +1,31 @@
-"""Dataset contract, splits, and collation."""
-
 from opendiagnostics.data.base import (
+    SPLIT_NAMES,
     DatasetInfo,
-    DatasetSource,
-    Sample,
-    SplitDataset,
-    collate_classification,
-    collate_detection,
+    LeakageError,
+    MedicalDataModule,
+    Source,
+    check_disjoint,
+    patient_split,
+    summarize,
 )
-from opendiagnostics.data.splits import LeakageError, check_disjoint, patient_split, summarize
+from opendiagnostics.data.manifest import CSVImageDataModule
+from opendiagnostics.data.medmnist import MedMNISTDataModule
+from opendiagnostics.data.synthetic import (
+    SyntheticClassificationDataModule,
+    SyntheticDetectionDataModule,
+)
 
 __all__ = [
+    "SPLIT_NAMES",
+    "CSVImageDataModule",
     "DatasetInfo",
-    "DatasetSource",
     "LeakageError",
-    "Sample",
-    "SplitDataset",
+    "MedMNISTDataModule",
+    "MedicalDataModule",
+    "Source",
+    "SyntheticClassificationDataModule",
+    "SyntheticDetectionDataModule",
     "check_disjoint",
-    "collate_classification",
-    "collate_detection",
     "patient_split",
     "summarize",
 ]
