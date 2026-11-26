@@ -44,6 +44,8 @@ jobs:
         run: uv run ty check
       - name: Test
         run: uv run pytest -m "not network"
+      - name: Build the docs
+        run: uv run medimage notebook && uv run zensical build --clean
       - name: Smoke-train every task from the command line
         shell: bash
         run: |
