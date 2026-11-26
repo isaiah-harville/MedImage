@@ -51,6 +51,7 @@ dev = [
 ]
 docs = [
     "matplotlib>=3.9",
+    "mkdocstrings-python>=1.12",
     "zensical>=0.1.3",
 ]
 

@@ -1,0 +1,3 @@
+# Command line
+
+::: medimage.cli
