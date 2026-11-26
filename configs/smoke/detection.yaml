@@ -1,0 +1,18 @@
+# A short CPU run of a tiny Faster R-CNN on generated boxes.
+name: smoke-detection
+seed: 0
+task: detection
+data:
+  dataset:
+    name: synthetic_detection
+    params: {num_samples: 48, image_size: 64}
+  split: {method: patient, fractions: [0.5, 0.25, 0.25]}
+  train_transforms:
+    - {name: random_flip, params: {axes: [-1, -2]}}
+  batch_size: 8
+model:
+  name: fasterrcnn
+  params: {backbone: tiny, min_size: 64, max_size: 64}
+optim: {lr: 0.001}
+train: {epochs: 2, device: cpu, log_every: 0}
+eval: {bootstrap_samples: 100}
