@@ -77,6 +77,7 @@ Override any value on the command line, for example `--trainer.max_epochs=2` or
 | `metrics.json` | validation and test metrics with bootstrap intervals |
 | `predictions_<split>.csv` | per-sample outputs |
 | `checkpoint.ckpt` | weights from the best validation epoch |
+| `examples/` | test images beside the model's attribution map or boxes, for the notebook |
 
 ## Compare
 

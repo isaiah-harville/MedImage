@@ -239,6 +239,8 @@ def run_page(run: Run, plots: Sequence[tuple[str, str]], downloads: Sequence[Dow
         ]
     for title, file in plots:
         parts.append(f"\n![{title}](files/{file})\n")
+    if run.examples:
+        parts += ["\n## Examples\n\n", examples_section(run.examples)]
     parts += [
         "\n## Data\n\n",
         f"Dataset `{dataset.get('name')}`, license {dataset.get('license')}. Split method `{run.splits.get('method')}`. "
@@ -275,6 +277,33 @@ def run_page(run: Run, plots: Sequence[tuple[str, str]], downloads: Sequence[Dow
         ),
     ]
     return "".join(parts)
+
+
+def examples_section(examples: Sequence[dict[str, Any]]) -> str:
+    """Test images beside what the model made of them, with truth and prediction."""
+    kind = examples[0].get("kind")
+    intro = (
+        "Test images, each beside an Integrated Gradients map of the pixels that drove the "
+        "predicted class (brighter is stronger). Chosen per class: the most confident correct "
+        "prediction, then the most confident mistake."
+        if kind == "attribution"
+        else "Test images, each beside ground-truth boxes (green) and predicted boxes with "
+        "their scores (red)."
+    )
+    rows = []
+    for example in examples:
+        verdict = {True: "correct", False: "**wrong**", None: ""}[example.get("correct")]
+        rows.append(
+            [
+                f'![{example["id"]}](files/examples/{example["input"]}){{ width="200" loading=lazy }}',
+                f'![{example["id"]} {kind}](files/examples/{example["overlay"]}){{ width="200" loading=lazy }}',
+                f"`{example['id']}`<br>truth: {example['truth']}<br>"
+                f"predicted: {example['prediction']} ({example['confidence']:.2f})"
+                + (f"<br>{verdict}" if verdict else ""),
+            ]
+        )
+    view = "Attribution" if kind == "attribution" else "Boxes"
+    return intro + "\n\n" + table(["Input", view, "Sample"], rows)
 
 
 def dataset_label(config: dict[str, Any]) -> str:

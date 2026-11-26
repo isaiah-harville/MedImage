@@ -58,8 +58,11 @@ smoke-trains every config in `configs/smoke/`. On an NVIDIA machine, use
    Runs are deterministic on CPU with `trainer.deterministic: true`, and a test checks that.
 6. **Respect dataset licenses.** Never commit or upload data, weights, or per-image
    predictions that a dataset's terms forbid sharing. The survey lists each dataset's terms.
-7. **No patient data in git.** No images, DICOM headers, reports, or anything with PHI.
-   Run files hold only sample IDs and model outputs.
+7. **No patient data in git.** No DICOM headers, reports, or anything with PHI. Run files
+   hold sample IDs and model outputs. The one exception is a published run's `examples/`:
+   a few de-identified test images, copied by `opendiagnostics publish` only when the
+   dataset's license is in `OPEN_IMAGE_LICENSES` (`publish.py`). Never widen that list to
+   credentialed or unknown-license data.
 8. **Config parsing is strict.** Unknown keys and wrong types are errors. LightningCLI
    (jsonargparse) enforces this; keep components typed so it can.
 

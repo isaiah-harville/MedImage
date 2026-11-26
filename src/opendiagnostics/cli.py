@@ -2,7 +2,8 @@
 
 ``opendiagnostics fit -c CONFIG [--trainer.max_epochs=2 ...]`` trains with Lightning's
 ``LightningCLI``, then evaluates the selected checkpoint with bootstrap intervals. The other
-commands work on finished runs: ``evaluate``, ``compare``, ``publish``, and ``notebook``.
+commands work on finished runs: ``evaluate``, ``examples``, ``compare``, ``publish``, and
+``notebook``.
 
 A run directory holds everything needed to audit or repeat an experiment::
 
@@ -14,6 +15,7 @@ A run directory holds everything needed to audit or repeat an experiment::
         checkpoint.ckpt      weights of the epoch with the best validation monitor
         metrics.json         final metrics with bootstrap confidence intervals
         predictions_<split>.csv
+        examples/            test images beside the model's attribution map or boxes
         train.log
 """
 
@@ -38,6 +40,7 @@ from lightning.pytorch.loggers import CSVLogger
 from opendiagnostics import provenance
 from opendiagnostics.data import MedicalDataModule, summarize
 from opendiagnostics.evaluation import EvalSettings, evaluate, write_json
+from opendiagnostics.examples import write_examples
 from opendiagnostics.modules import DiagnosticModule
 
 log = logging.getLogger("opendiagnostics")
@@ -177,6 +180,13 @@ class OpenDiagnosticsCLI(LightningCLI):
                 "best_epoch": results["checkpoint_epoch"],
             }
             write_json(self.run_dir / "metrics.json", results)
+            write_examples(
+                self.model,
+                self.datamodule,
+                self.run_dir,
+                checkpoint,
+                self.trainer.strategy.root_device,
+            )
             self.record["finished"] = provenance.utc_now()
             write_json(self.run_dir / "run.json", self.record)
             log.info("finished: %s", self.run_dir / "metrics.json")
@@ -228,6 +238,26 @@ def evaluate_run(run_dir: Path | str, splits: list[str] | None = None) -> dict[s
     results["rescored"] = {"git": cli.git, "at": provenance.utc_now()}
     write_json(run_dir / "metrics.json", results)
     return results
+
+
+def examples_run(run_dir: Path | str, limit: int = 8) -> list[dict[str, Any]]:
+    """Render a finished run's example figures with its own checkpoint."""
+    run_dir = Path(run_dir)
+    cli = _load_run(run_dir)
+    return write_examples(
+        cli.model,
+        cli.datamodule,
+        run_dir,
+        run_dir / "checkpoint.ckpt",
+        cli.trainer.strategy.root_device,
+        limit,
+    )
+
+
+def _examples(args: argparse.Namespace) -> int:
+    manifest = examples_run(args.run_dir, args.limit)
+    print(f"wrote {len(manifest)} examples to {Path(args.run_dir) / 'examples'}")
+    return 0
 
 
 def _evaluate(args: argparse.Namespace) -> int:
@@ -295,6 +325,13 @@ def _parser() -> argparse.ArgumentParser:
     evaluate.add_argument("run_dir", type=Path)
     evaluate.add_argument("--split", action="append", help="split to evaluate (repeatable)")
     evaluate.set_defaults(handler=_evaluate)
+
+    examples = sub.add_parser(
+        "examples", help="render test images beside the model's attribution map or boxes"
+    )
+    examples.add_argument("run_dir", type=Path)
+    examples.add_argument("--limit", type=int, default=8, help="most examples to render")
+    examples.set_defaults(handler=_examples)
 
     compare = sub.add_parser(
         "compare", help="paired patient-level bootstrap of B minus A on the same test samples"

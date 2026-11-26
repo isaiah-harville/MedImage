@@ -12,6 +12,7 @@ from pathlib import Path
 
 from opendiagnostics.notebook import pages, plots
 from opendiagnostics.notebook.model import Project, Run, load_projects
+from opendiagnostics.publish import EXAMPLES
 
 MARKER = ".generated-by-opendiagnostics"
 
@@ -46,6 +47,8 @@ def _write_run(run: Run, out_dir: Path) -> None:
         downloads.append(
             pages.Download(artifact.file, artifact.url or "", artifact.bytes, artifact.sha256)
         )
+    if (run.path / EXAMPLES).is_dir():
+        shutil.copytree(run.path / EXAMPLES, files / EXAMPLES)
     figures = []
     if run.history:
         plots.training_curves(run.history, run.monitor, files / "training.svg")

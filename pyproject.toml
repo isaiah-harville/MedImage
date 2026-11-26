@@ -16,6 +16,7 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Medical Science Apps.",
 ]
 dependencies = [
+    "captum>=0.8",
     "jsonargparse[signatures]>=4.40",
     "lightning>=2.5",
     "medmnist>=3.0",

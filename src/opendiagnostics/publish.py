@@ -3,7 +3,8 @@
 A published run is ``models/<project>/runs/<run-id>/``. It holds the small files from the run
 directory, which are committed to git and served by the docs site, and ``artifacts.yaml``,
 which lists the large files (the checkpoint) by size, SHA-256, and download URL. Large
-files are uploaded to external storage separately; see docs/design.md.
+files are uploaded to external storage separately; see docs/design.md. Example figures
+(``examples/``) are copied only when the dataset's license allows sharing its images.
 """
 
 from __future__ import annotations
@@ -19,6 +20,11 @@ from pydantic import BaseModel, ConfigDict
 SMALL_FILES = ("config.yaml", "run.json", "metrics.json", "metrics.csv", "splits.json")
 LARGE_FILES = ("checkpoint.ckpt",)
 MAX_SMALL_FILE_BYTES = 20 * 1024 * 1024
+EXAMPLES = "examples"
+EXAMPLES_MANIFEST = "examples.json"
+# Licenses that allow redistributing a dataset's images, so example figures may be committed.
+# Anything else, including credentialed data and unknown licenses, publishes no images.
+OPEN_IMAGE_LICENSES = frozenset({"CC0 1.0", "CC BY 3.0", "CC BY 4.0", "CC BY-NC 4.0", "generated"})
 
 
 class PublishError(RuntimeError):
@@ -52,6 +58,11 @@ def load_artifacts(path: Path) -> Artifacts:
     if not path.exists():
         return Artifacts(files=[])
     return Artifacts.model_validate(yaml.safe_load(path.read_text()) or {"files": []})
+
+
+def _images_may_be_shared(run_dir: Path) -> bool:
+    record = json.loads((run_dir / "run.json").read_text())
+    return record.get("dataset", {}).get("license") in OPEN_IMAGE_LICENSES
 
 
 def publish_run(
@@ -88,6 +99,11 @@ def publish_run(
         if source.stat().st_size > MAX_SMALL_FILE_BYTES:
             raise PublishError(f"{source} is over 20 MB; host it as a large artifact instead")
         shutil.copyfile(source, target / name)
+
+    examples = run_dir / EXAMPLES
+    shutil.rmtree(target / EXAMPLES, ignore_errors=True)
+    if include_predictions and examples.is_dir() and _images_may_be_shared(run_dir):
+        shutil.copytree(examples, target / EXAMPLES)
 
     known = {a.file: a for a in load_artifacts(target / "artifacts.yaml").files}
     artifacts = []

@@ -56,3 +56,28 @@ def test_dirty_runs_are_refused_unless_allowed(finished_run, project, tmp_path):
     with pytest.raises(PublishError, match="dirty working tree"):
         publish_run(dirty, project)
     assert publish_run(dirty, project, allow_dirty=True).exists()
+
+
+def test_example_images_are_published_for_open_data(finished_run, project):
+    target = publish_run(finished_run, project)
+    assert (target / "examples" / "examples.json").is_file()
+    assert list((target / "examples").glob("*.png"))
+
+
+@pytest.mark.parametrize(
+    "license_", ["PhysioNet Credentialed Health Data License 1.5.0", "unknown"]
+)
+def test_example_images_stay_private_unless_the_license_allows_sharing(
+    finished_run, project, tmp_path, license_
+):
+    restricted = tmp_path / finished_run.name
+    shutil.copytree(finished_run, restricted)
+    record = json.loads((restricted / "run.json").read_text())
+    record["dataset"]["license"] = license_
+    (restricted / "run.json").write_text(json.dumps(record))
+    assert not (publish_run(restricted, project) / "examples").exists()
+
+
+def test_example_images_are_left_out_with_the_predictions(finished_run, project):
+    target = publish_run(finished_run, project, include_predictions=False)
+    assert not (target / "examples").exists()

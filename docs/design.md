@@ -216,8 +216,18 @@ The docs site, built with [Zensical](https://zensical.org), is the project's lab
 * a page per project: the leaderboard against published baselines, the runs, and the
   model card;
 * a page per run: metrics with intervals, training curves, ROC and precision-recall
-  curves for binary tasks, the data splits, provenance, the resolved config, and
-  downloads.
+  curves for binary tasks, example test images, the data splits, provenance, the resolved
+  config, and downloads.
+
+**Example images.** Each run renders up to eight test images into `examples/`, each beside
+what the model made of it. For a classifier that is a Captum Integrated Gradients map for
+the predicted class; for a detector, ground-truth boxes in green and predicted boxes with
+scores in red. Classifier examples are the most confident correct prediction and the most
+confident mistake per class, so the page shows failures as well as successes.
+`opendiagnostics examples RUN_DIR` renders them for an existing run. Images are data, so
+`publish` copies them only when the dataset's license allows redistribution (CC0, CC BY,
+CC BY-NC, or generated data) and predictions are published too. Attribution maps show what
+the network responded to; they are not proof that it uses the clinically relevant region.
 
 The generated pages are not committed. They are rebuilt from the committed run files, so
 they cannot go stale.

@@ -60,8 +60,8 @@ uv run opendiagnostics fit -c models/pneumoniamnist-convnext/config.yaml --train
 ```
 
 Each run writes `runs/<name>/<timestamp>-<commit>/`, which holds `metrics.json` (with
-CIs), `run.json` (provenance), `splits.json`, `metrics.csv`, per-sample predictions, and
-the best checkpoint. To re-score a finished run:
+CIs), `run.json` (provenance), `splits.json`, `metrics.csv`, per-sample predictions, example
+figures, and the best checkpoint. To re-score a finished run:
 
 ```bash
 uv run opendiagnostics evaluate runs/pneumoniamnist-convnext/<run>

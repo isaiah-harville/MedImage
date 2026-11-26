@@ -15,7 +15,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
-from opendiagnostics.publish import Artifacts, load_artifacts
+from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST, Artifacts, load_artifacts
 
 
 class Baseline(BaseModel):
@@ -49,6 +49,7 @@ class Run:
     history: list[dict[str, Any]]
     splits: dict[str, Any]
     artifacts: Artifacts
+    examples: list[dict[str, Any]] = field(default_factory=list)
 
     @property
     def monitor(self) -> str:
@@ -71,6 +72,11 @@ class Project:
 
 def _json(path: Path) -> Any:
     return json.loads(path.read_text())
+
+
+def _examples(path: Path) -> list[dict[str, Any]]:
+    manifest = path / EXAMPLES / EXAMPLES_MANIFEST
+    return json.loads(manifest.read_text()) if manifest.exists() else []
 
 
 def read_history(path: Path) -> list[dict[str, Any]]:
@@ -104,6 +110,7 @@ def load_run(project: str, path: Path) -> Run:
         history=history,
         splits={k: v for k, v in splits.items() if k != "ids"},
         artifacts=load_artifacts(path / "artifacts.yaml"),
+        examples=_examples(path),
     )
 
 

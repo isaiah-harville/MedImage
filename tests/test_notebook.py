@@ -43,6 +43,9 @@ def test_run_page_shows_metrics_plots_and_downloads(notebook):
     assert "![ROC and precision-recall on test](files/roc_pr.svg)" in page
     assert "[metrics.json](files/metrics.json)" in page
     assert "checkpoint.ckpt (not uploaded yet)" in page
+    assert "## Examples" in page
+    assert "](files/examples/01-input.png)" in page
+    assert (out / "smoke-project" / run_id / "files" / "examples" / "01-attribution.png").exists()
     for name in ("metrics.json", "predictions_test.csv", "training.svg", "roc_pr.svg"):
         assert (out / "smoke-project" / run_id / "files" / name).exists()
 

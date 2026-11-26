@@ -7,7 +7,7 @@ Generated from the docstrings in `src/opendiagnostics`. Training runs through Li
 - [Command line](cli.md)
 - [Data modules and splits](data.md)
 - [Lightning modules](modules.md)
-- [Evaluation and provenance](evaluation.md)
+- [Evaluation, examples, and provenance](evaluation.md)
 - [Metrics](metrics.md)
 - [Publishing runs](publish.md)
 - [Lab notebook generator](notebook.md)

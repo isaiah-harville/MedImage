@@ -20,6 +20,7 @@ RUN_FILES = {
     "predictions_test.csv",
     "checkpoint.ckpt",
     "train.log",
+    "examples",
 }
 
 
@@ -31,6 +32,11 @@ def _metrics(run_dir):
 def test_smoke_config_trains_end_to_end(name, tmp_path):
     run_dir = fit_smoke(name, tmp_path)
     assert {p.name for p in run_dir.iterdir()} >= RUN_FILES
+    manifest = json.loads((run_dir / "examples" / "examples.json").read_text())
+    assert len(manifest) == 8
+    for example in manifest:
+        assert (run_dir / "examples" / example["input"]).is_file()
+        assert (run_dir / "examples" / example["overlay"]).is_file()
     metrics = _metrics(run_dir)
     monitor = "map_50" if name == "detection" else "auroc"
     test = metrics["test"][monitor]

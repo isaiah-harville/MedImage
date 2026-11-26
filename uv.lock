@@ -262,6 +262,26 @@ wheels = [
 ]
 
 [[package]]
+name = "captum"
+version = "0.9.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "matplotlib" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
+    { name = "packaging" },
+    { name = "torch", version = "2.15.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-15-opendiagnostics-cpu') or (extra == 'extra-15-opendiagnostics-cpu' and extra == 'extra-15-opendiagnostics-cu132')" },
+    { name = "torch", version = "2.15.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-15-opendiagnostics-cpu' and extra != 'extra-15-opendiagnostics-cu132') or (extra == 'extra-15-opendiagnostics-cpu' and extra == 'extra-15-opendiagnostics-cu132')" },
+    { name = "torch", version = "2.15.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-15-opendiagnostics-cpu') or (extra == 'extra-15-opendiagnostics-cpu' and extra == 'extra-15-opendiagnostics-cu132')" },
+    { name = "torch", version = "2.15.0+cu132", source = { registry = "https://download.pytorch.org/whl/cu132" }, marker = "extra == 'extra-15-opendiagnostics-cu132'" },
+    { name = "tqdm" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/f7/9e/f31758e20c3d2b42b05420936b75f663e7aeae9ba63b84aee5cad1b044a3/captum-0.9.0.tar.gz", hash = "sha256:e4868e22b68224f1a5355d2b7966803c021cf9fe5d893f51f587b4002a666b54", size = 363381, upload-time = "2026-04-17T06:11:39.577Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/01/75/c99571fee171bb9d34d3e1df5fdb16d57e2c4c15339eb220e6e6e4539f1c/captum-0.9.0-py3-none-any.whl", hash = "sha256:cda38e1d42c37591d71560bb2f5813ac4cae8d8543afac45279c7efd5945997e", size = 455196, upload-time = "2026-04-17T06:11:38.229Z" },
+]
+
+[[package]]
 name = "click"
 version = "8.5.1"
 source = { registry = "https://pypi.org/simple" }
@@ -2162,6 +2182,7 @@ version = "0.1.0"
 source = { editable = "." }
 default-groups = ["dev", "docs"]
 dependencies = [
+    { name = "captum" },
     { name = "jsonargparse", extra = ["signatures"] },
     { name = "lightning" },
     { name = "medmnist" },
@@ -2214,6 +2235,7 @@ docs = [
 
 [package.metadata]
 requires-dist = [
+    { name = "captum", specifier = ">=0.8" },
     { name = "jsonargparse", extras = ["signatures"], specifier = ">=4.40" },
     { name = "lightning", specifier = ">=2.5" },
     { name = "medmnist", specifier = ">=3.0" },
