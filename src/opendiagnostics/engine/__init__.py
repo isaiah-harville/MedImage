@@ -31,15 +31,15 @@ import torch
 from torch import nn
 from torch.utils.data import DataLoader
 
-from medimage import repro
-from medimage.config import ExperimentConfig, dump_config, load_config
-from medimage.data.base import DatasetSource, SplitDataset
-from medimage.data.splits import SPLIT_NAMES, check_disjoint, patient_split, summarize
-from medimage.registry import DATASETS, MODELS, TASKS, load_all
-from medimage.tasks import Task
-from medimage.transforms import build_transforms
+from opendiagnostics import repro
+from opendiagnostics.config import ExperimentConfig, dump_config, load_config
+from opendiagnostics.data.base import DatasetSource, SplitDataset
+from opendiagnostics.data.splits import SPLIT_NAMES, check_disjoint, patient_split, summarize
+from opendiagnostics.registry import DATASETS, MODELS, TASKS, load_all
+from opendiagnostics.tasks import Task
+from opendiagnostics.transforms import build_transforms
 
-log = logging.getLogger("medimage")
+log = logging.getLogger("opendiagnostics")
 
 
 @dataclass
@@ -206,7 +206,7 @@ def _run_dir(config: ExperimentConfig, git: dict[str, Any]) -> Path:
 def _attach_log(run_dir: Path) -> logging.Handler:
     handler = logging.FileHandler(run_dir / "train.log")
     handler.setFormatter(logging.Formatter("%(asctime)s %(levelname)s %(message)s"))
-    logging.getLogger("medimage").addHandler(handler)
+    logging.getLogger("opendiagnostics").addHandler(handler)
     return handler
 
 
@@ -220,7 +220,7 @@ def train(config: ExperimentConfig, config_dir: Path | None = None) -> Path:
     try:
         return _train(experiment, run_dir, git, started)
     finally:
-        logging.getLogger("medimage").removeHandler(handler)
+        logging.getLogger("opendiagnostics").removeHandler(handler)
         handler.close()
 
 
@@ -235,7 +235,7 @@ def _train(experiment: Experiment, run_dir: Path, git: dict[str, Any], started: 
         "git": git,
         "environment": repro.environment(),
         "device": str(experiment.device),
-        "command": sys.argv,
+        "command": [Path(sys.argv[0]).name, *sys.argv[1:]],
         "dataset": {
             "name": config.data.dataset.name,
             "license": source.info.license,

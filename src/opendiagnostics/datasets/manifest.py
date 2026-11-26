@@ -14,9 +14,9 @@ from typing import Any
 
 import torch
 
-from medimage.data.base import DatasetInfo, DatasetSource, LabelMode, Sample
-from medimage.io import load_image
-from medimage.registry import DATASETS
+from opendiagnostics.data.base import DatasetInfo, DatasetSource, LabelMode, Sample
+from opendiagnostics.io import load_image
+from opendiagnostics.registry import DATASETS
 
 
 def _sha256(path: Path) -> str:

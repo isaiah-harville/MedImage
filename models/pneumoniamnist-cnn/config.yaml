@@ -1,6 +1,6 @@
 # PneumoniaMNIST: pediatric chest X-ray, pneumonia vs normal, at 64x64.
 # Official MedMNIST split; trains in about a minute on a laptop CPU.
-#   uv run medimage train models/pneumoniamnist-cnn/config.yaml
+#   uv run opendiagnostics train models/pneumoniamnist-cnn/config.yaml
 name: pneumoniamnist-cnn
 seed: 0
 deterministic: strict

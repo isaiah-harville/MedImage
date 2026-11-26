@@ -1,3 +1,3 @@
 # Models
 
-::: medimage.models
+::: opendiagnostics.models

@@ -1,6 +1,6 @@
 # Code reference
 
-Generated from the docstrings in `src/medimage`. Start with the [engine](engine.md) for the training loop, [config](config.md) for the experiment schema, and [registry](registry.md) for extension points.
+Generated from the docstrings in `src/opendiagnostics`. Start with the [engine](engine.md) for the training loop, [config](config.md) for the experiment schema, and [registry](registry.md) for extension points.
 
 - [Config](config.md)
 - [Registry and plugins](registry.md)

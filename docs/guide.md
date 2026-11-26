@@ -25,7 +25,7 @@ task:
   params: {threshold: youden}  # binary threshold chosen on validation
 data:
   dataset:
-    name: medmnist             # any registered dataset; see `medimage list`
+    name: medmnist             # any registered dataset; see `opendiagnostics list`
     params: {subset: pneumoniamnist, size: 64, download: true}
   split: {method: predefined}  # or: {method: patient, fractions: [0.7, 0.15, 0.15]}
   train_transforms:
@@ -48,7 +48,7 @@ The task derives `in_channels`, `spatial_dims`, and `num_classes` from the datas
 ## Train
 
 ```bash
-uv run medimage train models/pneumoniamnist-cnn/config.yaml
+uv run opendiagnostics train models/pneumoniamnist-cnn/config.yaml
 ```
 
 Override any value from the command line with `key.path=value`, for example
@@ -70,7 +70,7 @@ Override any value from the command line with `key.path=value`, for example
 To claim that one run beats another, compare them on the same test samples:
 
 ```bash
-uv run medimage compare runs/a/<run>/predictions_test.csv runs/b/<run>/predictions_test.csv
+uv run opendiagnostics compare runs/a/<run>/predictions_test.csv runs/b/<run>/predictions_test.csv
 ```
 
 This reports B minus A with a paired patient-level bootstrap interval and a p-value. An
@@ -83,8 +83,8 @@ Commit first, then train, so that the commit reproduces the run. Then publish th
 its model project and rebuild the notebook:
 
 ```bash
-uv run medimage publish runs/pneumoniamnist-cnn/<run> models/pneumoniamnist-cnn
-uv run medimage notebook
+uv run opendiagnostics publish runs/pneumoniamnist-cnn/<run> models/pneumoniamnist-cnn
+uv run opendiagnostics notebook
 uv run zensical serve
 ```
 

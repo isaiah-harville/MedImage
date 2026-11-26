@@ -5,10 +5,10 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from medimage.cli import main
-from medimage.config import load_config
-from medimage.data.splits import LeakageError
-from medimage.engine import build, evaluate_run, train
+from opendiagnostics.cli import main
+from opendiagnostics.config import load_config
+from opendiagnostics.data.splits import LeakageError
+from opendiagnostics.engine import build, evaluate_run, train
 
 RUN_FILES = {
     "config.yaml",

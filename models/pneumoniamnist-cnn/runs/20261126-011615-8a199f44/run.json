@@ -30,7 +30,7 @@
   },
   "device": "cpu",
   "command": [
-    "/Users/iharville/Projects/MedImage/.venv/bin/medimage",
+    "medimage",
     "train",
     "models/pneumoniamnist-cnn/config.yaml"
   ],

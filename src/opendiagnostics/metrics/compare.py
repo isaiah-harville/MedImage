@@ -15,8 +15,8 @@ from pathlib import Path
 
 import numpy as np
 
-from medimage.metrics import classification as cm
-from medimage.metrics.bootstrap import bootstrap_draws
+from opendiagnostics.metrics import classification as cm
+from opendiagnostics.metrics.bootstrap import bootstrap_draws
 
 METRICS = {"auroc": cm.auroc, "auprc": cm.auprc}
 

@@ -1,7 +1,7 @@
 """Metrics with bootstrap confidence intervals."""
 
-from medimage.metrics.bootstrap import Estimate, bootstrap
-from medimage.metrics.classification import (
+from opendiagnostics.metrics.bootstrap import Estimate, bootstrap
+from opendiagnostics.metrics.classification import (
     auprc,
     auroc,
     brier,
@@ -9,7 +9,7 @@ from medimage.metrics.classification import (
     threshold_metrics,
     youden_threshold,
 )
-from medimage.metrics.detection import DetectionEvaluator, box_iou
+from opendiagnostics.metrics.detection import DetectionEvaluator, box_iou
 
 __all__ = [
     "DetectionEvaluator",

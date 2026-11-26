@@ -1,7 +1,7 @@
 import pytest
 import torch
 
-from medimage.registry import MODELS
+from opendiagnostics.registry import MODELS
 
 
 @pytest.mark.parametrize(("dims", "shape"), [(2, (2, 1, 32, 32)), (3, (2, 1, 16, 16, 16))])

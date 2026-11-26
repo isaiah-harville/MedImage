@@ -16,10 +16,10 @@ from typing import Any
 import numpy as np
 import torch
 
-log = logging.getLogger("medimage")
+log = logging.getLogger("opendiagnostics")
 
 TRACKED_PACKAGES = (
-    "medimage",
+    "opendiagnostics",
     "torch",
     "torchvision",
     "timm",

@@ -1,7 +1,13 @@
 import pytest
 from xpt import expect
 
-from medimage.config import ConfigError, apply_overrides, dump_config, load_config, parse_config
+from opendiagnostics.config import (
+    ConfigError,
+    apply_overrides,
+    dump_config,
+    load_config,
+    parse_config,
+)
 
 MINIMAL = {
     "name": "x",

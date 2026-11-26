@@ -6,8 +6,8 @@ import numpy as np
 import pytest
 from PIL import Image
 
-from medimage.datasets import medmnist_info
-from medimage.registry import DATASETS
+from opendiagnostics.datasets import medmnist_info
+from opendiagnostics.registry import DATASETS
 
 
 def test_medmnist_reads_verified_npz(tmp_path, monkeypatch):

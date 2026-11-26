@@ -4,8 +4,8 @@ import numpy as np
 import pytest
 from xpt import expect
 
-from medimage.cli import main
-from medimage.metrics.compare import compare, read_predictions
+from opendiagnostics.cli import main
+from opendiagnostics.metrics.compare import compare, read_predictions
 
 
 def _write(path, ids, patients, target, prob):

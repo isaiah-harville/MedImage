@@ -1,9 +1,9 @@
 import pytest
 import yaml
 
-from medimage.cli import main
-from medimage.notebook import MARKER, NotebookError, build_notebook
-from medimage.publish import publish_run
+from opendiagnostics.cli import main
+from opendiagnostics.notebook import MARKER, NotebookError, build_notebook
+from opendiagnostics.publish import publish_run
 
 BASELINES = {
     "benchmark": "smoke benchmark",

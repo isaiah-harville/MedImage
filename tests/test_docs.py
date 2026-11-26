@@ -6,14 +6,19 @@ def test_every_module_has_a_code_reference_page(root):
     for page in (root / "docs" / "reference").glob("*.md"):
         referenced |= set(re.findall(r"^::: (\S+)$", page.read_text(), flags=re.MULTILINE))
     modules = set()
-    for path in (root / "src" / "medimage").rglob("*.py"):
+    for path in (root / "src" / "opendiagnostics").rglob("*.py"):
         parts = path.relative_to(root / "src").with_suffix("").parts
         if parts[-1] == "__init__":
             parts = parts[:-1]
         name = ".".join(parts)
-        if name in {"medimage", "medimage.datasets", "medimage.data", "medimage.metrics"}:
+        if name in {
+            "opendiagnostics",
+            "opendiagnostics.datasets",
+            "opendiagnostics.data",
+            "opendiagnostics.metrics",
+        }:
             continue
-        if parts[-1].startswith("_") or name == "medimage.datasets.medmnist_info":
+        if parts[-1].startswith("_") or name == "opendiagnostics.datasets.medmnist_info":
             continue
         modules.add(name)
     missing = sorted(modules - referenced)

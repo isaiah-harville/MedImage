@@ -15,7 +15,7 @@ from typing import Any
 import torch
 from torch import nn
 
-from medimage.registry import MODELS
+from opendiagnostics.registry import MODELS
 
 IMAGENET_MEAN = (0.485, 0.456, 0.406)
 IMAGENET_STD = (0.229, 0.224, 0.225)
@@ -117,7 +117,9 @@ def monai_model(
     try:
         from monai.networks import nets
     except ImportError as error:
-        raise ImportError("the 'monai' model needs MONAI: pip install 'medimage[monai]'") from error
+        raise ImportError(
+            "the 'monai' model needs MONAI: pip install 'opendiagnostics[monai]'"
+        ) from error
     cls = getattr(nets, net)
     accepted = inspect.signature(cls).parameters
     sizing = {"spatial_dims": spatial_dims, "in_channels": in_channels, "out_channels": num_classes}

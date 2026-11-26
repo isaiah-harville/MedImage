@@ -26,9 +26,9 @@ from typing import Any
 import numpy as np
 import torch
 
-from medimage.data.base import DatasetInfo, DatasetSource, Sample
-from medimage.datasets.medmnist_info import SUBSETS, ZENODO_RECORD
-from medimage.registry import DATASETS
+from opendiagnostics.data.base import DatasetInfo, DatasetSource, Sample
+from opendiagnostics.datasets.medmnist_info import SUBSETS, ZENODO_RECORD
+from opendiagnostics.registry import DATASETS
 
 CITATION = (
     "Yang, J., Shi, R., Wei, D. et al. MedMNIST v2 - A large-scale lightweight benchmark for "
@@ -37,7 +37,7 @@ CITATION = (
 )
 
 
-DEFAULT_ROOT = Path.home() / ".cache" / "medimage" / "medmnist"
+DEFAULT_ROOT = Path.home() / ".cache" / "opendiagnostics" / "medmnist"
 
 
 def _md5(path: Path) -> str:

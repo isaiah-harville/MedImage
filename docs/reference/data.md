@@ -1,5 +1,5 @@
 # Data contract and splits
 
-::: medimage.data.base
+::: opendiagnostics.data.base
 
-::: medimage.data.splits
+::: opendiagnostics.data.splits

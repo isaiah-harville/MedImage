@@ -45,10 +45,10 @@ jobs:
       - name: Test
         run: uv run pytest -m "not network"
       - name: Build the docs
-        run: uv run medimage notebook && uv run zensical build --clean
+        run: uv run opendiagnostics notebook && uv run zensical build --clean
       - name: Smoke-train every task from the command line
         shell: bash
         run: |
           for config in configs/smoke/*.yaml; do
-            uv run medimage train "$config" --output-dir "$RUNNER_TEMP/runs"
+            uv run opendiagnostics train "$config" --output-dir "$RUNNER_TEMP/runs"
           done

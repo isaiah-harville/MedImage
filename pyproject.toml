@@ -1,7 +1,7 @@
 [project]
-name = "medimage"
+name = "opendiagnostics"
 version = "0.1.0"
-description = "A generic, reproducible PyTorch pipeline for medical image classification and detection."
+description = "Open research models for medical image diagnosis. Not a medical device. PyTorch models and a reproducible pipeline for medical image classification and detection."
 readme = "README.md"
 requires-python = ">=3.11"
 license = "Apache-2.0"
@@ -33,12 +33,12 @@ monai = ["monai>=1.4"]
 # Accelerator choice for development with uv. Pick at most one:
 #   uv sync --extra cpu      (CI, laptops)
 #   uv sync --extra cu132    (NVIDIA GPUs, CUDA 13.2)
-# A plain `pip install medimage` takes torch from PyPI as usual.
+# A plain `pip install opendiagnostics` takes torch from PyPI as usual.
 cpu = ["torch>=2.6", "torchvision>=0.21"]
 cu132 = ["torch>=2.6", "torchvision>=0.21"]
 
 [project.scripts]
-medimage = "medimage.cli:main"
+opendiagnostics = "opendiagnostics.cli:main"
 
 [project.urls]
 Repository = "https://github.com/isaiah-harville/MedImage"
@@ -63,7 +63,7 @@ requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/medimage"]
+packages = ["src/opendiagnostics"]
 
 [tool.uv]
 default-groups = ["dev", "docs"]
@@ -104,4 +104,4 @@ markers = [
     "network: needs internet access (deselect with -m 'not network')",
     "slow: takes more than a few seconds",
 ]
-filterwarnings = ["error::UserWarning:medimage.*"]
+filterwarnings = ["error::UserWarning:opendiagnostics.*"]

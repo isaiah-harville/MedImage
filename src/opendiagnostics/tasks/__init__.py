@@ -2,7 +2,7 @@
 
 A task knows how to size the model for a dataset, compute the training loss, turn model
 output into per-sample predictions, and score those predictions. The trainer in
-:mod:`medimage.engine` is the same for every task; only the task object changes.
+:mod:`opendiagnostics.engine` is the same for every task; only the task object changes.
 
 Adding a task means subclassing :class:`Task` and registering it::
 
@@ -19,11 +19,11 @@ import numpy as np
 import torch
 from torch import nn
 
-from medimage.data.base import DatasetInfo, collate_classification, collate_detection
-from medimage.metrics import classification as cm
-from medimage.metrics.bootstrap import bootstrap as run_bootstrap
-from medimage.metrics.detection import DetectionEvaluator
-from medimage.registry import TASKS
+from opendiagnostics.data.base import DatasetInfo, collate_classification, collate_detection
+from opendiagnostics.metrics import classification as cm
+from opendiagnostics.metrics.bootstrap import bootstrap as run_bootstrap
+from opendiagnostics.metrics.detection import DetectionEvaluator
+from opendiagnostics.registry import TASKS
 
 Prediction = dict[str, Any]
 

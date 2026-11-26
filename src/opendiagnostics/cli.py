@@ -9,7 +9,7 @@ import sys
 from collections.abc import Callable
 from pathlib import Path
 
-from medimage.config import load_config
+from opendiagnostics.config import load_config
 
 
 def _resolve_plugins(plugins: list[str], config_dir: Path) -> list[str]:
@@ -18,7 +18,7 @@ def _resolve_plugins(plugins: list[str], config_dir: Path) -> list[str]:
 
 
 def _train(args: argparse.Namespace) -> int:
-    from medimage.engine import train
+    from opendiagnostics.engine import train
 
     config = load_config(args.config, args.overrides)
     config_dir = args.config.resolve().parent
@@ -30,14 +30,14 @@ def _train(args: argparse.Namespace) -> int:
 
 
 def _evaluate(args: argparse.Namespace) -> int:
-    from medimage.engine import evaluate_run
+    from opendiagnostics.engine import evaluate_run
 
     print(json.dumps(evaluate_run(args.run_dir, args.split), indent=2, default=str))
     return 0
 
 
 def _compare(args: argparse.Namespace) -> int:
-    from medimage.metrics.compare import compare, read_predictions
+    from opendiagnostics.metrics.compare import compare, read_predictions
 
     result = compare(
         read_predictions(args.a),
@@ -62,7 +62,7 @@ def _compare(args: argparse.Namespace) -> int:
 
 
 def _publish(args: argparse.Namespace) -> int:
-    from medimage.publish import publish_run
+    from opendiagnostics.publish import publish_run
 
     target = publish_run(
         args.run_dir,
@@ -75,7 +75,7 @@ def _publish(args: argparse.Namespace) -> int:
 
 
 def _notebook(args: argparse.Namespace) -> int:
-    from medimage.notebook import build_notebook
+    from opendiagnostics.notebook import build_notebook
 
     projects = build_notebook(args.models, args.out)
     runs = sum(len(p.runs) for p in projects)
@@ -84,7 +84,7 @@ def _notebook(args: argparse.Namespace) -> int:
 
 
 def _list(args: argparse.Namespace) -> int:
-    from medimage.registry import DATASETS, MODELS, TASKS, TRANSFORMS, load_all
+    from opendiagnostics.registry import DATASETS, MODELS, TASKS, TRANSFORMS, load_all
 
     load_all()
     for registry in (DATASETS, MODELS, TASKS, TRANSFORMS):
@@ -93,7 +93,7 @@ def _list(args: argparse.Namespace) -> int:
 
 
 def _parser() -> tuple[argparse.ArgumentParser, dict[str, Callable[[argparse.Namespace], int]]]:
-    parser = argparse.ArgumentParser(prog="medimage", description=__doc__)
+    parser = argparse.ArgumentParser(prog="opendiagnostics", description=__doc__)
     sub = parser.add_subparsers(dest="command", required=True)
 
     train = sub.add_parser("train", help="train and evaluate one experiment")

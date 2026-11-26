@@ -28,5 +28,5 @@ Site and scanner shift, population, label noise, missing subgroups.
 
 ## Reproduce
 ```bash
-uv run medimage train models/CHANGE-ME/config.yaml
+uv run opendiagnostics train models/CHANGE-ME/config.yaml
 ```

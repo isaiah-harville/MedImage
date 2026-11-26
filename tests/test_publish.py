@@ -4,7 +4,7 @@ import shutil
 import pytest
 import yaml
 
-from medimage.publish import PublishError, publish_run
+from opendiagnostics.publish import PublishError, publish_run
 
 
 def _artifacts(target):

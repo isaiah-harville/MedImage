@@ -7,8 +7,8 @@ from typing import Any
 
 import numpy as np
 
-from medimage.metrics import classification as cm
-from medimage.metrics.compare import read_predictions
+from opendiagnostics.metrics import classification as cm
+from opendiagnostics.metrics.compare import read_predictions
 
 
 def _pyplot() -> Any:
@@ -17,7 +17,7 @@ def _pyplot() -> Any:
     matplotlib.use("Agg")
     import matplotlib.pyplot as plt
 
-    plt.rcParams.update({"svg.hashsalt": "medimage", "svg.fonttype": "none", "font.size": 9})
+    plt.rcParams.update({"svg.hashsalt": "opendiagnostics", "svg.fonttype": "none", "font.size": 9})
     return plt
 
 

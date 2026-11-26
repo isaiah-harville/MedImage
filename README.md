@@ -1,7 +1,10 @@
-# medimage
+# OpenDiagnostics
+
+Open research models for medical image diagnosis. Not a medical device.
 
 An open-source monorepo of PyTorch models for medical image classification and object
-detection. All of them are built on one generic, reproducible pipeline.
+detection. The goal is models that beat published results, shown with the statistics to
+back the claim. All of them are built on one generic, reproducible pipeline.
 
 * **One loop, many tasks.** Classification (binary, multiclass, multilabel) and 2D
   detection share one training and evaluation loop. Datasets, models, tasks, and transforms
@@ -45,13 +48,13 @@ PneumoniaMNIST is open (CC BY 4.0) and needs no account. The first run downloads
 file from Zenodo and checks its MD5. On a laptop CPU, training takes about three minutes:
 
 ```bash
-uv run medimage train models/pneumoniamnist-cnn/config.yaml
+uv run opendiagnostics train models/pneumoniamnist-cnn/config.yaml
 ```
 
 For a quick check, override any config value from the command line:
 
 ```bash
-uv run medimage train models/pneumoniamnist-cnn/config.yaml train.epochs=2
+uv run opendiagnostics train models/pneumoniamnist-cnn/config.yaml train.epochs=2
 ```
 
 Each run writes `runs/<name>/<timestamp>-<commit>/`, which holds `metrics.json` (with
@@ -59,15 +62,15 @@ CIs), `run.json` (provenance), `splits.json`, `history.jsonl`, per-sample predic
 the best checkpoint. To re-score a finished run:
 
 ```bash
-uv run medimage evaluate runs/pneumoniamnist-cnn/<run>
+uv run opendiagnostics evaluate runs/pneumoniamnist-cnn/<run>
 ```
 
-`uv run medimage list` shows every registered dataset, model, task, and transform.
+`uv run opendiagnostics list` shows every registered dataset, model, task, and transform.
 
 ## Layout
 
 ```
-src/medimage/     shared core: registry, config, io, transforms, datasets, models, tasks, metrics, engine
+src/opendiagnostics/     shared core: registry, config, io, transforms, datasets, models, tasks, metrics, engine
 models/<name>/    one project per trained model: config.yaml, MODEL_CARD.md, results/
 configs/smoke/    tiny configs on generated data, run in CI
 docs/             design.md, datasets.md

@@ -14,7 +14,7 @@ from typing import Any
 import yaml
 from pydantic import BaseModel, ConfigDict, Field
 
-from medimage.publish import Artifacts, load_artifacts
+from opendiagnostics.publish import Artifacts, load_artifacts
 
 
 class Baseline(BaseModel):

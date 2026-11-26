@@ -1,3 +1,3 @@
 # Image loading
 
-::: medimage.io
+::: opendiagnostics.io

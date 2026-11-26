@@ -1,7 +1,7 @@
 # Datasets
 
-::: medimage.datasets.medmnist
+::: opendiagnostics.datasets.medmnist
 
-::: medimage.datasets.manifest
+::: opendiagnostics.datasets.manifest
 
-::: medimage.datasets.synthetic
+::: opendiagnostics.datasets.synthetic

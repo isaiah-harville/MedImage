@@ -85,5 +85,8 @@ uv sync --locked --extra cpu
 uv run medimage train models/pneumoniamnist-cnn/config.yaml
 ```
 
+The project was called `medimage` at that commit; on later commits the command is
+`uv run opendiagnostics train`.
+
 The run is deterministic on CPU: two runs of this code gave identical metrics to the last
 digit.

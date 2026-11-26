@@ -5,7 +5,7 @@ Every extensible part of the pipeline (datasets, models, tasks, transforms) is a
 found three ways:
 
 * the built-in modules of this package, imported by :func:`load_builtins`;
-* installed packages that declare an entry point in the ``medimage.plugins`` group;
+* installed packages that declare an entry point in the ``opendiagnostics.plugins`` group;
 * modules or ``.py`` files named in an experiment config's ``plugins`` list.
 """
 
@@ -24,7 +24,7 @@ from typing import Any, Generic, TypeVar
 T = TypeVar("T")
 F = TypeVar("F", bound=Callable[..., Any])
 
-ENTRY_POINT_GROUP = "medimage.plugins"
+ENTRY_POINT_GROUP = "opendiagnostics.plugins"
 
 
 class RegistryError(KeyError):
@@ -82,10 +82,10 @@ TASKS: Registry[Any] = Registry("task")
 TRANSFORMS: Registry[Any] = Registry("transform")
 
 _BUILTIN_MODULES = (
-    "medimage.datasets",
-    "medimage.models",
-    "medimage.tasks",
-    "medimage.transforms",
+    "opendiagnostics.datasets",
+    "opendiagnostics.models",
+    "opendiagnostics.tasks",
+    "opendiagnostics.transforms",
 )
 _loaded_entry_points = False
 
@@ -97,7 +97,7 @@ def load_builtins() -> None:
 
 
 def load_entry_points() -> None:
-    """Import every installed plugin that declares a ``medimage.plugins`` entry point."""
+    """Import every installed plugin that declares a ``opendiagnostics.plugins`` entry point."""
     global _loaded_entry_points
     if _loaded_entry_points:
         return
@@ -121,7 +121,7 @@ def load_plugin(spec: str, base_dir: Path | None = None) -> None:
     path = path.resolve()
     if not path.is_file():
         raise FileNotFoundError(f"plugin file not found: {path}")
-    module_name = "medimage_plugin_" + hashlib.sha1(str(path).encode()).hexdigest()[:12]
+    module_name = "opendiagnostics_plugin_" + hashlib.sha1(str(path).encode()).hexdigest()[:12]
     if module_name in sys.modules:
         return
     module_spec = importlib.util.spec_from_file_location(module_name, path)

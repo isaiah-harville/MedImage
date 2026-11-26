@@ -1,7 +1,7 @@
 import pytest
 from xpt import expect
 
-from medimage.data.splits import LeakageError, check_disjoint, patient_split, summarize
+from opendiagnostics.data.splits import LeakageError, check_disjoint, patient_split, summarize
 
 
 def test_patients_never_span_splits():

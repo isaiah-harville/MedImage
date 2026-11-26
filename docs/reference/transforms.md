@@ -1,3 +1,3 @@
 # Transforms
 
-::: medimage.transforms
+::: opendiagnostics.transforms
