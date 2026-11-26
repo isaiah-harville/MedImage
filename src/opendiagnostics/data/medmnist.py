@@ -10,12 +10,14 @@ biomedical image classification." Scientific Data 10, 41 (2023).
 
 from __future__ import annotations
 
+import shutil
+import zipfile
 from pathlib import Path
 from typing import Any
 
-import medmnist
 import numpy as np
 from medmnist import INFO
+from torchvision.datasets.utils import download_url
 
 from opendiagnostics.data.base import SPLIT_NAMES, DatasetInfo, MedicalDataModule, Source
 
@@ -100,32 +102,47 @@ class MedMNISTDataModule(MedicalDataModule):
             citation=CITATION,
         )
 
+    @property
+    def _suffix(self) -> str:
+        return "" if self.size == 28 else f"_{self.size}"
+
     def _md5(self) -> str | None:
         meta: dict[str, Any] = INFO[self.flag]
-        return meta.get("MD5" if self.size == 28 else f"MD5_{self.size}")
+        return meta.get(f"MD5{self._suffix}")
 
-    def _npy(self, split: str) -> Path:
-        return self.root / f"{self.flag}_{self.size}_{split}_images.npy"
+    def _array(self, split: str, kind: str) -> Path:
+        return self.root / f"{self.flag}{self._suffix}" / f"{split}_{kind}.npy"
 
     def prepare_data(self) -> None:
+        """Download the archive (MD5-checked) and unpack each array to its own ``.npy`` file.
+
+        Unpacking streams from the zip, so no split is ever held in memory; PathMNIST at 224
+        pixels is about 16 GB uncompressed.
+        """
+        if all(self._array(s, k).exists() for s in SPLIT_NAMES for k in ("images", "labels")):
+            return
         meta: dict[str, Any] = INFO[self.flag]
-        cls = getattr(medmnist, meta["python_class"])
-        self.root.mkdir(parents=True, exist_ok=True)
-        for split in SPLIT_NAMES:
-            if self._npy(split).exists():
-                continue
-            data = cls(split=split, size=self.size, root=str(self.root), download=self.download)
-            tmp = self._npy(split).with_suffix(".tmp.npy")
-            np.save(tmp, data.imgs)
-            np.save(self.root / f"{self.flag}_{self.size}_{split}_labels.npy", data.labels)
-            tmp.replace(self._npy(split))
+        archive = f"{self.flag}{self._suffix}.npz"
+        if self.download:
+            download_url(meta[f"url{self._suffix}"], str(self.root), archive, self._md5())
+        elif not (self.root / archive).exists():
+            raise FileNotFoundError(f"{self.root / archive} is missing; set download: true")
+        self._array("train", "images").parent.mkdir(parents=True, exist_ok=True)
+        with zipfile.ZipFile(self.root / archive) as bundle:
+            for split in SPLIT_NAMES:
+                for kind in ("images", "labels"):
+                    target = self._array(split, kind)
+                    partial = target.with_suffix(".partial")
+                    with bundle.open(f"{split}_{kind}.npy") as src, partial.open("wb") as dst:
+                        shutil.copyfileobj(src, dst, length=16 * 1024 * 1024)
+                    partial.replace(target)
 
     def load(self) -> Source:
         self.prepare_data()
         parts, ids, splits, start = [], [], {}, 0
         for split in SPLIT_NAMES:
-            labels = np.load(self.root / f"{self.flag}_{self.size}_{split}_labels.npy")
-            parts.append(MemmapImages(self._npy(split), labels))
+            labels = np.load(self._array(split, "labels"))
+            parts.append(MemmapImages(self._array(split, "images"), labels))
             ids += [f"{split}-{i}" for i in range(len(labels))]
             splits[split] = list(range(start, start + len(labels)))
             start += len(labels)
