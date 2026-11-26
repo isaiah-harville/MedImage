@@ -1,13 +1,6 @@
 import pytest
 
-from medimage.config import (
-    ConfigError,
-    ExperimentConfig,
-    apply_overrides,
-    dump_config,
-    from_dict,
-    load_config,
-)
+from medimage.config import ConfigError, apply_overrides, dump_config, load_config, parse_config
 
 MINIMAL = {
     "name": "x",
@@ -18,22 +11,22 @@ MINIMAL = {
 
 
 def test_minimal_config_fills_defaults():
-    config = from_dict(ExperimentConfig, MINIMAL)
+    config = parse_config(MINIMAL)
     assert config.task.name == "classification"
     assert config.data.split.method == "predefined"
     assert config.eval.bootstrap_unit == "patient"
 
 
 def test_unknown_key_is_rejected():
-    with pytest.raises(ConfigError, match=r"unknown key\(s\) \['epoch'\]"):
-        from_dict(ExperimentConfig, {**MINIMAL, "train": {"epoch": 3}})
+    with pytest.raises(ConfigError, match=r"train\.epoch: Extra inputs are not permitted"):
+        parse_config({**MINIMAL, "train": {"epoch": 3}})
 
 
 def test_wrong_type_is_rejected():
-    with pytest.raises(ConfigError, match="expected an integer"):
-        from_dict(ExperimentConfig, {**MINIMAL, "train": {"epochs": "3"}})
-    with pytest.raises(ConfigError, match="expected one of"):
-        from_dict(ExperimentConfig, {**MINIMAL, "deterministic": "yes"})
+    with pytest.raises(ConfigError, match=r"train\.epochs: Input should be a valid integer"):
+        parse_config({**MINIMAL, "train": {"epochs": "3"}})
+    with pytest.raises(ConfigError, match="deterministic: Input should be"):
+        parse_config({**MINIMAL, "deterministic": "yes"})
 
 
 def test_overrides_parse_yaml_values():

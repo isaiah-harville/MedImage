@@ -71,7 +71,7 @@ def _dicom_pixels(dataset: Any, apply_voi: bool) -> np.ndarray:
     pixels = pixels.astype(np.float32)
     if getattr(dataset, "PhotometricInterpretation", "") == "MONOCHROME1":
         # MONOCHROME1 shows low values as white; invert so higher means brighter everywhere.
-        pixels = pixels.max() + pixels.min() - pixels
+        pixels = np.max(pixels) + np.min(pixels) - pixels
     return pixels
 
 
@@ -109,6 +109,7 @@ def load_dicom(path: str | Path, apply_voi: bool = False) -> ImageData:
 def load_dicom_series(directory: str | Path, apply_voi: bool = False) -> ImageData:
     """Load the DICOM slices in ``directory`` as one volume ordered along the slice normal."""
     import pydicom
+    from pydicom.errors import InvalidDicomError
 
     files = sorted(
         p for p in Path(directory).iterdir() if p.is_file() and not p.name.startswith(".")
@@ -117,7 +118,7 @@ def load_dicom_series(directory: str | Path, apply_voi: bool = False) -> ImageDa
     for file in files:
         try:
             slices.append(pydicom.dcmread(file))
-        except pydicom.errors.InvalidDicomError:
+        except InvalidDicomError:
             continue
     if not slices:
         raise ValueError(f"no DICOM files in {directory}")
@@ -155,8 +156,11 @@ def load_nifti(path: str | Path, canonical: bool = True) -> ImageData:
     as channels.
     """
     import nibabel as nib
+    from nibabel.spatialimages import SpatialImage
 
     image = nib.load(str(path))
+    if not isinstance(image, SpatialImage):
+        raise ValueError(f"{path} is not a NIfTI image with a spatial affine")
     if canonical:
         image = nib.as_closest_canonical(image)
     data = np.asarray(image.dataobj, dtype=np.float32)

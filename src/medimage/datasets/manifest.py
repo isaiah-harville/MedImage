@@ -14,7 +14,7 @@ from typing import Any
 
 import torch
 
-from medimage.data.base import DatasetInfo, DatasetSource, Sample
+from medimage.data.base import DatasetInfo, DatasetSource, LabelMode, Sample
 from medimage.io import load_image
 from medimage.registry import DATASETS
 
@@ -43,7 +43,7 @@ class CSVClassification(DatasetSource):
         self,
         manifest: str,
         root: str | None = None,
-        label_mode: str = "binary",
+        label_mode: LabelMode = "binary",
         label_columns: list[str] | None = None,
         class_names: list[str] | None = None,
         path_column: str = "path",
@@ -92,21 +92,22 @@ class CSVClassification(DatasetSource):
                     return uncertain_label
                 return value
 
-            self.labels = [[parse(r[c]) for c in columns] for r in rows]
+            self.labels: list[list[float]] = [[parse(r[c]) for c in columns] for r in rows]
         else:
             if len(columns) != 1:
                 raise ValueError(f"{label_mode} needs exactly one label column")
             raw = [r[columns[0]] for r in rows]
             if label_mode == "binary":
                 names = tuple(class_names or ("negative", "positive"))
-                self.labels = [int(float(v)) for v in raw]
+                indices = [int(float(v)) for v in raw]
             else:
                 names = tuple(class_names or sorted(set(raw)))
                 lookup = {n: i for i, n in enumerate(names)}
-                self.labels = [lookup[v] if v in lookup else int(v) for v in raw]
-            bad = {v for v in self.labels if not 0 <= v < len(names)}
+                indices = [lookup[v] if v in lookup else int(v) for v in raw]
+            bad = {v for v in indices if not 0 <= v < len(names)}
             if bad:
                 raise ValueError(f"labels {sorted(bad)} are outside 0..{len(names) - 1}")
+            self.labels = [[float(v)] for v in indices]
 
         self._splits = None
         if split_column:
@@ -120,7 +121,7 @@ class CSVClassification(DatasetSource):
             spatial_dims=spatial_dims,
             in_channels=in_channels,
             class_names=names,
-            label_mode=label_mode,  # type: ignore[arg-type]
+            label_mode=label_mode,
             license=license,
             citation=citation,
         )
@@ -137,7 +138,7 @@ class CSVClassification(DatasetSource):
     def strata(self) -> list[Any]:
         if self.info.label_mode == "multilabel":
             return [tuple(int(v > 0.5) for v in row) for row in self.labels]
-        return list(self.labels)
+        return [int(row[0]) for row in self.labels]
 
     def predefined_splits(self) -> dict[str, list[int]] | None:
         return self._splits
@@ -147,11 +148,14 @@ class CSVClassification(DatasetSource):
 
     def __getitem__(self, index: int) -> Sample:
         image = load_image(self.root / self.paths[index], **self.loader_kwargs)
-        label = self.labels[index]
-        dtype = torch.float32 if self.info.label_mode == "multilabel" else torch.int64
+        row = self.labels[index]
+        if self.info.label_mode == "multilabel":
+            label = torch.tensor(row, dtype=torch.float32)
+        else:
+            label = torch.tensor(int(row[0]), dtype=torch.int64)
         return {
             "image": torch.from_numpy(image.array),
-            "label": torch.as_tensor(label, dtype=dtype),
+            "label": label,
             "id": self._ids[index],
             "patient_id": self._patients[index],
         }

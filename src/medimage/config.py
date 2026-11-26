@@ -7,15 +7,12 @@ Every run writes the fully resolved config next to its results.
 
 from __future__ import annotations
 
-import dataclasses
 import re
-import types
-import typing
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Literal
+from typing import Annotated, Any, Literal
 
 import yaml
+from pydantic import BaseModel, BeforeValidator, ConfigDict, Field, ValidationError, model_validator
 
 
 class _Loader(yaml.SafeLoader):
@@ -44,16 +41,34 @@ class ConfigError(ValueError):
     """Raised when a config file does not match the schema."""
 
 
-@dataclass
-class Component:
-    """A registry entry to build: ``name`` plus keyword ``params`` for its builder."""
+def _list_to_tuple(value: object) -> object:
+    return tuple(value) if isinstance(value, list) else value
+
+
+Fractions = Annotated[tuple[float, float, float], BeforeValidator(_list_to_tuple)]
+
+
+class _Strict(BaseModel):
+    model_config = ConfigDict(extra="forbid", strict=True)
+
+
+class Component(_Strict):
+    """A registry entry to build: ``name`` plus keyword ``params`` for its builder.
+
+    A bare string is shorthand for a component with no params. ``params`` stays untyped
+    here because each builder's own signature validates it when the component is built.
+    """
 
     name: str
-    params: dict[str, Any] = field(default_factory=dict)
+    params: dict[str, Any] = Field(default_factory=dict)
+
+    @model_validator(mode="before")
+    @classmethod
+    def _from_name(cls, value: object) -> object:
+        return {"name": value} if isinstance(value, str) else value
 
 
-@dataclass
-class SplitConfig:
+class SplitConfig(_Strict):
     """How to divide the dataset into train, validation, and test sets.
 
     ``predefined`` uses the dataset's official split. ``patient`` draws a random split in which
@@ -61,24 +76,22 @@ class SplitConfig:
     """
 
     method: Literal["predefined", "patient"] = "predefined"
-    fractions: tuple[float, float, float] = (0.7, 0.15, 0.15)
+    fractions: Fractions = (0.7, 0.15, 0.15)
     stratify: bool = True
     seed: int | None = None
 
 
-@dataclass
-class DataConfig:
+class DataConfig(_Strict):
     dataset: Component
-    split: SplitConfig = field(default_factory=SplitConfig)
-    train_transforms: list[Component] = field(default_factory=list)
-    eval_transforms: list[Component] = field(default_factory=list)
+    split: SplitConfig = Field(default_factory=SplitConfig)
+    train_transforms: list[Component] = Field(default_factory=list)
+    eval_transforms: list[Component] = Field(default_factory=list)
     batch_size: int = 32
     eval_batch_size: int | None = None
     num_workers: int = 0
 
 
-@dataclass
-class OptimConfig:
+class OptimConfig(_Strict):
     name: Literal["adamw", "adam", "sgd"] = "adamw"
     lr: float = 1e-3
     weight_decay: float = 1e-4
@@ -89,8 +102,7 @@ class OptimConfig:
     gamma: float = 0.1
 
 
-@dataclass
-class TrainConfig:
+class TrainConfig(_Strict):
     epochs: int = 10
     device: str = "auto"
     amp: bool = False
@@ -102,8 +114,7 @@ class TrainConfig:
     max_steps_per_epoch: int | None = None
 
 
-@dataclass
-class EvalConfig:
+class EvalConfig(_Strict):
     """Test-set evaluation. Confidence intervals come from a percentile bootstrap.
 
     ``bootstrap_unit: patient`` resamples whole patients (a cluster bootstrap), which keeps
@@ -113,112 +124,35 @@ class EvalConfig:
     bootstrap_samples: int = 1000
     confidence: float = 0.95
     bootstrap_unit: Literal["patient", "sample"] = "patient"
-    splits: list[str] = field(default_factory=lambda: ["val", "test"])
+    splits: list[str] = Field(default_factory=lambda: ["val", "test"])
 
 
-@dataclass
-class ExperimentConfig:
+class ExperimentConfig(_Strict):
     name: str
     task: Component
     data: DataConfig
     model: Component
-    optim: OptimConfig = field(default_factory=OptimConfig)
-    train: TrainConfig = field(default_factory=TrainConfig)
-    eval: EvalConfig = field(default_factory=EvalConfig)
+    optim: OptimConfig = Field(default_factory=OptimConfig)
+    train: TrainConfig = Field(default_factory=TrainConfig)
+    eval: EvalConfig = Field(default_factory=EvalConfig)
     seed: int = 0
     deterministic: Literal["strict", "warn", "off"] = "strict"
     output_dir: str = "runs"
-    plugins: list[str] = field(default_factory=list)
+    plugins: list[str] = Field(default_factory=list)
     notes: str = ""
 
     def to_dict(self) -> dict[str, Any]:
-        return _to_plain(dataclasses.asdict(self))
+        return self.model_dump(mode="json")
 
 
-def _to_plain(value: Any) -> Any:
-    if isinstance(value, dict):
-        return {k: _to_plain(v) for k, v in value.items()}
-    if isinstance(value, list | tuple):
-        return [_to_plain(v) for v in value]
-    return value
-
-
-def from_dict(cls: type, data: Any, where: str = "config") -> Any:
-    """Build dataclass ``cls`` from plain data, checking keys and types."""
-    if not isinstance(data, dict):
-        raise ConfigError(f"{where}: expected a mapping, got {type(data).__name__}")
-    hints = typing.get_type_hints(cls)
-    fields = {f.name: f for f in dataclasses.fields(cls)}
-    unknown = set(data) - set(fields)
-    if unknown:
-        raise ConfigError(
-            f"{where}: unknown key(s) {sorted(unknown)}; allowed keys are {sorted(fields)}"
+def parse_config(data: object, where: str = "config") -> ExperimentConfig:
+    try:
+        return ExperimentConfig.model_validate(data)
+    except ValidationError as error:
+        problems = "\n".join(
+            f"  {'.'.join(map(str, e['loc'])) or '(top level)'}: {e['msg']}" for e in error.errors()
         )
-    kwargs = {}
-    for name, f in fields.items():
-        if name in data:
-            kwargs[name] = _coerce(hints[name], data[name], f"{where}.{name}")
-        elif f.default is dataclasses.MISSING and f.default_factory is dataclasses.MISSING:
-            raise ConfigError(f"{where}: missing required key {name!r}")
-    return cls(**kwargs)
-
-
-def _coerce(tp: Any, value: Any, where: str) -> Any:
-    origin = typing.get_origin(tp)
-    args = typing.get_args(tp)
-    if tp is Any:
-        return value
-    if origin in (typing.Union, types.UnionType):
-        if value is None and type(None) in args:
-            return None
-        errors = []
-        for arg in args:
-            if arg is type(None):
-                continue
-            try:
-                return _coerce(arg, value, where)
-            except ConfigError as error:
-                errors.append(str(error))
-        raise ConfigError("; ".join(errors))
-    if origin is Literal:
-        if value not in args:
-            raise ConfigError(f"{where}: expected one of {list(args)}, got {value!r}")
-        return value
-    if dataclasses.is_dataclass(tp):
-        if isinstance(tp, type) and issubclass(tp, Component) and isinstance(value, str):
-            return Component(name=value)
-        return from_dict(tp, value, where)  # type: ignore[arg-type]
-    if origin is list:
-        if not isinstance(value, list):
-            raise ConfigError(f"{where}: expected a list, got {value!r}")
-        return [_coerce(args[0], v, f"{where}[{i}]") for i, v in enumerate(value)]
-    if origin is tuple:
-        if not isinstance(value, list | tuple) or len(value) != len(args):
-            raise ConfigError(f"{where}: expected a list of {len(args)} items, got {value!r}")
-        return tuple(
-            _coerce(a, v, f"{where}[{i}]") for i, (a, v) in enumerate(zip(args, value, strict=True))
-        )
-    if origin is dict:
-        if not isinstance(value, dict):
-            raise ConfigError(f"{where}: expected a mapping, got {value!r}")
-        return dict(value)
-    if tp is float:
-        if isinstance(value, bool) or not isinstance(value, int | float):
-            raise ConfigError(f"{where}: expected a number, got {value!r}")
-        return float(value)
-    if tp is int:
-        if isinstance(value, bool) or not isinstance(value, int):
-            raise ConfigError(f"{where}: expected an integer, got {value!r}")
-        return value
-    if tp is bool:
-        if not isinstance(value, bool):
-            raise ConfigError(f"{where}: expected true or false, got {value!r}")
-        return value
-    if tp is str:
-        if not isinstance(value, str):
-            raise ConfigError(f"{where}: expected a string, got {value!r}")
-        return value
-    raise ConfigError(f"{where}: unsupported type {tp!r}")
+        raise ConfigError(f"{where} is not a valid experiment config:\n{problems}") from None
 
 
 def apply_overrides(data: dict[str, Any], overrides: list[str]) -> dict[str, Any]:
@@ -242,8 +176,7 @@ def load_config(path: str | Path, overrides: list[str] | None = None) -> Experim
     path = Path(path)
     with path.open() as handle:
         data = _yaml_load(handle) or {}
-    data = apply_overrides(data, overrides or [])
-    return from_dict(ExperimentConfig, data, where=path.name)
+    return parse_config(apply_overrides(data, overrides or []), where=path.name)
 
 
 def dump_config(config: ExperimentConfig, path: str | Path) -> None:

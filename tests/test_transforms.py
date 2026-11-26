@@ -65,5 +65,7 @@ def test_ct_window():
 
 
 def test_build_from_config_components():
-    compose = build_transforms([Component("resize", {"size": 8}), Component("normalize_intensity")])
+    compose = build_transforms(
+        [Component(name="resize", params={"size": 8}), Component(name="normalize_intensity")]
+    )
     assert compose(_sample())["image"].shape == (1, 8, 8)

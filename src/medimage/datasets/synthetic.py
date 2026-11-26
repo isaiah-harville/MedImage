@@ -11,7 +11,7 @@ from typing import Any
 import numpy as np
 import torch
 
-from medimage.data.base import DatasetInfo, DatasetSource, Sample
+from medimage.data.base import DatasetInfo, DatasetSource, LabelMode, Sample
 from medimage.registry import DATASETS
 
 
@@ -52,7 +52,7 @@ class SyntheticClassification(_Synthetic):
         image_size: int = 32,
         spatial_dims: int = 2,
         images_per_patient: int = 2,
-        label_mode: str = "binary",
+        label_mode: LabelMode = "binary",
         noise: float = 0.5,
         seed: int = 0,
     ) -> None:
@@ -75,7 +75,7 @@ class SyntheticClassification(_Synthetic):
             spatial_dims=spatial_dims,
             in_channels=1,
             class_names=tuple(f"class_{k}" for k in range(num_classes)),
-            label_mode=label_mode,  # type: ignore[arg-type]
+            label_mode=label_mode,
             license="CC0-1.0 (generated)",
         )
 

@@ -41,15 +41,14 @@ class Registry(Generic[T]):
         self.kind = kind
         self._builders: dict[str, Callable[..., T]] = {}
 
-    def register(self, name: str | None = None) -> Callable[[F], F]:
-        """Decorator that registers a class or function under ``name`` (default: its name)."""
+    def register(self, name: str) -> Callable[[F], F]:
+        """Decorator that registers a class or function under ``name``."""
 
         def decorator(builder: F) -> F:
-            key = name or builder.__name__
-            existing = self._builders.get(key)
+            existing = self._builders.get(name)
             if existing is not None and existing is not builder:
-                raise RegistryError(f"{self.kind} {key!r} is already registered by {existing!r}")
-            self._builders[key] = builder
+                raise RegistryError(f"{self.kind} {name!r} is already registered by {existing!r}")
+            self._builders[name] = builder
             return builder
 
         return decorator

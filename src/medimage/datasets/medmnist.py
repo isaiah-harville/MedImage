@@ -18,7 +18,6 @@ https://doi.org/10.1038/s41597-022-01721-8
 from __future__ import annotations
 
 import hashlib
-import os
 import shutil
 import urllib.request
 from pathlib import Path
@@ -38,8 +37,7 @@ CITATION = (
 )
 
 
-def default_root() -> Path:
-    return Path(os.environ.get("MEDIMAGE_DATA", Path.home() / ".cache" / "medimage")) / "medmnist"
+DEFAULT_ROOT = Path.home() / ".cache" / "medimage" / "medmnist"
 
 
 def _md5(path: Path) -> str:
@@ -92,7 +90,7 @@ class MedMNIST(DatasetSource):
             raise ValueError(f"unknown MedMNIST subset {subset!r}; choose from {sorted(SUBSETS)}")
         meta = SUBSETS[subset]
         self.subset, self.size = subset, size
-        self.path, self.md5 = fetch(subset, size, Path(root) if root else default_root(), download)
+        self.path, self.md5 = fetch(subset, size, Path(root) if root else DEFAULT_ROOT, download)
 
         with np.load(self.path, allow_pickle=False) as archive:
             parts = {
