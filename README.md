@@ -92,4 +92,6 @@ datasets such as MedMNIST measure the pipeline, not clinical performance.
 
 ## License
 
-To be decided.
+The code is licensed under [Apache-2.0](LICENSE). Datasets keep their own licenses, and
+weights or predictions derived from a dataset are bound by its terms; see
+[docs/datasets.md](docs/datasets.md) before publishing either.
