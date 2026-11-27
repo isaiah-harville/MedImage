@@ -31,6 +31,22 @@ def test_medmnist_uses_the_official_split_and_package_metadata(tmp_path):
     assert batch["id"] == ["test-0", "test-1", "test-2"]
 
 
+def test_medmnist_3d_volumes_batch_channel_first_in_unit_range(tmp_path):
+    arrays: dict[str, Any] = {}
+    for split, n in zip(("train", "val", "test"), (4, 2, 3), strict=True):
+        volumes = np.zeros((n, 8, 8, 8), np.uint8)
+        volumes[:, 0] = 255
+        arrays[f"{split}_images"] = volumes
+        arrays[f"{split}_labels"] = np.arange(n).reshape(-1, 1) % 2
+    np.savez(tmp_path / "nodulemnist3d_64.npz", **arrays)
+    data = MedMNISTDataModule(flag="nodulemnist3d", size=64, root=str(tmp_path), download=False)
+    data.setup()
+    image = next(iter(data.loader("test")))["image"]
+    assert image.shape == (3, 1, 8, 8, 8)
+    assert image[:, :, 0].min().item() == 1.0
+    assert image[:, :, 1:].max().item() == 0.0
+
+
 def test_medmnist_dataset_pickles_without_its_images(tmp_path):
     _fake_archive(tmp_path)
     data = MedMNISTDataModule(flag="dermamnist", size=64, root=str(tmp_path), download=False)

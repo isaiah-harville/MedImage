@@ -16,6 +16,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import torch
 from medmnist import INFO
 from torchvision.datasets.utils import download_url
 
@@ -29,23 +30,36 @@ CITATION = (
 
 
 class MemmapImages:
-    """Images in a ``.npy`` file, opened lazily so each worker process maps the file itself."""
+    """Images in a ``.npy`` file, opened lazily so each worker process maps the file itself.
 
-    def __init__(self, images: Path, labels: np.ndarray) -> None:
+    2D images stay ``(H, W, C)`` arrays. A 3D volume, stored ``(D, H, W)`` in 0-255, becomes a
+    ``(1, D, H, W)`` float tensor in ``[0, 1]``.
+    """
+
+    def __init__(self, images: Path, labels: np.ndarray, volumetric: bool = False) -> None:
         self.path = images
         self.labels = labels
+        self.volumetric = volumetric
         self._images: np.ndarray | None = None
 
     def __len__(self) -> int:
         return len(self.labels)
 
-    def __getitem__(self, index: int) -> tuple[np.ndarray, np.ndarray]:
+    def __getitem__(self, index: int) -> tuple[np.ndarray | torch.Tensor, np.ndarray]:
         if self._images is None:
             self._images = np.load(self.path, mmap_mode="r")
-        return np.array(self._images[index]), self.labels[index]
+        image = np.array(self._images[index])
+        if self.volumetric:
+            return torch.from_numpy(image[None]).float().div(255), self.labels[index]
+        return image, self.labels[index]
 
     def __getstate__(self) -> dict[str, Any]:
-        return {"path": self.path, "labels": self.labels, "_images": None}
+        return {
+            "path": self.path,
+            "labels": self.labels,
+            "volumetric": self.volumetric,
+            "_images": None,
+        }
 
 
 class ConcatSplits:
@@ -56,7 +70,7 @@ class ConcatSplits:
     def __len__(self) -> int:
         return int(self.offsets[-1])
 
-    def __getitem__(self, index: int) -> tuple[np.ndarray, np.ndarray]:
+    def __getitem__(self, index: int) -> tuple[np.ndarray | torch.Tensor, np.ndarray]:
         part = int(np.searchsorted(self.offsets, index, side="right")) - 1
         return self.parts[part][index - int(self.offsets[part])]
 
@@ -142,7 +156,9 @@ class MedMNISTDataModule(MedicalDataModule):
         parts, ids, splits, start = [], [], {}, 0
         for split in SPLIT_NAMES:
             labels = np.load(self._array(split, "labels"))
-            parts.append(MemmapImages(self._array(split, "images"), labels))
+            parts.append(
+                MemmapImages(self._array(split, "images"), labels, self.info.spatial_dims == 3)
+            )
             ids += [f"{split}-{i}" for i in range(len(labels))]
             splits[split] = list(range(start, start + len(labels)))
             start += len(labels)
