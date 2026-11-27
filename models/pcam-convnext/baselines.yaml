@@ -1,0 +1,38 @@
+benchmark: PatchCamelyon (PCam), official test split of 32,768 patches
+protocol: >-
+  Test AUROC on the official split from the Zenodo record, with the label defined by tumour in
+  the centre 32x32 region. Accuracy is reported for reference; neither paper states its
+  threshold, so compare our accuracy_at_0.5. Both papers report single runs at the native 96
+  px with no intervals; Graham et al. do not state their split, but PCam ships with one and
+  they cite it as the dataset. Our runs upsample to 224 px. The files carry no slide IDs, so
+  our intervals resample patches, which makes them narrower than slide-level intervals would
+  be; a claim to beat a published number needs it outside our 95% interval by a clear margin.
+baselines:
+  - method: "DSF-CNN (C8, 2.2M parameters)"
+    metrics: {auroc: 0.975}
+    source: Graham, Epstein & Rajpoot, arXiv 2004.03037v2 (2020), Table I
+    url: https://arxiv.org/abs/2004.03037v2
+  - method: "Steerable G-CNN (C8, 565K parameters)"
+    metrics: {auroc: 0.971}
+    source: Graham, Epstein & Rajpoot, arXiv 2004.03037v2 (2020), Table I
+    url: https://arxiv.org/abs/2004.03037v2
+  - method: "P4M-DenseNet (119K weights)"
+    metrics: {auroc: 0.963, accuracy: 0.898}
+    source: Veeling et al., MICCAI 2018, arXiv 1806.03962, Table 1
+    url: https://arxiv.org/abs/1806.03962
+  - method: "DenseNet (128K weights)"
+    metrics: {auroc: 0.955, accuracy: 0.876}
+    source: Veeling et al., MICCAI 2018, arXiv 1806.03962, Table 1
+    url: https://arxiv.org/abs/1806.03962
+  - method: "DenseNet with 90-degree rotation and reflection augmentation (128K weights)"
+    metrics: {auroc: 0.951, accuracy: 0.881}
+    source: Veeling et al., MICCAI 2018, arXiv 1806.03962, Table 1
+    url: https://arxiv.org/abs/1806.03962
+  - method: "ResNet-50 (23.5M parameters)"
+    metrics: {auroc: 0.948}
+    source: Graham, Epstein & Rajpoot, arXiv 2004.03037v2 (2020), Table I
+    url: https://arxiv.org/abs/2004.03037v2
+  - method: "P4-DenseNet (125K weights)"
+    metrics: {auroc: 0.945, accuracy: 0.890}
+    source: Veeling et al., MICCAI 2018, arXiv 1806.03962, Table 1
+    url: https://arxiv.org/abs/1806.03962

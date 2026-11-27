@@ -1,0 +1,101 @@
+#   uv run opendiagnostics fit -c models/pcam-convnext/config.yaml
+# The first run downloads 8.0 GB from Zenodo into data/pcam and unpacks 9.1 GB of .npy files.
+name: pcam-convnext
+notes: >-
+  PCam at 96 px upsampled to 224. Official split; the files carry no slide IDs, so leakage
+  cannot be checked and intervals resample patches.
+seed_everything: 0
+trainer:
+  accelerator: auto
+  precision: bf16-mixed
+  deterministic: warn
+  max_epochs: 8
+  log_every_n_steps: 50
+  callbacks:
+  - class_path: lightning.pytorch.callbacks.EMAWeightAveraging
+    init_args:
+      decay: 0.99969
+  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+model:
+  class_path: opendiagnostics.modules.ImageClassifier
+  init_args:
+    network:
+      class_path: timm.create_model
+      init_args:
+        model_name: convnext_small.fb_in22k_ft_in1k
+        pretrained: true
+      dict_kwargs:
+        num_classes: 1
+        in_chans: 3
+        drop_path_rate: 0.2
+    tta: true
+    label_smoothing: 0.1
+data:
+  class_path: opendiagnostics.data.PCamDataModule
+  init_args:
+    root: data/pcam
+    split: predefined
+    batch_size: 64
+    eval_batch_size: 256
+    num_workers: 8
+    train_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: monai.transforms.RandRotate90
+          init_args:
+            prob: 0.75
+            max_k: 3
+        - class_path: monai.transforms.ToTensor
+          init_args:
+            track_meta: false
+        - class_path: torchvision.transforms.v2.RandomHorizontalFlip
+        - class_path: torchvision.transforms.v2.Resize
+          init_args:
+            size: 224
+            antialias: true
+        - class_path: torchvision.transforms.v2.Normalize
+          init_args:
+            mean:
+            - 0.485
+            - 0.456
+            - 0.406
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+    eval_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: torchvision.transforms.v2.Resize
+          init_args:
+            size: 224
+            antialias: true
+        - class_path: torchvision.transforms.v2.Normalize
+          init_args:
+            mean:
+            - 0.485
+            - 0.456
+            - 0.406
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 0.0001
+    weight_decay: 0.05
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CosineAnnealingLR
+  init_args:
+    T_max: 8
+    eta_min: 1.0e-06
+checkpoint:
+  monitor: val/auroc
+  mode: max
+eval:
+  bootstrap_samples: 1000
