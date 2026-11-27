@@ -25,7 +25,12 @@ from torchvision.utils import draw_bounding_boxes
 
 from opendiagnostics.data import MedicalDataModule
 from opendiagnostics.data.base import prepare
-from opendiagnostics.modules import DiagnosticModule, ImageClassifier, ObjectDetector
+from opendiagnostics.modules import (
+    DiagnosticModule,
+    ImageClassifier,
+    ObjectDetector,
+    SlideClassifier,
+)
 from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST
 
 DISPLAY_SIZE = 224
@@ -213,7 +218,10 @@ def write_examples(
     device: torch.device,
     limit: int = 8,
 ) -> list[dict[str, Any]]:
-    """Render example pairs for the run's test split into ``run_dir/examples``."""
+    """Render example pairs for the run's test split into ``run_dir/examples``.
+
+    Slide classifiers see feature bags, not images, so their manifest is empty.
+    """
     state = torch.load(checkpoint, map_location="cpu", weights_only=True)["state_dict"]
     module.load_state_dict(state)
     module.to(device).eval()
@@ -224,10 +232,11 @@ def write_examples(
     for old in out.glob("*.png"):
         old.unlink()
     mode = data.info.label_mode
+    picks: list[dict[str, Any]] = []
     if isinstance(module, ObjectDetector):
         ids = [source.sample_ids[i] for i in data.splits["test"]]
-        picks: list[dict[str, Any]] = [{"id": sample} for sample in ids[:limit]]
-    else:
+        picks = [{"id": sample} for sample in ids[:limit]]
+    elif not isinstance(module, SlideClassifier):
         metrics = json.loads((run_dir / "metrics.json").read_text())
         threshold = metrics.get("calibration", {}).get("threshold", 0.5)
         with (run_dir / "predictions_test.csv").open(newline="") as handle:

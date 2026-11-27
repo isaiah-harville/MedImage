@@ -2,14 +2,17 @@
 
 from __future__ import annotations
 
+from pathlib import Path
 from typing import Any, Literal
 
 import numpy as np
+import tifffile
 import torch
 from monai.data.synthetic import create_test_image_2d, create_test_image_3d
 from torchvision.ops import masks_to_boxes
 
 from opendiagnostics.data.base import DatasetInfo, MedicalDataModule, Source
+from opendiagnostics.data.slides import Slide, SlideFeatureDataModule
 
 
 class SyntheticClassificationDataModule(MedicalDataModule):
@@ -110,3 +113,68 @@ class SyntheticDetectionDataModule(MedicalDataModule):
             patient_ids=sample_ids,
             fingerprint={"seed": self.seed, "num_samples": self.num_samples},
         )
+
+
+def write_pyramid(path: Path, image: np.ndarray, levels: int, tile: int = 64) -> None:
+    """Write ``uint8 (H, W, 3)`` as a tiled pyramidal TIFF, halving per level, that
+    OpenSlide reads as a generic tiled TIFF."""
+    with tifffile.TiffWriter(path, bigtiff=True) as tif:
+        for level in range(levels):
+            tif.write(
+                image[:: 2**level, :: 2**level],
+                tile=(tile, tile),
+                photometric="rgb",
+                compression="zlib",
+                subfiletype=1 if level else 0,
+            )
+
+
+class SyntheticSlideDataModule(SlideFeatureDataModule):
+    """Tiny generated slides: a pink tissue rectangle on white, with dark purple nests in
+    ``tumor`` slides. Fetching a slide writes it to ``root/images``."""
+
+    def __init__(
+        self,
+        num_slides: int = 24,
+        slide_size: int = 512,
+        slides_per_patient: int = 2,
+        seed: int = 0,
+        **kwargs: Any,
+    ) -> None:
+        kwargs.setdefault("split", "patient")
+        super().__init__(**kwargs)
+        self.num_slides = num_slides
+        self.slide_size = slide_size
+        self.slides_per_patient = slides_per_patient
+        self.seed = seed
+        self.info = DatasetInfo(
+            label_mode="binary", class_names=("normal", "tumor"), in_channels=3, license="generated"
+        )
+
+    def slides(self) -> list[Slide]:
+        labels = np.random.RandomState(self.seed).randint(0, 2, self.num_slides)
+        return [
+            Slide(
+                slide_id=f"slide_{n:03d}",
+                path=self.root / "images" / f"slide_{n:03d}.tif",
+                patient_id=f"p{n // self.slides_per_patient}",
+                label=int(label),
+            )
+            for n, label in enumerate(labels)
+        ]
+
+    def fetch_slide(self, slide: Slide) -> None:
+        number = int(slide.slide_id.removeprefix("slide_"))
+        rng = np.random.RandomState(self.seed + 1 + number)
+        size = self.slide_size
+        image = np.full((size, size, 3), 240, np.uint8)
+        top, left = rng.randint(size // 8, size // 4, 2)
+        image[top : size - top, left : size - left] = (220, 150, 190)
+        if slide.label:
+            for _ in range(4):
+                y, x = rng.randint(size // 4, 3 * size // 4 - size // 8, 2)
+                image[y : y + size // 8, x : x + size // 8] = (90, 40, 120)
+        slide.path.parent.mkdir(parents=True, exist_ok=True)
+        partial = slide.path.with_suffix(".partial")
+        write_pyramid(partial, image, levels=4)
+        partial.replace(slide.path)
