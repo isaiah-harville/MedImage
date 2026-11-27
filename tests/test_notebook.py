@@ -3,7 +3,7 @@ import yaml
 
 from opendiagnostics.cli import main
 from opendiagnostics.notebook import MARKER, NotebookError, build_notebook
-from opendiagnostics.publish import publish_run
+from opendiagnostics.publish import WEIGHTS_URL, publish_run
 
 BASELINES = {
     "benchmark": "smoke benchmark",
@@ -27,7 +27,7 @@ BASELINES = {
 
 @pytest.fixture
 def notebook(finished_run, project, tmp_path):
-    publish_run(finished_run, project)
+    publish_run(finished_run, project, upload=lambda path, key: None)
     (project / "baselines.yaml").write_text(yaml.safe_dump(BASELINES))
     (project / "MODEL_CARD.md").write_text("# Smoke model\n\nA card.\n")
     out = tmp_path / "docs" / "notebook"
@@ -42,10 +42,10 @@ def test_run_page_shows_metrics_plots_and_downloads(notebook):
     assert "![Training curves](files/training.svg)" in page
     assert "![ROC and precision-recall on test](files/roc_pr.svg)" in page
     assert "[metrics.json](files/metrics.json)" in page
-    assert (
-        f"[checkpoint.ckpt](https://github.com/isaiah-harville/opendiagnostics/raw/main/"
-        f"models/smoke-project/runs/{run_id}/checkpoint.ckpt)"
-    ) in page
+    url = f"{WEIGHTS_URL}/smoke-project/{run_id}/checkpoint.ckpt"
+    assert f"[checkpoint.ckpt]({url})" in page
+    assert "[Download weights (" in page
+    assert f"]({url}){{ .md-button .md-button--primary }}" in page
     assert not (out / "smoke-project" / run_id / "files" / "checkpoint.ckpt").exists()
     assert "## Examples" in page
     assert "](files/examples/01-input.png)" in page

@@ -51,10 +51,9 @@ must update the privacy page in the same change; see invariant 9 in `AGENTS.md`.
 
 ## Run it locally
 
-Pull the published checkpoints from Git LFS, bundle them, then start the API:
+Download and check the published checkpoints, then start the API:
 
 ```bash
-git lfs pull
 uv run python scripts/bundle_models.py weights
 WEIGHTS_DIR=weights uv run --extra serve opendiagnostics-serve
 ```
@@ -63,12 +62,12 @@ Then start the frontend against it (`API_URL=http://localhost:8080`); see `web/R
 
 ## Model weights
 
-The image carries the weights (about 200 MB per model). `opendiagnostics publish` commits
-each run's checkpoint through Git LFS. CI pulls the checkpoints, with a cache so a rebuild
-downloads only changed ones, and `scripts/bundle_models.py` takes each project's latest
-published run, checking its checkpoint against the SHA-256 in `artifacts.yaml`. Until a run
-is published, the image workflow skips the build. Weights trained on CC BY-NC data
-(DermaMNIST) may be used only non-commercially.
+The image carries the weights (about 200 MB per model). `scripts/bundle_models.py` takes
+each project's latest published run and downloads its checkpoint from the public weights
+bucket, checking it against the SHA-256 in `artifacts.yaml`. CI caches the downloads, so a
+rebuild fetches only changed checkpoints. Until a run is published, the image workflow
+skips the build. Each model page links its weights for download; see
+[model weights](weights.md).
 
 ## Deployment
 
@@ -77,4 +76,4 @@ is published, the image workflow skips the build. Weights trained on CC BY-NC da
 | Images | `ghcr.io/isaiah-harville/opendiagnostics-serve`, `ghcr.io/isaiah-harville/opendiagnostics-web` |
 | Manifests | `deploy/k8s/` (Kustomize), applied by Flux from the homelab repo |
 | Tags | CI pushes `main`, `sha-<commit>`, and a sortable `<UTC time>-<short sha>` per build. Flux image automation in the homelab repo pins the newest sortable tag; CI never pushes to `main`. |
-| Owned by homelab | namespace, the Ingress and its host, TLS, rate and body-size limits, the `ghcr-pull-secret` |
+| Owned by homelab | namespace, the Ingress and its host, TLS, rate and body-size limits, the `ghcr-pull-secret`, the weights bucket and its public route |

@@ -8,7 +8,7 @@ models/<dataset>-<model>/
   config.yaml       the experiment; `uv run opendiagnostics fit -c models/<name>/config.yaml`
   MODEL_CARD.md     intended use, data, training, results with CIs, limitations
   baselines.yaml    published results on the same benchmark, with sources
-  runs/<run-id>/    published runs: small files in git, checkpoint.ckpt in Git LFS
+  runs/<run-id>/    published runs: small files in git; artifacts.yaml links the weights
 ```
 
 The lab notebook (`uv run opendiagnostics notebook`, then `uv run zensical serve`) renders every
@@ -37,10 +37,10 @@ project and run from these files.
 3. To compare with an earlier run on the same split:
    `uv run opendiagnostics compare <old>/predictions_test.csv <new>/predictions_test.csv`.
 4. Update the model card from the run's `metrics.json`, commit, and rebuild the notebook.
-5. The checkpoint is committed through Git LFS with the run, when the dataset's license
-   allows sharing weights; run `git lfs install` once on the machine that publishes. Pass
-   `--no-checkpoint` to keep it out. Every LFS object counts against the repository's
-   storage quota, so publish runs worth keeping.
+5. When the dataset's license allows sharing weights, publish uploads the checkpoint to the
+   public weights bucket and records its URL. That needs the publisher key; see
+   [docs/weights.md](../docs/weights.md#publish). Pass `--no-checkpoint` to publish
+   without the weights.
 
 The `*-convnext` projects cover the twelve MedMNIST 2D subsets at 224 px. None has a
 published run yet.

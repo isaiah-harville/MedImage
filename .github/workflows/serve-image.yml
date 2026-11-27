@@ -28,17 +28,13 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
-      # Published checkpoints are in Git LFS (about 200 MB each). Cache them by the hash of
-      # their pointers, so a build downloads only checkpoints that changed.
-      - name: List the LFS checkpoints
-        run: git lfs ls-files --long --include "models/*/runs/*/checkpoint.ckpt" > .lfs-checkpoints
+      # Checkpoints (about 200 MB each) download from the public weights bucket. The cache
+      # keeps them between builds; the bundler re-downloads only those whose SHA-256 changed.
       - uses: actions/cache@v4
         with:
-          path: .git/lfs/objects
-          key: lfs-checkpoints-${{ hashFiles('.lfs-checkpoints') }}
-          restore-keys: lfs-checkpoints-
-      - name: Pull the LFS checkpoints
-        run: git lfs pull --include "models/*/runs/*/checkpoint.ckpt"
+          path: weights
+          key: weights-${{ hashFiles('models/*/runs/*/artifacts.yaml') }}
+          restore-keys: weights-
       - uses: astral-sh/setup-uv@v10.4.0
         with:
           python-version: "3.12"
@@ -48,11 +44,15 @@ jobs:
       - name: Bundle the published models
         id: bundle
         run: |
-          if uv run --no-project --with pyyaml python scripts/bundle_models.py weights; then
+          status=0
+          uv run --no-project --with pyyaml python scripts/bundle_models.py weights || status=$?
+          if [ "$status" -eq 0 ]; then
             echo "ready=true" >> "$GITHUB_OUTPUT"
-          else
-            echo "::notice::No published run with a checkpoint yet; skipping the image."
+          elif [ "$status" -eq 3 ]; then
+            echo "::notice::No published run yet; skipping the image."
             echo "ready=false" >> "$GITHUB_OUTPUT"
+          else
+            exit "$status"
           fi
       # A sortable tag (UTC time, then commit) that Flux image automation in the homelab repo
       # watches; it pins the newest one there, so this workflow never pushes to main.

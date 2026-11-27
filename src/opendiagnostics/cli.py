@@ -311,6 +311,7 @@ def _publish(args: argparse.Namespace) -> int:
             args.project,
             include_predictions=not args.no_predictions,
             allow_dirty=args.allow_dirty,
+            include_checkpoint=not args.no_checkpoint,
         )
     )
     return 0
@@ -369,7 +370,7 @@ def _parser() -> argparse.ArgumentParser:
     publish.add_argument(
         "--no-checkpoint",
         action="store_true",
-        help="leave the checkpoint out of git (it is otherwise committed through Git LFS)",
+        help="do not upload the checkpoint to the public weights bucket",
     )
     publish.add_argument("--allow-dirty", action="store_true", help="publish a dirty-tree run")
     publish.set_defaults(handler=_publish)

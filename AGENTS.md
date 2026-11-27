@@ -28,7 +28,7 @@ smoke-trains every config in `configs/smoke/`. On an NVIDIA machine, use
 | Train | `uv run opendiagnostics fit -c models/<name>/config.yaml [--trainer.max_epochs=2 ...]` |
 | Regenerate the MedMNIST recipes | `uv run python scripts/medmnist_recipes.py` |
 | Compare two runs, paired | `uv run opendiagnostics compare <a>/predictions_test.csv <b>/predictions_test.csv` |
-| Publish a run (commits the checkpoint through Git LFS) | `uv run opendiagnostics publish runs/<name>/<run-id> models/<name>` |
+| Publish a run (uploads the checkpoint to the public weights bucket; see `docs/weights.md`) | `uv run opendiagnostics publish runs/<name>/<run-id> models/<name>` |
 | Docs | `uv run opendiagnostics notebook && uv run zensical serve` |
 
 ## Layout

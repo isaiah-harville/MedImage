@@ -216,6 +216,7 @@ def run_page(run: Run, plots: Sequence[tuple[str, str]], downloads: Sequence[Dow
         + (" (**uncommitted changes**)" if git.get("dirty") else " (clean tree)")
         + f". Started {record.get('started')}, finished {record.get('finished')}, on `{record.get('device')}`. "
         f"{record.get('parameters', 0):,} parameters.\n\n",
+        weights_button(run),
         "## Results\n\n",
         f"Checkpoint from epoch {selection.get('best_epoch')}, chosen on validation `{selection.get('monitor')}` "
         f"({selection.get('mode')}). Intervals are {boot.get('replicates')}-replicate percentile bootstrap at "
@@ -277,6 +278,20 @@ def run_page(run: Run, plots: Sequence[tuple[str, str]], downloads: Sequence[Dow
         ),
     ]
     return "".join(parts)
+
+
+def weights_button(run: Run) -> str:
+    """A download button for the run's checkpoint, once it is in the public weights bucket."""
+    for artifact in run.artifacts.files:
+        if artifact.file == "checkpoint.ckpt" and artifact.url:
+            return (
+                f"[Download weights ({size(artifact.bytes)})]({artifact.url})"
+                "{ .md-button .md-button--primary }\n\n"
+                f"SHA-256 `{artifact.sha256}`. The dataset's license "
+                f"({run.record.get('dataset', {}).get('license', 'unknown')}) also covers the "
+                "weights. See [model weights](../../../weights.md) to load them.\n\n"
+            )
+    return ""
 
 
 def examples_section(examples: Sequence[dict[str, Any]]) -> str:

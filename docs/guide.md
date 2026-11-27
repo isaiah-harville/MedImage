@@ -102,7 +102,9 @@ uv run opendiagnostics notebook
 uv run zensical serve
 ```
 
-The project page ranks the run against the published baselines in `baselines.yaml`.
+Publishing uploads the checkpoint to the public weights bucket when the dataset's license
+allows it; see [model weights](weights.md). The project page ranks the run against the
+published baselines in `baselines.yaml`.
 See [design](design.md#beating-published-results) for the rules a comparison has to meet.
 
 ## Extend

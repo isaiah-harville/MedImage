@@ -28,12 +28,18 @@ One entry per servable model, in display order:
     "citation": "Yang, J. et al. ...",
     "run_id": "20261127-031500-abcd1234",
     "test_auroc": {"value": 0.97, "lower": 0.96, "upper": 0.98},
-    "demo_count": 8
+    "demo_count": 8,
+    "weights": {
+      "url": "https://diagnostics.harville.dev/opendiagnostics-weights/pneumoniamnist-convnext/20261127-031500-abcd1234/checkpoint.ckpt",
+      "bytes": 200123456,
+      "sha256": "9f2c..."
+    }
   }
 ]
 ```
 
-`test_auroc` is `null` when the run has no test metrics.
+`test_auroc` is `null` when the run has no test metrics. `weights` is the public download of
+the served checkpoint, and `null` when it was not published (see [weights](weights.md)).
 
 ## `GET /models/{id}/demo`
 

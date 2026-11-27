@@ -1,8 +1,9 @@
 """Load published models from a weights directory and run them on single images.
 
 The weights directory holds one folder per model, made by ``scripts/bundle_models.py``:
-``config.yaml`` (the run's resolved config), ``checkpoint.ckpt``, ``metrics.json``, and
-optionally ``examples/`` with the run's license-cleared example images.
+``config.yaml`` (the run's resolved config), ``checkpoint.ckpt``, ``metrics.json``,
+``artifacts.yaml`` (where the weights can be downloaded), and optionally ``examples/`` with
+the run's license-cleared example images.
 """
 
 from __future__ import annotations
@@ -24,7 +25,7 @@ from opendiagnostics.cli import load_run
 from opendiagnostics.data.base import DatasetInfo, Transform, prepare
 from opendiagnostics.examples import explain
 from opendiagnostics.modules import ImageClassifier
-from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST
+from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST, load_artifacts
 from opendiagnostics.serve.catalog import ORDER, describe
 
 DISCLAIMER = (
@@ -57,6 +58,13 @@ class ServedModel:
 def _input_size(config: dict[str, Any]) -> int:
     data = config["data"].get("init_args") or {}
     return int(data.get("size") or data.get("image_size") or 224)
+
+
+def _weights(folder: Path) -> dict[str, Any] | None:
+    for artifact in load_artifacts(folder / "artifacts.yaml").files:
+        if artifact.file == "checkpoint.ckpt" and artifact.url:
+            return {"url": artifact.url, "bytes": artifact.bytes, "sha256": artifact.sha256}
+    return None
 
 
 def load_model(folder: Path) -> ServedModel:
@@ -109,6 +117,7 @@ def load_model(folder: Path) -> ServedModel:
                 else None
             ),
             "demo_count": len(demos),
+            "weights": _weights(folder),
         },
         demos=demos,
     )

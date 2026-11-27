@@ -2,9 +2,10 @@
 
 A published run is ``models/<project>/runs/<run-id>/``. It holds the small files from the run
 directory, which are committed to git and served by the docs site, and ``artifacts.yaml``,
-which lists the large files (the checkpoint) by size and SHA-256. The checkpoint itself is
-committed through Git LFS when the dataset's license allows sharing trained weights, and so
-are the example figures (``examples/``); otherwise neither is copied.
+which lists the large files (the checkpoint) by size, SHA-256, and download URL. When the
+dataset's license allows sharing trained weights, the checkpoint is uploaded to the public
+weights bucket (see ``docs/weights.md``) and the example figures (``examples/``) are copied;
+otherwise neither leaves the machine.
 """
 
 from __future__ import annotations
@@ -12,9 +13,15 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import urllib.request
+from collections.abc import Callable
 from pathlib import Path
 
+import boto3
 import yaml
+from boto3.exceptions import S3UploadFailedError
+from botocore.config import Config
+from botocore.exceptions import BotoCoreError, ClientError
 from pydantic import BaseModel, ConfigDict
 
 SMALL_FILES = ("config.yaml", "run.json", "metrics.json", "metrics.csv", "splits.json")
@@ -22,8 +29,10 @@ LARGE_FILES = ("checkpoint.ckpt",)
 MAX_SMALL_FILE_BYTES = 20 * 1024 * 1024
 EXAMPLES = "examples"
 EXAMPLES_MANIFEST = "examples.json"
+WEIGHTS_BUCKET = "opendiagnostics-weights"
+WEIGHTS_URL = f"https://diagnostics.harville.dev/{WEIGHTS_BUCKET}"
 # Licenses that allow redistributing a dataset's images and models trained on it, so example
-# figures and checkpoints may be committed. Anything else, including credentialed data and
+# figures and checkpoints may be published. Anything else, including credentialed data and
 # unknown licenses, publishes neither.
 OPEN_LICENSES = frozenset({"CC0 1.0", "CC BY 3.0", "CC BY 4.0", "CC BY-NC 4.0", "generated"})
 
@@ -61,6 +70,41 @@ def load_artifacts(path: Path) -> Artifacts:
     return Artifacts.model_validate(yaml.safe_load(path.read_text()) or {"files": []})
 
 
+Upload = Callable[[Path, str], None]
+
+
+def upload_weights(path: Path, key: str) -> None:
+    """Upload ``path`` to the weights bucket at ``key``, then check that its public URL
+    serves it. Credentials and the endpoint come from the standard AWS variables."""
+    try:
+        client = boto3.client(
+            "s3",
+            config=Config(
+                s3={"addressing_style": "path"}, request_checksum_calculation="when_required"
+            ),
+        )
+        client.upload_file(
+            str(path), WEIGHTS_BUCKET, key, ExtraArgs={"ContentType": "application/octet-stream"}
+        )
+    except (BotoCoreError, ClientError, S3UploadFailedError) as error:
+        raise PublishError(
+            f"Uploading {path.name} to s3://{WEIGHTS_BUCKET}/{key} failed: {error}. Set "
+            "AWS_ENDPOINT_URL_S3, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY to the publisher "
+            "key (docs/weights.md), or pass --no-checkpoint to publish without weights."
+        ) from error
+    url = f"{WEIGHTS_URL}/{key}"
+    try:
+        with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=30) as r:
+            served = int(r.headers.get("Content-Length", -1))
+    except OSError as error:
+        raise PublishError(
+            f"Uploaded {path.name}, but {url} is not publicly readable: {error}. The bucket "
+            "needs anonymous read and the public route on diagnostics.harville.dev."
+        ) from error
+    if served != path.stat().st_size:
+        raise PublishError(f"{url} serves {served} bytes, expected {path.stat().st_size}")
+
+
 def _license_allows_sharing(run_dir: Path) -> bool:
     record = json.loads((run_dir / "run.json").read_text())
     return record.get("dataset", {}).get("license") in OPEN_LICENSES
@@ -72,13 +116,15 @@ def publish_run(
     include_predictions: bool = True,
     allow_dirty: bool = False,
     include_checkpoint: bool = True,
+    upload: Upload = upload_weights,
 ) -> Path:
     """Copy a finished run into ``project_dir/runs/<run-id>``.
 
-    The small files are committed as they are. The checkpoint is copied too, for Git LFS
-    (see ``.gitattributes``), when the dataset's license allows sharing trained weights and
-    ``include_checkpoint`` is true; ``artifacts.yaml`` records its size and SHA-256 either
-    way. Rerunning on the same run gives the same result and keeps any URLs already recorded.
+    The small files are committed as they are. When the dataset's license allows sharing
+    trained weights and ``include_checkpoint`` is true, the checkpoint is uploaded to
+    ``<project>/<run-id>/checkpoint.ckpt`` in the weights bucket. ``artifacts.yaml`` records
+    its size and SHA-256 either way, and its URL once uploaded. Rerunning on the same run
+    keeps the recorded URL and uploads nothing.
     """
     run_dir, project_dir = Path(run_dir), Path(project_dir)
     if not (run_dir / "metrics.json").exists():
@@ -119,13 +165,11 @@ def publish_run(
         digest = sha256(source)
         previous = known.get(name)
         url = previous.url if previous is not None and previous.sha256 == digest else None
+        if url is None and include_checkpoint and _license_allows_sharing(run_dir):
+            key = f"{project_dir.name}/{run_dir.name}/{name}"
+            upload(source, key)
+            url = f"{WEIGHTS_URL}/{key}"
         artifacts.append(Artifact(file=name, bytes=source.stat().st_size, sha256=digest, url=url))
-        committed = target / name
-        if include_checkpoint and _license_allows_sharing(run_dir):
-            if not committed.exists() or sha256(committed) != digest:
-                shutil.copyfile(source, committed)
-        else:
-            committed.unlink(missing_ok=True)
     (target / "artifacts.yaml").write_text(
         yaml.safe_dump(Artifacts(files=artifacts).model_dump(), sort_keys=False)
     )

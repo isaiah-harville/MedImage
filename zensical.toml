@@ -10,6 +10,7 @@ nav = [
   { "Home" = "index.md" },
   { "Guide" = "guide.md" },
   { "Lab notebook" = "notebook/index.md" },
+  { "Model weights" = "weights.md" },
   { "Datasets" = [
     "datasets.md",
     { "Bar to beat" = "benchmarks.md" },

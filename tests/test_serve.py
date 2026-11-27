@@ -29,7 +29,7 @@ def client(finished_run, tmp_path_factory, root):
     project = models / "smoke-project"
     project.mkdir()
     shutil.copyfile(root / "configs/smoke/classification.yaml", project / "config.yaml")
-    publish_run(finished_run, project)
+    publish_run(finished_run, project, upload=lambda path, key: None)
     weights = tmp_path_factory.mktemp("weights")
     runs = finished_run.parent.parent
     assert _bundler(root).main([str(weights), "--runs", str(runs), "--models", str(models)]) == 0
@@ -51,6 +51,26 @@ def test_health_and_model_listing(client):
     assert model["demo_count"] == 8
     assert model["run_id"]
     assert set(model["test_auroc"]) == {"value", "lower", "upper"}
+    assert model["weights"]["url"].endswith(f"/smoke-project/{model['run_id']}/checkpoint.ckpt")
+    assert len(model["weights"]["sha256"]) == 64
+
+
+def test_bundling_again_reuses_a_checkpoint_that_matches(finished_run, tmp_path, root):
+    models = tmp_path / "models"
+    project = models / "smoke-project"
+    project.mkdir(parents=True)
+    shutil.copyfile(root / "configs/smoke/classification.yaml", project / "config.yaml")
+    publish_run(finished_run, project, include_checkpoint=False)
+    weights = tmp_path / "weights"
+    bundler = _bundler(root)
+    runs = finished_run.parent.parent
+    assert bundler.main([str(weights), "--runs", str(runs), "--models", str(models)]) == 0
+    (weights / "removed-project").mkdir()
+    assert (
+        bundler.main([str(weights), "--runs", str(tmp_path / "none"), "--models", str(models)]) == 0
+    )
+    assert (weights / "smoke-project" / "checkpoint.ckpt").is_file()
+    assert not (weights / "removed-project").exists()
 
 
 def test_demo_images_are_listed_served_and_predicted(client):
@@ -125,3 +145,9 @@ def test_large_uploads_never_touch_disk(client, monkeypatch):
         "/models/smoke-project/predict", files={"file": ("x.png", buffer.getvalue(), "image/png")}
     )
     assert response.status_code == 200
+
+
+def test_bundler_exits_3_only_when_nothing_is_published(tmp_path, root):
+    (tmp_path / "models" / "empty-project").mkdir(parents=True)
+    args = [str(tmp_path / "weights"), "--models", str(tmp_path / "models")]
+    assert _bundler(root).main(args) == 3
