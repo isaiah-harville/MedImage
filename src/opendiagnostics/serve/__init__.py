@@ -29,6 +29,7 @@ from pathlib import Path
 from pydantic import BaseModel, Field, HttpUrl, ValidationError
 
 from opendiagnostics.publish import WEIGHTS_URL
+from opendiagnostics.serve.weights import Catalog, http_open, read_catalog
 
 log = logging.getLogger("opendiagnostics.serve")
 
@@ -66,13 +67,17 @@ def _synced(cache: Path, base_url: str) -> list[Path] | None:
         return None
 
 
-def watch(settings: Settings, served: list[Path], stop: threading.Event) -> None:
-    """Exit the process once the catalog names a different set of runs."""
+def watch(settings: Settings, served: Catalog, stop: threading.Event) -> None:
+    """Exit the process once the catalog changes, after downloading what it names."""
     cache, base_url = settings.weights_cache, str(settings.weights_base_url)
     while not stop.wait(settings.refresh_seconds):
-        folders = _synced(cache, base_url)
-        if folders is not None and set(folders) != set(served):
-            log.info("the catalog changed; restarting to serve %d models", len(folders))
+        try:
+            catalog = read_catalog(base_url.rstrip("/"), http_open)
+        except Exception:
+            log.exception("reading the weights bucket failed")
+            continue
+        if catalog != served and _synced(cache, base_url) is not None:
+            log.info("the catalog changed; restarting to serve %d models", len(catalog.models))
             os.kill(os.getpid(), signal.SIGTERM)
             return
 
@@ -85,8 +90,13 @@ def main() -> None:
     # LitServe stops its workers cleanly on KeyboardInterrupt; Kubernetes and watch() send TERM.
     signal.signal(signal.SIGTERM, signal.default_int_handler)
     settings = settings_from(dict(os.environ))
-    cache = settings.weights_cache
-    folders = _synced(cache, str(settings.weights_base_url)) or []
+    cache, base_url = settings.weights_cache, str(settings.weights_base_url)
+    try:
+        served = read_catalog(base_url.rstrip("/"), http_open)
+    except Exception:
+        log.exception("reading the weights bucket failed")
+        served = Catalog(models={})
+    folders = _synced(cache, base_url) or []
     prune(cache, folders)
     listings = describe(folders)
     log.info("serving %d models", len(listings))
@@ -94,7 +104,7 @@ def main() -> None:
     server = create_server(listings, api, settings.workers)
     stop = threading.Event()
     if settings.refresh_seconds:
-        threading.Thread(target=watch, args=(settings, folders, stop), daemon=True).start()
+        threading.Thread(target=watch, args=(settings, served, stop), daemon=True).start()
     host, port = settings.host_port
     server.run(host=host, port=port, generate_client_file=False, access_log=False)
     stop.set()

@@ -1,7 +1,8 @@
 """Download the published models from the weights bucket into a local cache.
 
-``catalog.json`` in the bucket names each project's served run. For each one, ``sync``
-downloads ``<project>/<run-id>/demo.tar`` (config, metrics, artifacts, examples) into
+``catalog.json`` in the bucket names each project's served run, with its bundle's SHA-256.
+For each one, ``sync`` downloads ``<project>/<run-id>/demo.tar``, again when the hash
+changes, (config, metrics, artifacts, examples) into
 ``WEIGHTS_CACHE/models/<project>/<run-id>/`` and the checkpoint into
 ``WEIGHTS_CACHE/checkpoints/<sha256>.ckpt``. A file takes its final name only after its size
 and SHA-256 match ``artifacts.yaml``, so anything already in the cache is never downloaded
@@ -42,9 +43,10 @@ class Catalog(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     models: dict[str, str]
+    bundles: dict[str, str] = {}
 
 
-def _open(url: str) -> BinaryIO:
+def http_open(url: str) -> BinaryIO:
     request = urllib.request.Request(url, headers={"User-Agent": USER_AGENT})
     return urllib.request.urlopen(request, timeout=60)
 
@@ -77,19 +79,19 @@ def cached(cache: Path, artifact: Artifact) -> Path:
     return cache / "checkpoints" / f"{artifact.sha256}.ckpt"
 
 
-def read_catalog(base_url: str, open_url: Open) -> dict[str, str]:
+def read_catalog(base_url: str, open_url: Open) -> Catalog:
     try:
         with open_url(f"{base_url}/{CATALOG}") as response:
             catalog = Catalog.model_validate_json(response.read())
     except urllib.error.HTTPError as error:
         if error.code in (403, 404):
             log.warning("no %s in the bucket (HTTP %d); serving no models", CATALOG, error.code)
-            return {}
+            return Catalog(models={})
         raise
     for project, run in catalog.models.items():
         if not (NAME.match(project) and NAME.match(run)):
             raise ValueError(f"{CATALOG} names {project!r}: {run!r}, not a safe folder name")
-    return catalog.models
+    return catalog
 
 
 def _download_checkpoint(url: str, target: Path, artifact: Artifact, open_url: Open) -> None:
@@ -110,7 +112,7 @@ def _download_checkpoint(url: str, target: Path, artifact: Artifact, open_url: O
     os.replace(partial, target)
 
 
-def _download_run(url: str, folder: Path, open_url: Open) -> None:
+def _download_run(url: str, folder: Path, open_url: Open, bundle_sha: str) -> None:
     partial = folder.with_name(folder.name + ".part")
     bundle = folder.with_name(folder.name + ".tar")
     shutil.rmtree(partial, ignore_errors=True)
@@ -120,7 +122,7 @@ def _download_run(url: str, folder: Path, open_url: Open) -> None:
     with tarfile.open(bundle) as tar:
         tar.extractall(partial, filter="data")
     bundle.unlink()
-    (partial / COMPLETE).touch()
+    (partial / COMPLETE).write_text(bundle_sha)
     shutil.rmtree(folder, ignore_errors=True)
     os.replace(partial, folder)
 
@@ -136,7 +138,7 @@ def _checkpoint_url(folder: Path, base_url: str) -> tuple[Artifact, str]:
 def sync(
     cache: Path,
     base_url: str,
-    open_url: Open = _open,
+    open_url: Open = http_open,
     sleep: Callable[[float], None] = time.sleep,
 ) -> list[Path]:
     """Download every cataloged model missing from ``cache``. Returns the model folders.
@@ -147,12 +149,16 @@ def sync(
     opened = _retrying(open_url, sleep)
     base_url = base_url.rstrip("/")
     folders = []
-    for project, run in sorted(read_catalog(base_url, opened).items()):
+    catalog = read_catalog(base_url, opened)
+    for project, run in sorted(catalog.models.items()):
         folder = cache / "models" / project / run
+        bundle_sha = catalog.bundles.get(project, "")
+        marker = folder / COMPLETE
         try:
-            if not (folder / COMPLETE).exists():
+            if not marker.exists() or marker.read_text() != bundle_sha:
                 log.info("downloading %s/%s", project, run)
-                _download_run(f"{base_url}/{project}/{run}/{DEMO_BUNDLE}", folder, opened)
+                url = f"{base_url}/{project}/{run}/{DEMO_BUNDLE}"
+                _download_run(url, folder, opened, bundle_sha)
             artifact, url = _checkpoint_url(folder, base_url)
             target = cached(cache, artifact)
             if not target.is_file():

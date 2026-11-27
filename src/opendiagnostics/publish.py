@@ -9,7 +9,8 @@ otherwise neither leaves the machine.
 
 The bucket is also what the demo serves. Publishing a run with its checkpoint uploads
 ``<project>/<run-id>/demo.tar`` (the run's config, metrics, artifacts, and examples) and
-points the project's entry in ``catalog.json`` at that run.
+points the project's entry in ``catalog.json`` at that run, with the bundle's SHA-256 so the
+demo notices when a rescored run's files change.
 """
 
 from __future__ import annotations
@@ -173,6 +174,9 @@ def _publish_demo(bucket: Bucket, target: Path, project: str) -> None:
         catalog = json.loads(current) if current else {"models": {}}
         catalog["models"][project] = target.name
         catalog["models"] = dict(sorted(catalog["models"].items()))
+        bundles = catalog.setdefault("bundles", {})
+        bundles[project] = sha256(bundle)
+        catalog["bundles"] = dict(sorted(bundles.items()))
         listing = Path(scratch) / CATALOG
         listing.write_text(json.dumps(catalog, indent=2) + "\n")
         bucket.put(listing, CATALOG)

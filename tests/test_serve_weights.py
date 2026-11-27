@@ -94,3 +94,16 @@ def test_sync_waits_and_retries_when_rate_limited(bucket, tmp_path):
 
     assert len(sync(tmp_path / "cache", WEIGHTS_URL, open_url, sleep=waits.append)) == 1
     assert waits == [10.0]
+
+
+def test_a_rescored_run_is_downloaded_again_when_its_bundle_changes(finished_run, bucket, tmp_path):
+    cache = tmp_path / "cache"
+    [folder] = sync(cache, WEIGHTS_URL, bucket.open_url)
+    catalog = json.loads(bucket.objects["catalog.json"])
+    assert (folder / COMPLETE).read_text() == catalog["bundles"]["smoke-project"]
+    catalog["bundles"]["smoke-project"] = "0" * 64
+    bucket.objects["catalog.json"] = json.dumps(catalog).encode()
+    bucket.served.clear()
+    sync(cache, WEIGHTS_URL, bucket.open_url)
+    assert f"{WEIGHTS_URL}/smoke-project/{finished_run.name}/demo.tar" in bucket.served
+    assert (folder / COMPLETE).read_text() == "0" * 64

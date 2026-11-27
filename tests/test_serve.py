@@ -164,15 +164,30 @@ def test_large_uploads_never_touch_disk(client, monkeypatch):
     assert _upload(client, buffer.getvalue()).status_code == 200
 
 
-def test_the_watcher_restarts_only_when_the_catalog_names_different_runs(tmp_path, monkeypatch):
+def test_the_watcher_restarts_only_when_the_catalog_changes(tmp_path, monkeypatch):
     import threading
 
     from opendiagnostics import serve
+    from opendiagnostics.serve.weights import Catalog
 
-    served = [tmp_path / "a" / "r1"]
-    answers = iter([list(served), None, [tmp_path / "a" / "r2"]])
+    served = Catalog(models={"a": "r1"}, bundles={"a": "x"})
+    answers = iter(
+        [
+            served,
+            RuntimeError("bucket unreachable"),
+            Catalog(models={"a": "r1"}, bundles={"a": "y"}),
+        ]
+    )
+
+    def read(base_url, open_url):
+        answer = next(answers)
+        if isinstance(answer, Exception):
+            raise answer
+        return answer
+
     kills = []
-    monkeypatch.setattr(serve, "_synced", lambda cache, base_url: next(answers))
+    monkeypatch.setattr(serve, "read_catalog", read)
+    monkeypatch.setattr(serve, "_synced", lambda cache, base_url: [])
     monkeypatch.setattr(serve.os, "kill", lambda pid, sig: kills.append(sig))
     settings = settings_from({"WEIGHTS_CACHE": str(tmp_path), "REFRESH_SECONDS": "1"})
     stop = threading.Event()

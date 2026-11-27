@@ -1,3 +1,4 @@
+import hashlib
 import io
 import json
 import shutil
@@ -148,7 +149,11 @@ def test_publish_uploads_the_demo_bundle_and_points_the_catalog_at_the_run(
     bucket.objects["catalog.json"] = json.dumps({"models": {"other-project": "r1"}}).encode()
     publish_run(finished_run, project, bucket=bucket)
     catalog = json.loads(bucket.objects["catalog.json"])
-    assert catalog == {"models": {"other-project": "r1", project.name: finished_run.name}}
+    assert catalog["models"] == {"other-project": "r1", project.name: finished_run.name}
+    bundle_key = f"{project.name}/{finished_run.name}/demo.tar"
+    assert (
+        catalog["bundles"][project.name] == hashlib.sha256(bucket.objects[bundle_key]).hexdigest()
+    )
     bundle = tmp_path / "demo.tar"
     bundle.write_bytes(bucket.objects[f"{project.name}/{finished_run.name}/demo.tar"])
     with tarfile.open(bundle) as tar:
