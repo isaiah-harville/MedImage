@@ -18,6 +18,7 @@ classifiers = [
 dependencies = [
     "boto3>=1.36",
     "captum>=0.8",
+    "h5py>=3.10",
     "jsonargparse[signatures]>=4.40",
     "lightning>=2.5",
     "medmnist>=3.0",
