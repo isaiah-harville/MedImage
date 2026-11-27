@@ -7,3 +7,5 @@
 ::: opendiagnostics.examples
 
 ::: opendiagnostics.crossval
+
+::: opendiagnostics.segmentation_examples

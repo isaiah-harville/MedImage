@@ -2,7 +2,8 @@
 
 For a classifier, the second image is an Integrated Gradients attribution map (Captum) for
 the predicted class, laid over the input. For a detector, it is the input with ground-truth
-boxes in green and predicted boxes, with scores, in red. ``examples/examples.json`` lists
+boxes in green and predicted boxes, with scores, in red. Segmentation runs are rendered by
+:mod:`opendiagnostics.segmentation_examples`. ``examples/examples.json`` lists
 each pair with its truth and prediction. ``opendiagnostics publish`` copies the figures only
 when the dataset's license allows redistributing its images.
 """
@@ -25,10 +26,12 @@ from torchvision.utils import draw_bounding_boxes
 
 from opendiagnostics.data import MedicalDataModule
 from opendiagnostics.data.base import prepare
+from opendiagnostics.data.segmentation import SegmentationDataModule
 from opendiagnostics.modules import (
     DiagnosticModule,
     ImageClassifier,
     ObjectDetector,
+    SegmentationModule,
     SlideClassifier,
     VolumeDetector,
 )
@@ -233,6 +236,14 @@ def write_examples(
     out.mkdir(exist_ok=True)
     for old in out.glob("*.png"):
         old.unlink()
+    if isinstance(module, SegmentationModule):
+        from opendiagnostics.segmentation_examples import write_segmentation_examples
+
+        assert isinstance(data, SegmentationDataModule)
+        manifest = write_segmentation_examples(module, data, run_dir, out, limit)
+        (out / EXAMPLES_MANIFEST).write_text(json.dumps(manifest, indent=2) + "\n")
+        module.cpu()
+        return manifest
     mode = data.info.label_mode
     picks: list[dict[str, Any]] = []
     if isinstance(module, ObjectDetector):

@@ -13,10 +13,12 @@ from opendiagnostics.data.camelyon import Camelyon16DataModule, Camelyon17DataMo
 from opendiagnostics.data.manifest import CSVImageDataModule
 from opendiagnostics.data.medmnist import MedMNISTDataModule
 from opendiagnostics.data.pcam import PCamDataModule
+from opendiagnostics.data.segmentation import NiftiSegmentationDataModule, SegmentationDataModule
 from opendiagnostics.data.slides import SlideFeatureDataModule
 from opendiagnostics.data.synthetic import (
     SyntheticClassificationDataModule,
     SyntheticDetectionDataModule,
+    SyntheticSegmentationDataModule,
     SyntheticSlideDataModule,
     SyntheticVolumeDetectionDataModule,
 )
@@ -32,11 +34,14 @@ __all__ = [
     "LeakageError",
     "MedMNISTDataModule",
     "MedicalDataModule",
+    "NiftiSegmentationDataModule",
     "PCamDataModule",
+    "SegmentationDataModule",
     "SlideFeatureDataModule",
     "Source",
     "SyntheticClassificationDataModule",
     "SyntheticDetectionDataModule",
+    "SyntheticSegmentationDataModule",
     "SyntheticSlideDataModule",
     "SyntheticVolumeDetectionDataModule",
     "VolumeManifestDataModule",

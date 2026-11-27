@@ -29,7 +29,7 @@ from torchvision.transforms import v2
 log = logging.getLogger("opendiagnostics")
 
 SPLIT_NAMES = ("train", "val", "test")
-LabelMode = Literal["binary", "multiclass", "multilabel", "detection"]
+LabelMode = Literal["binary", "multiclass", "multilabel", "detection", "segmentation"]
 Transform = Callable[..., Any]
 
 

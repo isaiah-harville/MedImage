@@ -36,7 +36,7 @@ class ImageClassifier(DiagnosticModule):
     ) -> None:
         super().__init__(network, info)
         info = self.info
-        if info.label_mode == "detection":
+        if info.label_mode in ("detection", "segmentation"):
             raise ValueError("ImageClassifier needs a classification data module")
         self.mode = info.label_mode
         self.outputs = 1 if self.mode == "binary" else info.num_classes

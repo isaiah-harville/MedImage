@@ -13,6 +13,7 @@ from monai.data.synthetic import create_test_image_2d, create_test_image_3d
 from torchvision.ops import masks_to_boxes
 
 from opendiagnostics.data.base import DatasetInfo, MedicalDataModule, Source
+from opendiagnostics.data.segmentation import SegmentationDataModule
 from opendiagnostics.data.slides import Slide, SlideFeatureDataModule
 from opendiagnostics.data.volumes import VolumeDetectionDataModule, target, voxel_boxes_to_world
 
@@ -243,3 +244,63 @@ class SyntheticSlideDataModule(SlideFeatureDataModule):
         partial = slide.path.with_suffix(".partial")
         write_pyramid(partial, image, levels=4)
         partial.replace(slide.path)
+
+
+class SyntheticSegmentationDataModule(SegmentationDataModule):
+    """3D blobs on noise, each blob labelled with one of ``num_classes`` foreground classes.
+
+    Volumes are MetaTensors with ``spacing`` millimetre voxels, so ``Spacingd`` and the
+    native-grid scoring path run on them as on real NIfTI files.
+    """
+
+    def __init__(
+        self,
+        num_samples: int = 24,
+        image_size: int = 32,
+        num_classes: int = 2,
+        spacing: float = 1.0,
+        seed: int = 0,
+        **kwargs: Any,
+    ) -> None:
+        kwargs.setdefault("split", "patient")
+        super().__init__(**kwargs)
+        self.num_samples = num_samples
+        self.image_size = image_size
+        self.spacing = spacing
+        self.seed = seed
+        self.info = DatasetInfo(
+            label_mode="segmentation",
+            class_names=("background", *(f"class_{k}" for k in range(1, num_classes + 1))),
+            in_channels=1,
+            spatial_dims=3,
+            license="generated",
+        )
+
+    def load(self) -> Source:
+        rng = np.random.RandomState(self.seed)
+        size = self.image_size
+        affine = torch.diag(torch.tensor([self.spacing] * 3 + [1.0], dtype=torch.float64))
+        items = []
+        for _ in range(self.num_samples):
+            generated = create_test_image_3d(
+                size,
+                size,
+                size,
+                num_objs=4,
+                rad_max=max(size // 5, 4),
+                rad_min=3,
+                noise_max=0.2,
+                num_seg_classes=self.info.num_classes - 1,
+                random_state=rng,
+            )
+            image, label = (torch.from_numpy(a[None].astype(np.float32)) for a in generated[:2])
+            items.append(
+                (MetaTensor(image, affine=affine.clone()), MetaTensor(label, affine=affine.clone()))
+            )
+        ids = [f"s{i}" for i in range(self.num_samples)]
+        return Source(
+            dataset=items,
+            sample_ids=ids,
+            patient_ids=ids,
+            fingerprint={"seed": self.seed, "num_samples": self.num_samples},
+        )

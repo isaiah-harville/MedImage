@@ -9,3 +9,5 @@
 ::: opendiagnostics.modules.detection_3d
 
 ::: opendiagnostics.modules.slide
+
+::: opendiagnostics.modules.segmentation

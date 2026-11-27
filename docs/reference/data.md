@@ -19,3 +19,5 @@
 ::: opendiagnostics.data.camelyon
 
 ::: opendiagnostics.data.camelyon_download
+
+::: opendiagnostics.data.segmentation

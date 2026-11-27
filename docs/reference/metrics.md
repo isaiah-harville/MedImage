@@ -7,3 +7,5 @@
 ::: opendiagnostics.metrics.compare
 
 ::: opendiagnostics.metrics.froc
+
+::: opendiagnostics.metrics.segmentation

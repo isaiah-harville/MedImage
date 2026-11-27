@@ -29,6 +29,7 @@ import numbers
 import sys
 import time
 import warnings
+from collections.abc import Hashable
 from pathlib import Path
 from typing import Any
 
@@ -67,6 +68,17 @@ def _number(value: object) -> int | float:
 # torchvision annotates arguments such as RandomAffine's `degrees` as numbers.Number, which
 # jsonargparse can parse but not write back, so the saved config.yaml would not load.
 register_type(numbers.Number, serializer=lambda value: value, deserializer=_number)
+
+
+def _key(value: object) -> str | int:
+    if isinstance(value, bool) or not isinstance(value, str | int):
+        raise ValueError(f"expected a key name, got {value!r}")
+    return value
+
+
+# MONAI dictionary transforms annotate `keys` as Hashable, which jsonargparse cannot write
+# back either.
+register_type(Hashable, serializer=lambda value: value, deserializer=_key)
 
 
 def _version(output_dir: str, name: str, commit: str | None) -> str:

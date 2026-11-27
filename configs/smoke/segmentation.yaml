@@ -1,0 +1,50 @@
+# A seconds-long CPU run of a small MONAI U-Net on generated 3D label maps. Training crops
+# patches; evaluation resamples the image to 2 mm, infers by sliding window, and scores on
+# the label's original 1 mm grid.
+name: smoke-segmentation
+seed_everything: 0
+trainer:
+  accelerator: cpu
+  max_epochs: 2
+  enable_progress_bar: false
+model:
+  class_path: opendiagnostics.modules.SegmentationModule
+  init_args:
+    patch_size: [16, 16, 16]
+    network:
+      class_path: monai.networks.nets.UNet
+      init_args:
+        spatial_dims: 3
+        in_channels: 1
+        out_channels: 3
+        channels: [8, 16, 32]
+        strides: [2, 2]
+data:
+  class_path: opendiagnostics.data.SyntheticSegmentationDataModule
+  init_args:
+    num_samples: 24
+    image_size: 32
+    num_classes: 2
+    split: patient
+    fractions: [0.5, 0.25, 0.25]
+    batch_size: 2
+    train_transforms:
+      class_path: monai.transforms.Compose
+      init_args:
+        transforms:
+          - class_path: monai.transforms.Spacingd
+            init_args: {keys: [image, label], pixdim: [2.0, 2.0, 2.0], mode: [bilinear, nearest]}
+          - class_path: monai.transforms.RandCropByPosNegLabeld
+            init_args:
+              keys: [image, label]
+              label_key: label
+              spatial_size: [16, 16, 16]
+              num_samples: 2
+    eval_transforms:
+      class_path: monai.transforms.Spacingd
+      init_args: {keys: [image], pixdim: [2.0, 2.0, 2.0]}
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args: {lr: 0.01}
+checkpoint: {monitor: val/dice}
+eval: {bootstrap_samples: 100}

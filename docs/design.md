@@ -26,9 +26,9 @@ src/opendiagnostics/
   cli.py             `opendiagnostics fit | evaluate | compare | froc | publish | notebook`; the LightningCLI
   data/              the data module base class, patient-level splits, MedMNIST, CSV manifests
                      of labelled images or of boxes, whole-slide feature bags (CAMELYON16/17),
-                     3D volumes with boxes, synthetic smoke data
+                     3D volumes with boxes, NIfTI volumes with label maps, synthetic smoke data
   modules/           Lightning modules: ImageClassifier, ObjectDetector, SlideClassifier,
-                     VolumeDetector, and their base
+                     VolumeDetector, SegmentationModule, and their base
   evaluation.py      final evaluation of the selected checkpoint with bootstrap intervals
   metrics/           torchmetrics-backed classification metrics, cluster bootstrap, paired compare, FROC
   provenance.py      git state and package versions for run.json
@@ -59,6 +59,7 @@ The pipeline is Lightning and existing libraries wherever one does the job:
 | 3D box transforms, world-to-voxel mapping | MONAI (`monai.apps.detection.transforms`) |
 | 3D networks, medical image reading | MONAI (`monai.networks.nets`, `LoadImage`) |
 | Whole-slide reading, tissue mask, MIL head | MONAI `WSIReader` on OpenSlide (`openslide-python`, `openslide-bin` wheels, Windows included), `ForegroundMask`, `MILModel` |
+| Segmentation transforms, loss, sliding-window inference, Dice and HD95 | MONAI (`monai.transforms` dictionary transforms, `DiceCELoss`, `SlidingWindowInferer`, `compute_dice`, `compute_hausdorff_distance`) |
 | 2D transforms, keeping boxes aligned | `torchvision.transforms.v2` |
 | MedMNIST metadata and archives | `medmnist`, torchvision's `download_url` |
 | Patient-level split | scikit-learn `train_test_split` over patients |
@@ -126,6 +127,13 @@ truth still in world coordinates (`world_boxes`, `world_ignore`), so predictions
 in millimetres. A download script in `scripts/datasets/` writes each dataset's JSON
 manifest (`VolumeManifest`): image paths, patient ID, fold or split, boxes, labels, and
 `ignore` boxes for findings that count neither as hits nor as false positives.
+
+Segmentation (`SegmentationModule`, `NiftiSegmentationDataModule`) differs too: `image` is
+`float32 (B, C, *spatial)` after the configured MONAI dictionary transforms (intensity
+scaling is one of them, so values are not forced into `[0, 1]`), `target` is an
+`int16 (B, 1, *spatial)` label map, and `image_affine`, `target_affine` and `spacing` carry
+each case's voxel grid. Training batches hold patches; evaluation batches hold one whole
+volume. A script in `scripts/datasets/` writes each dataset's CSV manifest.
 
 Datasets hold only picklable data. MedMNIST arrays are unpacked to `.npy` files that each
 DataLoader worker memory-maps, because Windows workers start by pickling the dataset.
@@ -199,6 +207,14 @@ The run logs a warning and `run.json` records `patient_ids_available: false`.
     scan, and their mean, the LUNA16 competition performance metric (CPM), which selects
     the checkpoint (`val/cpm`). `opendiagnostics froc` pools several runs' test predictions,
     such as LUNA16's ten folds, into one CPM with a patient-level interval.
+* **Segmentation.** Dice and HD95 per case and region from MONAI, written to
+    `predictions_<split>.csv`. A region is one class or a union of classes (KiTS23's
+    hierarchical evaluation classes). The headline `dice` is the mean over regions of each
+    region's mean over cases, bootstrapped by patient. Volumes are inferred by sliding window
+    and the logits resampled onto the label's own voxel grid before scoring, so a model trained
+    at a coarser spacing is still scored at the original resolution. Dice is 1 where a region
+    is absent from both reference and prediction and 0 where it is in only one, the KiTS23
+    convention, unless `ignore_empty` makes it NaN. Validation during training skips HD95.
 * **Confidence intervals.**
     * Every metric gets a percentile bootstrap interval, 1,000 replicates by default.
     * The default unit is the **patient** (a cluster bootstrap): resampling images when
@@ -301,8 +317,8 @@ on 2026-11-26:
 
 ## Roadmap
 
-* A segmentation task (Dice and HD95 with bootstrap intervals), since many leading
-    datasets (BraTS, KiTS, MSD) are segmentation-first.
+* A pooled k-fold evaluation for segmentation, so our KiTS23 and MSD numbers can be set
+    against nnU-Net's five-fold cross-validation results on the same training cases.
 * Example figures for 3D detection: a slice through each box with the predictions on it.
 * Resampling to a common voxel spacing and orientation as a transform.
 * Training features for state-of-the-art results: weight EMA, test-time augmentation,
