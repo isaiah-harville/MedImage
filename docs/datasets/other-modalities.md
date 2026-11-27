@@ -1,4 +1,4 @@
-# Dermatology, pathology, fundus and OCT, mammography, and benchmark datasets: details
+# Dermatology, pathology, retina, mammography, and MedMNIST
 
 Part of the [dataset survey](../datasets.md).
 

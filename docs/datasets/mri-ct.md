@@ -1,4 +1,4 @@
-# MRI and CT datasets: details
+# MRI and CT datasets
 
 Part of the [dataset survey](../datasets.md).
 

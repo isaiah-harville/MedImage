@@ -27,71 +27,73 @@ shortlist for this repository's first classification and first detection models.
 * [Chest X-ray](datasets/chest-xray.md)
 * [MRI and CT](datasets/mri-ct.md)
 * [Dermatology, pathology, fundus and OCT, mammography, and MedMNIST](datasets/other-modalities.md)
+* [Sample images](notebook/samples.md) from every dataset we have published a model for
 
 ## At a glance
 
 "Patient IDs" says whether a patient-level split is possible, which this pipeline needs to
 rule out leakage. Counts are as stated by the primary source; where sources disagree, the
-detail file gives both.
+detail page gives both. Each dataset links to its detail entry, with its labels, file
+format, and sources.
 
 ### Chest X-ray
 
-| Dataset | Task | Labels | Images / patients | Patient IDs | Format | License | Access |
-|---|---|---|---|---|---|---|---|
-| [NIH ChestX-ray14](datasets/chest-xray.md#nih-chestx-ray14-chestx-ray8) | multilabel cls; 983 images with boxes | 14 findings, NLP-mined; adjudicated expert labels for subsets (Google) | 112,120 / 30,805 | yes | PNG 1024² | "no restrictions", attribution required | open |
-| [CheXpert](datasets/chest-xray.md#chexpert) | multilabel cls | 14, NLP-mined with uncertain labels; radiologist val and test sets | 224,316 / 65,240 | yes | JPEG | Stanford research use agreement, non-commercial | registration |
-| [CheXpert Plus](datasets/chest-xray.md#chexpert-plus) | cls, report generation | 14, CheXbert-extracted; reports, demographics | 223,228 / 64,725 | yes | DICOM, PNG | Stanford University Dataset Research Use Agreement | registration |
-| [MIMIC-CXR(-JPG)](datasets/chest-xray.md#mimic-cxr-jpg) | multilabel cls, reports | 14, NLP (CheXpert and NegBio); radiologist test set | 377,110 / 65,379 | yes | DICOM, JPEG | PhysioNet Credentialed Health Data License 1.5.0 | credentialed |
-| [RSNA Pneumonia](datasets/chest-xray.md#rsna-pneumonia-detection-challenge-2018) | **detection** | opacity boxes, radiologists | 30,000 / 12,274 | via NIH mapping | DICOM | RSNA terms: commercial or non-commercial use with attribution | open |
-| [VinDr-CXR](datasets/chest-xray.md#vindr-cxr) | **detection** and cls | 22 local findings (boxes) and 6 global labels, radiologists | 18,000 / not given | **no** | DICOM | PhysioNet Credentialed Health Data License 1.5.0 | credentialed |
-| [PadChest](datasets/chest-xray.md#padchest) | multilabel cls | 174 findings, 27% physician-labeled | 160,868 / 67,625 | yes | PNG | PADCHEST Dataset Research Use Agreement | registration |
-| [SIIM-ACR Pneumothorax](datasets/chest-xray.md#siim-acr-pneumothorax-segmentation-2019) | segmentation | pneumothorax masks, radiologists | 15,257 exams | not stated | DICOM | not stated (Kaggle rules unverified) | registration |
+| Dataset | Task | Size | Patient IDs | License | Access |
+|---|---|---|---|---|---|
+| [NIH ChestX-ray14](datasets/chest-xray.md#nih-chestx-ray14-chestx-ray8) | multilabel cls; 983 images with boxes | 112,120 / 30,805 | yes | "no restrictions", attribution required | open |
+| [CheXpert](datasets/chest-xray.md#chexpert) | multilabel cls | 224,316 / 65,240 | yes | Stanford research use agreement, non-commercial | registration |
+| [CheXpert Plus](datasets/chest-xray.md#chexpert-plus) | cls, report generation | 223,228 / 64,725 | yes | Stanford University Dataset Research Use Agreement | registration |
+| [MIMIC-CXR(-JPG)](datasets/chest-xray.md#mimic-cxr-jpg) | multilabel cls, reports | 377,110 / 65,379 | yes | PhysioNet Credentialed Health Data License 1.5.0 | credentialed |
+| [RSNA Pneumonia](datasets/chest-xray.md#rsna-pneumonia-detection-challenge-2018) | **detection** | 30,000 / 12,274 | via NIH mapping | RSNA terms: commercial or non-commercial use with attribution | open |
+| [VinDr-CXR](datasets/chest-xray.md#vindr-cxr) | **detection** and cls | 18,000 / not given | **no** | PhysioNet Credentialed Health Data License 1.5.0 | credentialed |
+| [PadChest](datasets/chest-xray.md#padchest) | multilabel cls | 160,868 / 67,625 | yes | PADCHEST Dataset Research Use Agreement | registration |
+| [SIIM-ACR Pneumothorax](datasets/chest-xray.md#siim-acr-pneumothorax-segmentation-2019) | segmentation | 15,257 exams | not stated | not stated (Kaggle rules unverified) | registration |
 
 ### MRI
 
-| Dataset | Task | Labels | Size | Patient IDs | Format | License | Access |
-|---|---|---|---|---|---|---|---|
-| [BraTS (2026)](datasets/mri-ct.md#brats-brain-tumors-2026-edition-and-lineage) | segmentation; some cls tasks | tumor sub-regions | 2,040 patients (2021); METS 2026: 1,778 cases | yes | NIfTI, 3D, 4 sequences | CC BY-NC 4.0 | registration |
-| [fastMRI](datasets/mri-ct.md#fastmri-knee-brain-prostate-breast) | reconstruction; fastMRI+ boxes | k-space; fastMRI+ pathology boxes (MIT) | knee ≈1,500 raw, brain ≈7,000 | not stated | HDF5 k-space, DICOM | NYU fastMRI Dataset Sharing Agreement | credentialed |
-| [OASIS-1/2/3](datasets/mri-ct.md#oasis-oasis-1-oasis-2-oasis-3-oasis-4-noted) | cls, regression | dementia status, CDR, age | OASIS-3: 1,378 participants | yes | 3D MRI | OASIS Data Use Agreement, non-commercial | credentialed |
-| [ADNI](datasets/mri-ct.md#adni-alzheimers-disease-neuroimaging-initiative) | cls, progression | CN / MCI / AD | 2,470 participants | yes | 3D MRI | ADNI Data Use Agreement, no redistribution | credentialed |
-| [UK Biobank imaging](datasets/mri-ct.md#uk-biobank-imaging) | population cohort | image-derived phenotypes, outcomes | target 100,000 | per-application IDs | NIfTI, DICOM | UK Biobank Access Procedures and MTA, fee | credentialed |
-| [Duke Breast Cancer MRI](datasets/mri-ct.md#duke-breast-cancer-mri-tcia) | 3D detection, seg, cls | tumor boxes, clinical features | 922 patients | yes | DICOM 3D DCE | CC BY-NC 4.0 | open |
-| [ACDC](datasets/mri-ct.md#acdc-automated-cardiac-diagnosis-challenge) | seg and 5-class cls | LV, RV, myocardium; diagnosis | 150 patients | yes | NIfTI 3D+t | CC BY-NC-SA 4.0 | open |
-| [PI-CAI](datasets/mri-ct.md#pi-cai-prostate-imaging-cancer-ai) | detection and diagnosis | csPCa lesion masks | 1,500 cases / 1,476 patients | yes | MHA 3D bpMRI | CC BY-NC 4.0 | open |
+| Dataset | Task | Size | Patient IDs | License | Access |
+|---|---|---|---|---|---|
+| [BraTS (2026)](datasets/mri-ct.md#brats-brain-tumors-2026-edition-and-lineage) | segmentation; some cls tasks | 2,040 patients (2021); METS 2026: 1,778 cases | yes | CC BY-NC 4.0 | registration |
+| [fastMRI](datasets/mri-ct.md#fastmri-knee-brain-prostate-breast) | reconstruction; fastMRI+ boxes | knee ≈1,500 raw, brain ≈7,000 | not stated | NYU fastMRI Dataset Sharing Agreement | credentialed |
+| [OASIS-1/2/3](datasets/mri-ct.md#oasis-oasis-1-oasis-2-oasis-3-oasis-4-noted) | cls, regression | OASIS-3: 1,378 participants | yes | OASIS Data Use Agreement, non-commercial | credentialed |
+| [ADNI](datasets/mri-ct.md#adni-alzheimers-disease-neuroimaging-initiative) | cls, progression | 2,470 participants | yes | ADNI Data Use Agreement, no redistribution | credentialed |
+| [UK Biobank imaging](datasets/mri-ct.md#uk-biobank-imaging) | population cohort | target 100,000 | per-application IDs | UK Biobank Access Procedures and MTA, fee | credentialed |
+| [Duke Breast Cancer MRI](datasets/mri-ct.md#duke-breast-cancer-mri-tcia) | 3D detection, seg, cls | 922 patients | yes | CC BY-NC 4.0 | open |
+| [ACDC](datasets/mri-ct.md#acdc-automated-cardiac-diagnosis-challenge) | seg and 5-class cls | 150 patients | yes | CC BY-NC-SA 4.0 | open |
+| [PI-CAI](datasets/mri-ct.md#pi-cai-prostate-imaging-cancer-ai) | detection and diagnosis | 1,500 cases / 1,476 patients | yes | CC BY-NC 4.0 | open |
 
 ### CT
 
-| Dataset | Task | Labels | Size | Patient IDs | Format | License | Access |
-|---|---|---|---|---|---|---|---|
-| [LIDC-IDRI](datasets/mri-ct.md#lidc-idri) | detection, seg, cls | nodule outlines and ratings from up to 4 readers | 1,018 scans / 1,010 patients | yes | DICOM 3D | CC BY 3.0 | open |
-| [LUNA16](datasets/mri-ct.md#luna16) | **detection** (points), FP reduction | nodules ≥3 mm accepted by 3 of 4 readers | 888 scans | via LIDC | MHD 3D | CC BY 4.0 | open |
-| [DeepLesion](datasets/mri-ct.md#deeplesion) | 2D detection | RECIST-derived boxes, incomplete | 32,735 lesions / 4,427 patients | yes | 16-bit PNG slices | **not stated** by the primary source | open |
-| [KiTS23](datasets/mri-ct.md#kits23-kidney-tumor-segmentation-challenge-2023) | segmentation | kidney, tumor, cyst | 599 cases | yes | NIfTI 3D | CC BY-NC-SA 4.0 | open |
-| [Medical Segmentation Decathlon](datasets/mri-ct.md#medical-segmentation-decathlon-msd) | segmentation, 10 tasks | per task | 2,633 images | not stated | NIfTI 3D/4D | CC BY-SA 4.0 | open |
-| [TotalSegmentator](datasets/mri-ct.md#totalsegmentator-ct-dataset-mr-dataset-noted) | segmentation | 117 structures | 1,228 CT | not stated | 3D CT | CC BY 4.0 | open |
-| [RSNA Intracranial Hemorrhage](datasets/mri-ct.md#rsna-intracranial-hemorrhage-detection-2019) | slice-level cls | 5 hemorrhage subtypes | 25,312 exams / 874,035 images | patient-disjoint sets | DICOM | RSNA terms, non-commercial | registration |
+| Dataset | Task | Size | Patient IDs | License | Access |
+|---|---|---|---|---|---|
+| [LIDC-IDRI](datasets/mri-ct.md#lidc-idri) | detection, seg, cls | 1,018 scans / 1,010 patients | yes | CC BY 3.0 | open |
+| [LUNA16](datasets/mri-ct.md#luna16) | **detection** (points), FP reduction | 888 scans | via LIDC | CC BY 4.0 | open |
+| [DeepLesion](datasets/mri-ct.md#deeplesion) | 2D detection | 32,735 lesions / 4,427 patients | yes | **not stated** by the primary source | open |
+| [KiTS23](datasets/mri-ct.md#kits23-kidney-tumor-segmentation-challenge-2023) | segmentation | 599 cases | yes | CC BY-NC-SA 4.0 | open |
+| [Medical Segmentation Decathlon](datasets/mri-ct.md#medical-segmentation-decathlon-msd) | segmentation, 10 tasks | 2,633 images | not stated | CC BY-SA 4.0 | open |
+| [TotalSegmentator](datasets/mri-ct.md#totalsegmentator-ct-dataset-mr-dataset-noted) | segmentation | 1,228 CT | not stated | CC BY 4.0 | open |
+| [RSNA Intracranial Hemorrhage](datasets/mri-ct.md#rsna-intracranial-hemorrhage-detection-2019) | slice-level cls | 25,312 exams / 874,035 images | patient-disjoint sets | RSNA terms, non-commercial | registration |
 
 ### Dermatology, pathology, retina, mammography
 
-| Dataset | Task | Labels | Size | Patient IDs | Format | License | Access |
-|---|---|---|---|---|---|---|---|
-| [ISIC 2020](datasets/other-modalities.md#isic-2020-challenge-siim-isic-melanoma-classification) | binary cls | melanoma (1.8%) | 33,126 / 2,056 patients | yes | JPEG, DICOM | CC BY-NC 4.0 | open |
-| [ISIC 2019](datasets/other-modalities.md#isic-2019-challenge) | 8-class cls | diagnosis | 25,331 train | lesion ID only | JPEG | CC BY-NC 4.0 | open |
-| [HAM10000](datasets/other-modalities.md#ham10000) | 7-class cls, seg | diagnosis, >50% histopathology | 10,015 | lesion ID only | JPEG 600×450 | CC BY-NC 4.0 | open |
-| [CAMELYON16/17](datasets/other-modalities.md#camelyon16) | WSI cls, detection | metastases; pN stage | 399 / 1,000 WSIs | slide; patient (C17) | pyramidal TIFF | CC0 | open |
-| [PCam](datasets/other-modalities.md#pcam-patchcamelyon) | binary patch cls | tumor in center region | 327,680 patches | WSI-disjoint splits | HDF5 96² | CC0 | open |
-| [PANDA](datasets/other-modalities.md#panda-prostate-cancer-grade-assessment) | WSI grading | ISUP grade, some masks | 10,616 biopsies / 2,113 patients | **no** | TIFF | CC BY-NC-SA 4.0 | registration |
-| [Kermany OCT and pediatric CXR](datasets/other-modalities.md#kermany-oct-and-pediatric-chest-x-ray) | 4-class OCT, binary CXR | tiered expert graders | 109,312 OCT / 5,319 patients | yes (filenames) | JPEG | CC BY 4.0 | open |
-| [IDRiD](datasets/other-modalities.md#idrid-indian-diabetic-retinopathy-image-dataset) | DR grade, lesion seg | grades; 81 masks | 516 | not stated | JPG | CC BY 4.0 | registration |
-| [APTOS 2019](datasets/other-modalities.md#aptos-2019-blindness-detection) | DR grade | 0–4 | ≈5,590 | no | PNG | Kaggle rules, non-commercial, no redistribution | registration |
-| [EyePACS (Kaggle 2015)](datasets/other-modalities.md#eyepacs-kaggle-diabetic-retinopathy-detection-2015) | DR grade | 0–4 | ≈88 GB | yes (filenames) | JPEG | Kaggle rules: competition use only | registration |
-| [Messidor-2](datasets/other-modalities.md#messidor-2) | images only | no official labels | 1,748 | exam pairing | PNG, JPG | custom: research only, no redistribution | registration |
-| [VinDr-Mammo](datasets/other-modalities.md#vindr-mammo) | **detection**, BI-RADS, density | radiologist boxes for BI-RADS 3–5 | 5,000 exams | **no** | DICOM | PhysioNet Restricted Health Data License 1.5.0 | registration |
-| [CBIS-DDSM](datasets/other-modalities.md#cbis-ddsm) | cls, seg (boxes from masks) | pathology-verified | 10,239 images / 1,566 participants | yes (prefix) | DICOM (film) | CC BY 3.0 | open |
-| [INbreast](datasets/other-modalities.md#inbreast) | detection, seg | expert contours | 410 images / 115 cases | not verified | DICOM | not stated; signed transfer agreement | registration |
-| [RSNA Screening Mammography](datasets/other-modalities.md#rsna-screening-mammography-breast-cancer-detection-rsna-smbc-202223) | breast-level cls | cancer (≈4% or less) | ≈54,700 files | yes | DICOM (JPEG 2000) | Kaggle rules, non-commercial; RSNA MIRA agreement | registration |
-| [CMMD](datasets/other-modalities.md#cmmd-the-chinese-mammography-database) | benign/malignant cls | biopsy-confirmed | 1,775 patients | yes | DICOM | CC BY 4.0 | open |
+| Dataset | Task | Size | Patient IDs | License | Access |
+|---|---|---|---|---|---|
+| [ISIC 2020](datasets/other-modalities.md#isic-2020-challenge-siim-isic-melanoma-classification) | binary cls | 33,126 / 2,056 patients | yes | CC BY-NC 4.0 | open |
+| [ISIC 2019](datasets/other-modalities.md#isic-2019-challenge) | 8-class cls | 25,331 train | lesion ID only | CC BY-NC 4.0 | open |
+| [HAM10000](datasets/other-modalities.md#ham10000) | 7-class cls, seg | 10,015 | lesion ID only | CC BY-NC 4.0 | open |
+| [CAMELYON16/17](datasets/other-modalities.md#camelyon16) | WSI cls, detection | 399 / 1,000 WSIs | slide; patient (C17) | CC0 | open |
+| [PCam](datasets/other-modalities.md#pcam-patchcamelyon) | binary patch cls | 327,680 patches | WSI-disjoint splits | CC0 | open |
+| [PANDA](datasets/other-modalities.md#panda-prostate-cancer-grade-assessment) | WSI grading | 10,616 biopsies / 2,113 patients | **no** | CC BY-NC-SA 4.0 | registration |
+| [Kermany OCT and pediatric CXR](datasets/other-modalities.md#kermany-oct-and-pediatric-chest-x-ray) | 4-class OCT, binary CXR | 109,312 OCT / 5,319 patients | yes (filenames) | CC BY 4.0 | open |
+| [IDRiD](datasets/other-modalities.md#idrid-indian-diabetic-retinopathy-image-dataset) | DR grade, lesion seg | 516 | not stated | CC BY 4.0 | registration |
+| [APTOS 2019](datasets/other-modalities.md#aptos-2019-blindness-detection) | DR grade | ≈5,590 | no | Kaggle rules, non-commercial, no redistribution | registration |
+| [EyePACS (Kaggle 2015)](datasets/other-modalities.md#eyepacs-kaggle-diabetic-retinopathy-detection-2015) | DR grade | ≈88 GB | yes (filenames) | Kaggle rules: competition use only | registration |
+| [Messidor-2](datasets/other-modalities.md#messidor-2) | images only | 1,748 | exam pairing | custom: research only, no redistribution | registration |
+| [VinDr-Mammo](datasets/other-modalities.md#vindr-mammo) | **detection**, BI-RADS, density | 5,000 exams | **no** | PhysioNet Restricted Health Data License 1.5.0 | registration |
+| [CBIS-DDSM](datasets/other-modalities.md#cbis-ddsm) | cls, seg (boxes from masks) | 10,239 images / 1,566 participants | yes (prefix) | CC BY 3.0 | open |
+| [INbreast](datasets/other-modalities.md#inbreast) | detection, seg | 410 images / 115 cases | not verified | not stated; signed transfer agreement | registration |
+| [RSNA Screening Mammography](datasets/other-modalities.md#rsna-screening-mammography-breast-cancer-detection-rsna-smbc-202223) | breast-level cls | ≈54,700 files | yes | Kaggle rules, non-commercial; RSNA MIRA agreement | registration |
+| [CMMD](datasets/other-modalities.md#cmmd-the-chinese-mammography-database) | benign/malignant cls | 1,775 patients | yes | CC BY 4.0 | open |
 
 ### Benchmark: MedMNIST v2
 

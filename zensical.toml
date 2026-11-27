@@ -15,6 +15,7 @@ nav = [
     { "Chest X-ray" = "datasets/chest-xray.md" },
     { "MRI and CT" = "datasets/mri-ct.md" },
     { "Other modalities" = "datasets/other-modalities.md" },
+    { "Sample images" = "notebook/samples.md" },
   ] },
   { "Code reference" = [
     "reference/index.md",
@@ -63,6 +64,7 @@ admonition = {}
 attr_list = {}
 md_in_html = {}
 "pymdownx.details" = {}
+"pymdownx.magiclink" = {}
 "pymdownx.highlight" = { anchor_linenums = true }
 "pymdownx.superfences" = {}
 toc = { permalink = true }

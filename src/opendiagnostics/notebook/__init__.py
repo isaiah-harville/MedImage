@@ -72,6 +72,7 @@ def build_notebook(models_dir: Path, out_dir: Path) -> list[Project]:
     out_dir = Path(out_dir)
     _reset(out_dir)
     (out_dir / "index.md").write_text(pages.index_page(projects))
+    (out_dir / "samples.md").write_text(pages.samples_page(projects))
     for project in projects:
         _write_project(project, out_dir / project.name)
     return projects

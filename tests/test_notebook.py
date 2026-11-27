@@ -76,3 +76,19 @@ def test_cli_builds_the_notebook(notebook, project, tmp_path, capsys):
     out = tmp_path / "cli-notebook"
     assert main(["notebook", "--models", str(project.parent), "--out", str(out)]) == 0
     assert "wrote 1 projects and 1 runs" in capsys.readouterr().out
+
+
+def test_samples_page_shows_one_correct_test_image_per_class(notebook):
+    out, run_id = notebook
+    page = (out / "samples.md").read_text()
+    assert "## SyntheticClassificationDataModule" in page
+    assert "License generated." in page
+    images = [line for line in page.splitlines() if line.startswith("-   ![")]
+    assert len(images) == 2
+    assert all(f"smoke-project/{run_id}/files/examples/" in line for line in images)
+
+
+def test_samples_page_says_when_there_are_no_examples(project, tmp_path):
+    out = tmp_path / "notebook"
+    build_notebook(project.parent, out)
+    assert "No published run has example images yet." in (out / "samples.md").read_text()
