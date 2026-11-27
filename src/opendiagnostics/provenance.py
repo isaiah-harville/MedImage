@@ -28,8 +28,15 @@ TRACKED_PACKAGES = (
 )
 
 
+RUN_OUTPUTS = ":(exclude,glob)models/*/runs/**"
+
+
 def git_info(path: Path | str = ".") -> dict[str, Any]:
-    """Commit, branch, and whether tracked files had uncommitted changes."""
+    """Commit, branch, and whether tracked files had uncommitted changes.
+
+    Published run outputs under ``models/*/runs/`` are not inputs to training, so changes to
+    them (a republish in progress, say) do not make a run dirty.
+    """
 
     def run(*args: str) -> str | None:
         try:
@@ -43,7 +50,7 @@ def git_info(path: Path | str = ".") -> dict[str, Any]:
     commit = run("rev-parse", "HEAD")
     if commit is None:
         return {"commit": None}
-    dirty = bool(run("status", "--porcelain", "--untracked-files=no"))
+    dirty = bool(run("status", "--porcelain", "--untracked-files=no", "--", ".", RUN_OUTPUTS))
     if dirty:
         log.warning("uncommitted changes: this run cannot be reproduced from the commit alone")
     return {"commit": commit, "branch": run("rev-parse", "--abbrev-ref", "HEAD"), "dirty": dirty}
