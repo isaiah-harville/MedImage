@@ -237,15 +237,10 @@ def test_ham10000_manifest_uses_the_isic2018_test_set_and_splits_the_rest_by_les
         for i in range(84)
     ]
     test_truth = [
-        {
-            "image": f"ISIC_9{i:03d}",
-            **{c.upper(): str(float(j == i % 7)) for j, c in enumerate(classes)},
-        }
+        {"lesion_id": f"HAMTEST_{i:07d}", "image_id": f"ISIC_9{i:03d}", "dx": classes[i % 7]}
         for i in range(7)
     ]
-    images = _jpegs(
-        tmp_path / "images", [r["image_id"] for r in metadata] + [r["image"] for r in test_truth]
-    )
+    images = _jpegs(tmp_path / "images", [r["image_id"] for r in [*metadata, *test_truth]])
     rows = ham.manifest_rows(metadata, test_truth, images, tmp_path)
     test = [r for r in rows if r["split"] == "test"]
     assert [r["label"] for r in test] == list(classes)
@@ -324,9 +319,8 @@ def test_ham10000_script_fetches_dataverse_files_and_original_csvs(script, tmp_p
     metadata = "lesion_id,image_id,dx\n" + "".join(
         f"HAM_{i // 2},{n},{ham.CLASSES[(i // 2) % 7]}\n" for i, n in enumerate(train)
     )
-    header = "image," + ",".join(c.upper() for c in ham.CLASSES) + "\n"
-    truth = header + "".join(
-        n + "," + ",".join("1.0" if j == i else "0.0" for j in range(7)) + "\n"
+    truth = "lesion_id,image_id,dx,dx_type,age,sex,localization,dataset\n" + "".join(
+        f"HAMTEST_{i:07d},{n},{ham.CLASSES[i]},histo,40.0,female,back,vidir_molemax\n"
         for i, n in enumerate(test)
     )
     archives = {

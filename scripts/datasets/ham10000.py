@@ -41,26 +41,19 @@ TEST_TRUTH = ("ISIC2018_Task3_Test_GroundTruth.csv", 6924466, 108_383)
 CLASSES = ("akiec", "bcc", "bkl", "df", "mel", "nv", "vasc")
 
 
-def isic2018_diagnosis(row: dict[str, str]) -> str:
-    labels = [c for c in CLASSES if float(row[c.upper()]) == 1.0]
-    if len(labels) != 1:
-        raise RuntimeError(f"{row['image']} has {len(labels)} diagnoses, expected one")
-    return labels[0]
-
-
 def manifest_rows(
     metadata: list[dict[str, str]],
     test_truth: list[dict[str, str]],
     images: dict[str, Path],
     root: Path,
 ) -> list[dict[str, str]]:
-    names = [r["image_id"] for r in metadata] + [r["image"] for r in test_truth]
+    names = [r["image_id"] for r in [*metadata, *test_truth]]
     missing = [n for n in names if n not in images]
     if missing:
         raise RuntimeError(f"{len(missing)} labelled images are not on disk: {missing[:5]}")
-    unknown = {r["dx"] for r in metadata} - set(CLASSES)
+    unknown = {r["dx"] for r in [*metadata, *test_truth]} - set(CLASSES)
     if unknown:
-        raise RuntimeError(f"HAM10000_metadata has unexpected diagnoses {sorted(unknown)}")
+        raise RuntimeError(f"the label files have unexpected diagnoses {sorted(unknown)}")
     splits = assign_splits(
         [r["lesion_id"] for r in metadata], [r["dx"] for r in metadata], (0.85, 0.15, 0.0)
     )
@@ -75,9 +68,9 @@ def manifest_rows(
     ]
     rows += [
         {
-            "path": relative(images[r["image"]], root),
-            "patient_id": f"test:{r['image']}",
-            "label": isic2018_diagnosis(r),
+            "path": relative(images[r["image_id"]], root),
+            "patient_id": r["lesion_id"],
+            "label": r["dx"],
             "split": "test",
         }
         for r in test_truth
@@ -96,7 +89,9 @@ def main() -> None:
     for name, file_id, size in (METADATA, TEST_TRUTH):
         tables[name] = download(f"{ACCESS}/{file_id}?format=original", root / name, size)
     metadata = read_csv(tables[METADATA[0]], ["lesion_id", "image_id", "dx"])
-    test_truth = read_csv(tables[TEST_TRUTH[0]], ["image", *(c.upper() for c in CLASSES)])
+    # Dataverse serves the ISIC 2018 test labels in the metadata layout, one row per image
+    # with its diagnosis in dx and a HAMTEST_ lesion ID, not as the challenge's one-hot CSV.
+    test_truth = read_csv(tables[TEST_TRUTH[0]], ["lesion_id", "image_id", "dx"])
     images = find_files(root / "images", [".jpg"])
     write_manifest(root, manifest_rows(metadata, test_truth, images, root))
 
