@@ -171,6 +171,7 @@ RECIPES: dict[str, Recipe] = {
         spacing=[3.0, 3.0, 3.0],
         patch=[128, 128, 128],
         train_cases=1082,
+        crops=1,
         flips=(),
         ignore_empty=True,
         patient_ids_available=False,

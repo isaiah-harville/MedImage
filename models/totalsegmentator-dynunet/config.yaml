@@ -286,7 +286,7 @@ data:
             - 128
             pos: 1.0
             neg: 1.0
-            num_samples: 2
+            num_samples: 1
         - class_path: monai.transforms.RandScaleIntensityd
           init_args:
             keys:
