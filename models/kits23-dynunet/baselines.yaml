@@ -1,0 +1,11 @@
+benchmark: KiTS23, 489 public training cases split 70/10/20 by patient (seed 0)
+protocol: 'Dice per KiTS23 hierarchical evaluation class (kidney and masses: labels 1-3; masses: 2-3;
+  tumor: 2), per case in the original CT grid, averaged over cases, then over the three classes. A class
+  absent from both reference and prediction scores 1 and from one of them 0, as in the official kits23
+  evaluation code. No published number is listed, because none matches this protocol. The challenge scores
+  its hidden test set, whose labels are not public, so our test split is a held-out part of the public
+  training cases instead. Published cross-validation results (nnU-Net Revisited, Isensee et al. 2024,
+  Table 1) pool every training case into five folds; they estimate the same quantity on a different sample
+  of cases, so they are context for the model card, not a baseline. Matching them needs a pooled five-fold
+  evaluation over all labelled cases.'
+baselines: []

@@ -1,0 +1,7 @@
+benchmark: PI-CAI public training and development set (1,500 studies), split 70/10/20 by patient, stratified
+  by case_csPCa (seed 0)
+protocol: Dice of the binary csPCa lesion mask (ISUP 2 or higher), per study in the T2W grid, averaged
+  over studies with a lesion (ignore_empty). PI-CAI's own metrics are patient-level AUROC and lesion-level
+  average precision with a 0.1 IoU hit criterion, on a hidden test set; no primary source reports a lesion
+  Dice under a stated, reproducible protocol, so no baseline is listed.
+baselines: []

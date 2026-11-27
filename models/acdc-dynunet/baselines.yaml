@@ -1,0 +1,17 @@
+benchmark: 'ACDC, official test set: 50 patients, end-diastole and end-systole frames (100 volumes)'
+protocol: 3D Dice per structure (labels 1 right ventricle, 2 myocardium, 3 left ventricle) per volume
+  in the original grid, averaged over all 100 test volumes, which equals the mean of the ED and ES averages
+  because each patient gives one of each. Bernard et al. 2018 (IEEE TMI, Table III) report ED and ES separately,
+  so their rows are not listed; nnU-Net's paper reports the ED and ES average, which is ours.
+baselines:
+- method: nnU-Net, configuration selected on cross-validation, official test set
+  metrics:
+    dice: 0.9295
+    dice/right_ventricle: 0.9295
+    dice/myocardium: 0.9183
+    dice/left_ventricle: 0.9407
+  source: Isensee et al., arXiv 1904.08128v2 (2020; Nature Methods 2021), Appendix F, Table F.26, test
+    set row
+  url: https://arxiv.org/pdf/1904.08128v2
+  notes: Scored by the challenge's online platform; the authors averaged the ED and ES Dice. RV, MLV (myocardium)
+    and LVC (left ventricle cavity) columns.

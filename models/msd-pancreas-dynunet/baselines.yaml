@@ -1,0 +1,10 @@
+benchmark: Medical Segmentation Decathlon Task07_Pancreas, labelled training cases split 70/10/20 (seed
+  0; case IDs stand in for patients)
+protocol: Dice per class, per case in the original image grid, averaged over cases, then over classes.
+  A class absent from both reference and prediction scores 1. No published number is listed, because none
+  matches this protocol. The challenge scores its hidden test set, whose labels are not public, so our
+  test split is a held-out part of the public training cases instead. Published cross-validation results
+  (nnU-Net, Isensee et al. 2021, arXiv 1904.08128v2 Appendix F) pool every training case into five folds;
+  they estimate the same quantity on a different sample of cases, so they are context for the model card,
+  not a baseline. Matching them needs a pooled five-fold evaluation over all labelled cases.
+baselines: []

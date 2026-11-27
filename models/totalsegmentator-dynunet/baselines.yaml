@@ -1,0 +1,133 @@
+benchmark: TotalSegmentator v2.0.1, official test split from meta.csv, all 117 structures
+protocol: 'Dice per structure, per case, averaged over the test cases that contain the structure: a structure
+  absent from the reference is left out (ignore_empty), and one predicted empty scores 0, as in the TotalSegmentator
+  repository''s resources/evaluate.py. The headline dice averages the 117 structures; the published file
+  prints no overall mean, so only the per-structure values are listed and the leaderboard cannot rank
+  it. The paper''s 0.943 (1.5 mm) and 0.840 (3 mm) are on v1''s 65-case test set with 104 classes and
+  are not comparable.'
+baselines:
+- method: nnU-Net 3d_fullres, one fold, v2.0.1 meta.csv split, no mirroring
+  metrics:
+    dice/spleen: 0.984
+    dice/kidney_right: 0.947
+    dice/kidney_left: 0.944
+    dice/gallbladder: 0.845
+    dice/liver: 0.963
+    dice/stomach: 0.955
+    dice/pancreas: 0.894
+    dice/adrenal_gland_right: 0.904
+    dice/adrenal_gland_left: 0.907
+    dice/lung_upper_lobe_left: 0.968
+    dice/lung_lower_lobe_left: 0.979
+    dice/lung_upper_lobe_right: 0.893
+    dice/lung_middle_lobe_right: 0.966
+    dice/lung_lower_lobe_right: 0.975
+    dice/esophagus: 0.951
+    dice/trachea: 0.97
+    dice/thyroid_gland: 0.926
+    dice/small_bowel: 0.917
+    dice/duodenum: 0.861
+    dice/colon: 0.916
+    dice/urinary_bladder: 0.916
+    dice/prostate: 0.814
+    dice/kidney_cyst_left: 0.347
+    dice/kidney_cyst_right: 0.009
+    dice/sacrum: 0.94
+    dice/vertebrae_S1: 0.94
+    dice/vertebrae_L5: 0.984
+    dice/vertebrae_L4: 0.98
+    dice/vertebrae_L3: 0.978
+    dice/vertebrae_L2: 0.967
+    dice/vertebrae_L1: 0.948
+    dice/vertebrae_T12: 0.962
+    dice/vertebrae_T11: 0.955
+    dice/vertebrae_T10: 0.948
+    dice/vertebrae_T9: 0.965
+    dice/vertebrae_T8: 0.948
+    dice/vertebrae_T7: 0.931
+    dice/vertebrae_T6: 0.952
+    dice/vertebrae_T5: 0.971
+    dice/vertebrae_T4: 0.946
+    dice/vertebrae_T3: 0.956
+    dice/vertebrae_T2: 0.971
+    dice/vertebrae_T1: 0.982
+    dice/vertebrae_C7: 0.975
+    dice/vertebrae_C6: 0.89
+    dice/vertebrae_C5: 0.897
+    dice/vertebrae_C4: 0.884
+    dice/vertebrae_C3: 0.956
+    dice/vertebrae_C2: 0.915
+    dice/vertebrae_C1: 0.896
+    dice/heart: 0.904
+    dice/aorta: 0.982
+    dice/pulmonary_vein: 0.922
+    dice/brachiocephalic_trunk: 0.937
+    dice/subclavian_artery_right: 0.934
+    dice/subclavian_artery_left: 0.933
+    dice/common_carotid_artery_right: 0.904
+    dice/common_carotid_artery_left: 0.931
+    dice/brachiocephalic_vein_left: 0.934
+    dice/brachiocephalic_vein_right: 0.928
+    dice/atrial_appendage_left: 0.926
+    dice/superior_vena_cava: 0.943
+    dice/inferior_vena_cava: 0.934
+    dice/portal_vein_and_splenic_vein: 0.862
+    dice/iliac_artery_left: 0.936
+    dice/iliac_artery_right: 0.912
+    dice/iliac_vena_left: 0.918
+    dice/iliac_vena_right: 0.931
+    dice/humerus_left: 0.958
+    dice/humerus_right: 0.948
+    dice/scapula_left: 0.955
+    dice/scapula_right: 0.954
+    dice/clavicula_left: 0.957
+    dice/clavicula_right: 0.98
+    dice/femur_left: 0.966
+    dice/femur_right: 0.964
+    dice/hip_left: 0.989
+    dice/hip_right: 0.989
+    dice/spinal_cord: 0.951
+    dice/gluteus_maximus_left: 0.979
+    dice/gluteus_maximus_right: 0.982
+    dice/gluteus_medius_left: 0.977
+    dice/gluteus_medius_right: 0.978
+    dice/gluteus_minimus_left: 0.967
+    dice/gluteus_minimus_right: 0.971
+    dice/autochthon_left: 0.98
+    dice/autochthon_right: 0.979
+    dice/iliopsoas_left: 0.956
+    dice/iliopsoas_right: 0.968
+    dice/brain: 0.923
+    dice/skull: 0.816
+    dice/rib_left_1: 0.933
+    dice/rib_left_2: 0.931
+    dice/rib_left_3: 0.934
+    dice/rib_left_4: 0.919
+    dice/rib_left_5: 0.91
+    dice/rib_left_6: 0.934
+    dice/rib_left_7: 0.947
+    dice/rib_left_8: 0.937
+    dice/rib_left_9: 0.947
+    dice/rib_left_10: 0.946
+    dice/rib_left_11: 0.941
+    dice/rib_left_12: 0.927
+    dice/rib_right_1: 0.939
+    dice/rib_right_2: 0.946
+    dice/rib_right_3: 0.926
+    dice/rib_right_4: 0.944
+    dice/rib_right_5: 0.919
+    dice/rib_right_6: 0.938
+    dice/rib_right_7: 0.946
+    dice/rib_right_8: 0.955
+    dice/rib_right_9: 0.962
+    dice/rib_right_10: 0.967
+    dice/rib_right_11: 0.964
+    dice/rib_right_12: 0.938
+    dice/sternum: 0.906
+    dice/costal_cartilages: 0.919
+  source: TotalSegmentator repository, resources/evaluate_results.txt (Dice section), produced by resources/train_nnunet.md
+    steps 1-7
+  url: https://github.com/wasserth/TotalSegmentator/blob/master/resources/evaluate_results.txt
+  notes: The guide says the mean Dice over classes varies by up to one point between trainings. evaluate.py
+    computes surface metrics at 1.5 mm spacing, so the labels it scores are likely the dataset's 1.5 mm
+    grid; we score the original grid of the downloaded files.
