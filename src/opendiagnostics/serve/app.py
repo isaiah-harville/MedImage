@@ -24,6 +24,7 @@ from fastapi.responses import FileResponse
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict, model_validator
 
+from opendiagnostics.serve.catalog import rank
 from opendiagnostics.serve.models import (
     DemoImage,
     Listing,
@@ -69,7 +70,9 @@ def describe(folders: list[Path]) -> dict[str, Listing]:
             log.info("not serving %s: %s", folder.parent.name, reason)
         except Exception:
             log.exception("could not list %s/%s", folder.parent.name, folder.name)
-    return {listing.description["id"]: listing for listing in listings}
+    ids = sorted((listing.description["id"] for listing in listings), key=rank)
+    by_id = {listing.description["id"]: listing for listing in listings}
+    return {model_id: by_id[model_id] for model_id in ids}
 
 
 def _decode(data: bytes) -> Image.Image:

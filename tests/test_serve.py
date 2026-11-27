@@ -55,6 +55,7 @@ def test_health_and_model_listing(client):
     assert model["label_mode"] == "binary"
     assert model["classes"] == ["class_0", "class_1"]
     assert model["demo_count"] == 8
+    assert model["category"] == "Other"
     assert model["run_id"]
     assert set(model["test_auroc"]) == {"value", "lower", "upper"}
     assert model["weights"]["url"].endswith(f"/smoke-project/{model['run_id']}/checkpoint.ckpt")

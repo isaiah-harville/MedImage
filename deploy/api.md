@@ -19,6 +19,7 @@ One entry per servable model, in display order:
     "id": "pneumoniamnist-convnext",
     "scan_type": "Pediatric chest X-ray",
     "modality": "X-ray",
+    "category": "X-ray and mammography",
     "question": "Pneumonia or normal?",
     "label_mode": "binary",
     "classes": ["normal", "pneumonia"],
@@ -38,6 +39,8 @@ One entry per servable model, in display order:
 ]
 ```
 
+Models come sorted by `category`, the group of imaging types the site lists them under
+(CT and MRI, X-ray and mammography, Ultrasound, Pathology and microscopy, Skin, Eye, Other).
 `test_auroc` is `null` when the run has no test metrics. `weights` is the public download of
 the served checkpoint, and `null` when it was not published (see [model weights](../docs/weights.md)).
 

@@ -40,6 +40,7 @@ describe('createApiClient', () => {
       id: 'pneumoniamnist-convnext',
       scanType: 'Pediatric chest X-ray',
       modality: 'X-ray',
+      category: 'X-ray and mammography',
       question: 'Pneumonia or normal?',
       labelMode: 'binary',
       classes: ['normal', 'pneumonia'],

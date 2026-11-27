@@ -1,4 +1,5 @@
 <script lang="ts">
+import { groupByCategory } from '#lib/catalog.ts';
 import ModelCatalog from '#lib/components/ModelCatalog.svelte';
 import type { PageData } from './$types';
 
@@ -23,7 +24,7 @@ let { data }: { data: PageData } = $props();
       pixels that drove its prediction.
     </p>
   </div>
-  <dl class="grid grid-cols-3 gap-4 text-[12px] md:justify-self-end">
+  <dl class="grid grid-cols-2 gap-6 text-[12px] md:justify-self-end">
     <div>
       <dt class="text-foreground-muted">Models</dt>
       <dd class="mt-0.5 font-mono text-[18px] font-medium tabular-nums">
@@ -31,12 +32,10 @@ let { data }: { data: PageData } = $props();
       </dd>
     </div>
     <div>
-      <dt class="text-foreground-muted">Benchmark</dt>
-      <dd class="mt-0.5 text-[14px] font-medium">MedMNIST v2</dd>
-    </div>
-    <div>
-      <dt class="text-foreground-muted">Input</dt>
-      <dd class="mt-0.5 text-[14px] font-medium">224 x 224 px</dd>
+      <dt class="text-foreground-muted">Imaging types</dt>
+      <dd class="mt-0.5 font-mono text-[18px] font-medium tabular-nums">
+        {data.catalog.kind === 'ready' ? groupByCategory(data.catalog.models).length : 0}
+      </dd>
     </div>
   </dl>
 </header>

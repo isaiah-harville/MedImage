@@ -28,7 +28,7 @@ from opendiagnostics.data.base import DatasetInfo, Transform, prepare
 from opendiagnostics.examples import explain
 from opendiagnostics.modules import ImageClassifier
 from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST, Artifact
-from opendiagnostics.serve.catalog import ORDER, describe
+from opendiagnostics.serve.catalog import describe, rank
 from opendiagnostics.serve.weights import cached, checkpoint_of
 
 log = logging.getLogger("opendiagnostics.serve")
@@ -93,7 +93,7 @@ def _listing(
         )
     metrics = json.loads((folder / "metrics.json").read_text())
     flag = (config["data"].get("init_args") or {}).get("flag")
-    scan = describe(flag, model_id)
+    scan = describe(model_id)
     test_auroc = metrics.get("test", {}).get("auroc")
     demos = {}
     manifest = folder / EXAMPLES / EXAMPLES_MANIFEST
@@ -106,6 +106,7 @@ def _listing(
         "id": model_id,
         "scan_type": scan.scan_type,
         "modality": scan.modality,
+        "category": scan.category,
         "question": scan.question,
         "label_mode": info.label_mode,
         "classes": list(info.class_names),
@@ -168,11 +169,6 @@ def load_model(folder: Path, cache: Path) -> ServedModel:
     )
 
 
-def _rank(model: ServedModel) -> tuple[int, str]:
-    flag = model.id.split("-")[0]
-    return (ORDER.index(flag) if flag in ORDER else len(ORDER), model.id)
-
-
 def load_models(folders: list[Path], cache: Path) -> dict[str, ServedModel]:
     """Load each model folder. A model that fails to load is logged and left out."""
     models = []
@@ -183,7 +179,7 @@ def load_models(folders: list[Path], cache: Path) -> dict[str, ServedModel]:
             log.info("not serving %s: %s", folder.parent.name, reason)
         except Exception:
             log.exception("could not load %s/%s", folder.parent.name, folder.name)
-    return {m.id: m for m in sorted(models, key=_rank)}
+    return {m.id: m for m in sorted(models, key=lambda m: rank(m.id))}
 
 
 def _png(image: torch.Tensor) -> str:

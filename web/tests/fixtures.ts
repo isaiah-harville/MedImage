@@ -5,6 +5,7 @@ export const modelsJson = [
     id: 'pneumoniamnist-convnext',
     scan_type: 'Pediatric chest X-ray',
     modality: 'X-ray',
+    category: 'X-ray and mammography',
     question: 'Pneumonia or normal?',
     label_mode: 'binary',
     classes: ['normal', 'pneumonia'],
@@ -26,6 +27,7 @@ export const modelsJson = [
     id: 'dermamnist-resnet',
     scan_type: 'Dermatoscope image',
     modality: 'Dermatoscopy',
+    category: 'Skin',
     question: 'Which of 7 skin lesion types?',
     label_mode: 'multiclass',
     classes: [
