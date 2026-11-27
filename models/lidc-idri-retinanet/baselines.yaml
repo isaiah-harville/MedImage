@@ -1,0 +1,10 @@
+benchmark: LIDC-IDRI nodule detection, all 1,018 CT series, nodules of 3 mm or more marked by at least one reader
+protocol: >-
+  CPM and FROC sensitivities on our patient-level test split (70/15/15 of patients, seed 0),
+  with boxes built from the reader XML by the rule in scripts/datasets/lidc_idri.py. Marks
+  below 3 mm, non-nodules, and nodules under the reader threshold are ignored, not counted.
+  No published result uses this rule and split. The closest, Retina U-Net (Jaeger et al.,
+  arXiv 1811.08661), scores benign versus malignant nodules by mAP at IoU 0.1 on 1,035 scans
+  with an unpublished five-fold split, so it is not comparable. LUNA16 results are on a
+  subset of these scans with a three-reader rule and do not belong here either.
+baselines: []

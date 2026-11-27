@@ -2,8 +2,8 @@
 
 ``opendiagnostics fit -c CONFIG [--trainer.max_epochs=2 ...]`` trains with Lightning's
 ``LightningCLI``, then evaluates the selected checkpoint with bootstrap intervals. The other
-commands work on finished runs: ``evaluate``, ``examples``, ``compare``, ``publish``, and
-``notebook``.
+commands work on finished runs: ``evaluate``, ``examples``, ``compare``, ``froc``,
+``publish``, and ``notebook``.
 
 A run directory holds everything needed to audit or repeat an experiment::
 
@@ -347,6 +347,22 @@ def _compare(args: argparse.Namespace) -> int:
     return 0
 
 
+def _froc(args: argparse.Namespace) -> int:
+    from opendiagnostics.metrics.froc import pool, scan_metrics
+
+    scans = pool(args.predictions)
+    result = scan_metrics(scans, replicates=args.replicates, seed=args.seed)
+    if args.json:
+        print(json.dumps({k: v.to_dict() for k, v in result.items()}, indent=2))
+        return 0
+    for name, estimate in result.items():
+        print(f"{name}: {estimate}")
+    lesions = sum(len(s.truth) for s in scans)
+    patients = len({s.patient_id for s in scans})
+    print(f"{len(scans)} scans from {patients} patients, {lesions} lesions")
+    return 0
+
+
 def _publish(args: argparse.Namespace) -> int:
     from opendiagnostics.publish import publish_run
 
@@ -408,6 +424,17 @@ def _parser() -> argparse.ArgumentParser:
     compare.add_argument("--seed", type=int, default=0)
     compare.add_argument("--json", action="store_true", help="print the result as JSON")
     compare.set_defaults(handler=_compare)
+
+    froc = sub.add_parser(
+        "froc",
+        help="FROC and CPM over 3D detection predictions pooled from several runs, "
+        "such as the ten LUNA16 test folds",
+    )
+    froc.add_argument("predictions", nargs="+", type=Path, help="predictions_test.csv files")
+    froc.add_argument("--replicates", type=int, default=1000)
+    froc.add_argument("--seed", type=int, default=0)
+    froc.add_argument("--json", action="store_true", help="print the result as JSON")
+    froc.set_defaults(handler=_froc)
 
     publish = sub.add_parser("publish", help="copy a finished run into a model project")
     publish.add_argument("run_dir", type=Path)

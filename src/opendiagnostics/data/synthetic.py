@@ -1,4 +1,4 @@
-"""Generated images from MONAI's test-image generators, for seconds-long smoke runs."""
+"""Generated images and volumes from MONAI's test-image generators, for seconds-long smoke runs."""
 
 from __future__ import annotations
 
@@ -8,11 +8,13 @@ from typing import Any, Literal
 import numpy as np
 import tifffile
 import torch
+from monai.data import MetaTensor
 from monai.data.synthetic import create_test_image_2d, create_test_image_3d
 from torchvision.ops import masks_to_boxes
 
 from opendiagnostics.data.base import DatasetInfo, MedicalDataModule, Source
 from opendiagnostics.data.slides import Slide, SlideFeatureDataModule
+from opendiagnostics.data.volumes import VolumeDetectionDataModule, target, voxel_boxes_to_world
 
 
 class SyntheticClassificationDataModule(MedicalDataModule):
@@ -111,6 +113,69 @@ class SyntheticDetectionDataModule(MedicalDataModule):
             dataset=items,
             sample_ids=sample_ids,
             patient_ids=sample_ids,
+            fingerprint={"seed": self.seed, "num_samples": self.num_samples},
+        )
+
+
+class SyntheticVolumeDetectionDataModule(VolumeDetectionDataModule):
+    """Spheres on noise in volumes with an anisotropic, offset affine, one ``blob`` box per
+    sphere in world LPS millimetres. Every fifth volume has no spheres."""
+
+    def __init__(
+        self, num_samples: int = 24, image_size: int = 32, seed: int = 0, **kwargs: Any
+    ) -> None:
+        kwargs.setdefault("split", "patient")
+        super().__init__(**kwargs)
+        self.num_samples = num_samples
+        self.image_size = image_size
+        self.seed = seed
+        self.info = DatasetInfo(
+            label_mode="detection",
+            class_names=("blob",),
+            in_channels=1,
+            spatial_dims=3,
+            license="generated",
+        )
+
+    def load(self) -> Source:
+        rng = np.random.RandomState(self.seed)
+        size = self.image_size
+        affine = torch.tensor(
+            [[1.5, 0, 0, -20.0], [0, 1.5, 0, 10.0], [0, 0, 2.0, 5.0], [0, 0, 0, 1]],
+            dtype=torch.float64,
+        )
+        items = []
+        for n in range(self.num_samples):
+            generated = create_test_image_3d(
+                size,
+                size,
+                size,
+                num_objs=int(rng.randint(1, 3)),
+                rad_max=max(size // 6, 4),
+                rad_min=3,
+                noise_max=0.2,
+                num_seg_classes=1,
+                random_state=rng,
+                return_instance_id=True,
+            )
+            image, instances = generated[0], generated[-1]
+            if n % 5 == 4:
+                image, instances = rng.uniform(0, 0.2, image.shape), np.zeros_like(instances)
+            voxel = []
+            for i in np.unique(instances)[1:]:
+                where = np.argwhere(instances == i)
+                voxel.append([*where.min(0), *(where.max(0) + 1)])
+            world = voxel_boxes_to_world(
+                torch.tensor(voxel, dtype=torch.float64).reshape(-1, 6), affine
+            )
+            volume = MetaTensor(torch.from_numpy(image[None].astype(np.float32)), affine=affine)
+            items.append((volume, target(world.numpy(), np.zeros(len(voxel)))))
+        sample_ids = [f"s{i}" for i in range(self.num_samples)]
+        return Source(
+            dataset=items,
+            sample_ids=sample_ids,
+            patient_ids=sample_ids,
+            strata=[int(len(t["boxes"]) > 0) for _, t in items],
             fingerprint={"seed": self.seed, "num_samples": self.num_samples},
         )
 

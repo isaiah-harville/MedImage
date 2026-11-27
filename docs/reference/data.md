@@ -12,6 +12,8 @@
 
 ::: opendiagnostics.data.synthetic
 
+::: opendiagnostics.data.volumes
+
 ::: opendiagnostics.data.slides
 
 ::: opendiagnostics.data.camelyon

@@ -1,0 +1,58 @@
+benchmark: LUNA16 nodule detection (NDET), 888 CT scans, 1,186 nodules, official ten-fold cross-validation
+protocol: >-
+  CPM, the mean sensitivity at 1/8, 1/4, 1/2, 1, 2, 4 and 8 false positives per scan, over the
+  test predictions of all ten folds pooled (fold k tests on subset k). A detection hits a
+  nodule when its center lies within the nodule's radius; detections on
+  annotations_excluded.csv findings are ignored. Compare with our pooled CPM from
+  `opendiagnostics froc` over the ten test folds, not with one fold's metrics.json. Our model
+  has no false-positive reduction stage, so the rows without one are the like-for-like
+  comparison. Leaderboard entries are self-reported, not peer reviewed, and give no
+  intervals. No source publishes per-scan predictions, so a claim to beat one needs its value
+  outside our 95% interval.
+baselines:
+  - method: "PAtech (leaderboard, NDET)"
+    metrics: {cpm: 0.951}
+    source: LUNA16 Results page, nodule detection leaderboard, rank 1 (2 January 2018)
+    url: https://luna16.grand-challenge.org/Results/
+    notes: Whether it uses false-positive reduction is not stated on the leaderboard.
+  - method: "JianPeiCAD (leaderboard, NDET)"
+    metrics: {cpm: 0.950}
+    source: LUNA16 Results page, nodule detection leaderboard, rank 2 (22 December 2017)
+    url: https://luna16.grand-challenge.org/Results/
+  - method: "LUNA16FONOVACAD (leaderboard, NDET)"
+    metrics: {cpm: 0.947}
+    source: LUNA16 Results page, nodule detection leaderboard, rank 3 (28 November 2017)
+    url: https://luna16.grand-challenge.org/Results/
+  - method: "MONAI 3D RetinaNet tutorial"
+    metrics:
+      cpm: 0.936
+      sensitivity_at_0.125_fp: 0.835
+      sensitivity_at_0.25_fp: 0.885
+      sensitivity_at_0.5_fp: 0.931
+      sensitivity_at_1_fp: 0.957
+      sensitivity_at_2_fp: 0.974
+      sensitivity_at_4_fp: 0.983
+      sensitivity_at_8_fp: 0.988
+    source: Project-MONAI tutorials, detection README, Table 1
+    url: https://github.com/Project-MONAI/tutorials/tree/main/detection
+    notes: >-
+      The same detector stack as ours. All ten official folds, merged and scored with the
+      official script; no false-positive reduction. The README lists the seven sensitivities
+      only; the CPM here is their mean, computed by us.
+  - method: "nnDetection, no false-positive reduction"
+    metrics:
+      cpm: 0.930
+      sensitivity_at_0.125_fp: 0.812
+      sensitivity_at_0.25_fp: 0.885
+      sensitivity_at_0.5_fp: 0.927
+      sensitivity_at_1_fp: 0.950
+      sensitivity_at_2_fp: 0.969
+      sensitivity_at_4_fp: 0.979
+      sensitivity_at_8_fp: 0.985
+    source: Baumgartner et al., nnDetection, MICCAI 2021, arXiv 2106.00817v2, supplementary Table 2
+    url: https://arxiv.org/pdf/2106.00817
+    notes: The paper lists the split as "Official" for all 888 scans; it does not say ten-fold in words.
+  - method: "ZNET, best complete system in the challenge paper"
+    metrics: {cpm: 0.811}
+    source: Setio et al., Medical Image Analysis 42 (2017), arXiv 1612.08012v4, Section 5.2 and Table 3
+    url: https://arxiv.org/pdf/1612.08012

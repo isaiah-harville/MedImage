@@ -18,7 +18,9 @@ from opendiagnostics.data.synthetic import (
     SyntheticClassificationDataModule,
     SyntheticDetectionDataModule,
     SyntheticSlideDataModule,
+    SyntheticVolumeDetectionDataModule,
 )
+from opendiagnostics.data.volumes import VolumeManifestDataModule
 
 __all__ = [
     "SPLIT_NAMES",
@@ -36,6 +38,8 @@ __all__ = [
     "SyntheticClassificationDataModule",
     "SyntheticDetectionDataModule",
     "SyntheticSlideDataModule",
+    "SyntheticVolumeDetectionDataModule",
+    "VolumeManifestDataModule",
     "check_disjoint",
     "patient_split",
     "summarize",

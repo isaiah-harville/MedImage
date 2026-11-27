@@ -1,0 +1,46 @@
+# A short CPU run of MONAI's 3D RetinaNet on generated volumes, scored by FROC and CPM.
+name: smoke-detection-3d
+seed_everything: 0
+trainer:
+  accelerator: cpu
+  max_epochs: 2
+  enable_progress_bar: false
+model:
+  class_path: opendiagnostics.modules.VolumeDetector
+  init_args:
+    network:
+      class_path: monai.networks.nets.ResNet
+      init_args:
+        block: basic
+        layers: [1, 1, 1, 1]
+        block_inplanes: [8, 16, 32, 64]
+        spatial_dims: 3
+        n_input_channels: 1
+        conv1_t_stride: [2, 2, 2]
+        conv1_t_size: [3, 3, 3]
+    returned_layers: [1, 2]
+    base_anchor_shapes: [[6, 6, 4], [10, 10, 7]]
+    roi_size: [32, 32, 32]
+data:
+  class_path: opendiagnostics.data.SyntheticVolumeDetectionDataModule
+  init_args:
+    num_samples: 20
+    image_size: 32
+    split: patient
+    fractions: [0.5, 0.25, 0.25]
+    patch_size: [32, 32, 32]
+    crops_per_volume: 2
+    batch_size: 2
+    train_transforms:
+      class_path: monai.apps.detection.transforms.dictionary.RandFlipBoxd
+      init_args:
+        image_keys: image
+        box_keys: boxes
+        box_ref_image_keys: image
+        prob: 0.5
+        spatial_axis: 0
+optimizer:
+  class_path: torch.optim.SGD
+  init_args: {lr: 0.01, momentum: 0.9}
+checkpoint: {monitor: val/cpm}
+eval: {bootstrap_samples: 100}

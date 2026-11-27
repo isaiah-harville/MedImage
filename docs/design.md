@@ -23,21 +23,22 @@ changing behaviour. When a decision changes, update this file in the same change
 
 ```
 src/opendiagnostics/
-  cli.py             `opendiagnostics fit | evaluate | compare | publish | notebook`; the LightningCLI
+  cli.py             `opendiagnostics fit | evaluate | compare | froc | publish | notebook`; the LightningCLI
   data/              the data module base class, patient-level splits, MedMNIST, CSV manifests
                      of labelled images or of boxes, whole-slide feature bags (CAMELYON16/17),
-                     synthetic smoke data
-  modules/           Lightning modules: ImageClassifier, ObjectDetector, SlideClassifier, and
-                     their base
+                     3D volumes with boxes, synthetic smoke data
+  modules/           Lightning modules: ImageClassifier, ObjectDetector, SlideClassifier,
+                     VolumeDetector, and their base
   evaluation.py      final evaluation of the selected checkpoint with bootstrap intervals
-  metrics/           torchmetrics-backed classification metrics, cluster bootstrap, paired compare
+  metrics/           torchmetrics-backed classification metrics, cluster bootstrap, paired compare, FROC
   provenance.py      git state and package versions for run.json
   publish.py         copy a finished run into a model project
   notebook/          generate the lab notebook pages from model projects
 models/<name>/       one project per trained model: config.yaml, MODEL_CARD.md,
                      baselines.yaml, runs/<run-id>/
 configs/smoke/       seconds-long configs on generated data, run by CI
-scripts/             generators, such as the MedMNIST recipe configs
+scripts/             generators, such as the MedMNIST recipe configs; datasets/ downloads
+                     datasets into data/<name>/ and writes their manifests
 docs/                the docs site: this file, the dataset survey, the generated notebook
 tests/               pytest suite
 ```
@@ -54,7 +55,8 @@ The pipeline is Lightning and existing libraries wherever one does the job:
 | Checkpoint selection, early stopping, EMA | `ModelCheckpoint`, `EarlyStopping`, `EMAWeightAveraging` |
 | Per-epoch logs | `CSVLogger` |
 | 2D networks and pretrained weights | timm (`timm.create_model`) |
-| Detectors | torchvision (`torchvision.models.detection`) |
+| Detectors | torchvision (`torchvision.models.detection`); MONAI's 3D RetinaNet (`monai.apps.detection`) |
+| 3D box transforms, world-to-voxel mapping | MONAI (`monai.apps.detection.transforms`) |
 | 3D networks, medical image reading | MONAI (`monai.networks.nets`, `LoadImage`) |
 | Whole-slide reading, tissue mask, MIL head | MONAI `WSIReader` on OpenSlide (`openslide-python`, `openslide-bin` wheels, Windows included), `ForegroundMask`, `MILModel` |
 | 2D transforms, keeping boxes aligned | `torchvision.transforms.v2` |
@@ -67,6 +69,10 @@ What no library does stays here, and is small:
 * **The patient-level cluster bootstrap and the paired comparison.** `torchmetrics`'
     `BootStrapper` resamples single images, which makes intervals too narrow when a patient
     has several images. Each replicate calls `torchmetrics`, so no metric is computed by hand.
+* **FROC matching for 3D detection.** A detection hits a lesion when its center lies in
+    the lesion's inscribed ellipsoid, the LUNA16 rule generalized to boxes. The curve comes
+    from scikit-learn's ROC curve, as in the LUNA16 evaluation script. MONAI's FROC helper
+    drops the operating point that keeps every detection, so it is not used.
 * **The data contract and leakage check.** Every data module serves the same batch shape
     and refuses a split in which a patient appears twice.
 * **Run provenance, publishing, and the lab notebook.**
@@ -109,6 +115,17 @@ Data modules serve batches of dicts:
 | `image` | `float32 (B, C, H, W)` or `(B, C, D, H, W)`; a list for detection | values in `[0, 1]` before the configured transforms |
 | `target` | `int64 (B,)`, `float32 (B, K)` for multilabel, or a list of `{boxes, labels}` | boxes are pixel `(x1, y1, x2, y2)`, labels start at 0 |
 | `id`, `patient_id` | `list[str]` | `patient_id` drives splits and the bootstrap |
+
+3D detection (`VolumeDetector`, `VolumeDetectionDataModule`) differs. Boxes are
+`(x1, y1, z1, x2, y2, z2)` in **world LPS millimetres**, the frame of DICOM, ITK and
+LUNA16, whose faces are the outer faces of the voxels they cover. Volumes are reoriented to
+RAS, optionally resampled, and scaled to `[0, 1]`, and MONAI maps the boxes into the voxel
+grid. Training batches stack `batch_size * crops_per_volume` patches with voxel boxes;
+evaluation batches hold whole volumes, each with its voxel-to-RAS `affine` and its ground
+truth still in world coordinates (`world_boxes`, `world_ignore`), so predictions are scored
+in millimetres. A download script in `scripts/datasets/` writes each dataset's JSON
+manifest (`VolumeManifest`): image paths, patient ID, fold or split, boxes, labels, and
+`ignore` boxes for findings that count neither as hits nor as false positives.
 
 Datasets hold only picklable data. MedMNIST arrays are unpacked to `.npy` files that each
 DataLoader worker memory-maps, because Windows workers start by pickling the dataset.
@@ -178,6 +195,10 @@ The run logs a warning and `run.json` records `patient_ids_available: false`.
     `score >= threshold`, the convention ROC thresholds use.
 * **Detection.** COCO mAP, mAP@0.5, mAP@0.75 and mAR@100 from `torchmetrics`'
     `MeanAveragePrecision` (pycocotools backend).
+* **3D detection.** FROC sensitivity at 1/8, 1/4, 1/2, 1, 2, 4 and 8 false positives per
+    scan, and their mean, the LUNA16 competition performance metric (CPM), which selects
+    the checkpoint (`val/cpm`). `opendiagnostics froc` pools several runs' test predictions,
+    such as LUNA16's ten folds, into one CPM with a patient-level interval.
 * **Confidence intervals.**
     * Every metric gets a percentile bootstrap interval, 1,000 replicates by default.
     * The default unit is the **patient** (a cluster bootstrap): resampling images when
@@ -282,8 +303,7 @@ on 2026-11-26:
 
 * A segmentation task (Dice and HD95 with bootstrap intervals), since many leading
     datasets (BraTS, KiTS, MSD) are segmentation-first.
-* 3D detection: boxes in `(x1, y1, z1, x2, y2, z2)`, through MONAI's 3D RetinaNet or our
-    own head.
+* Example figures for 3D detection: a slice through each box with the predictions on it.
 * Resampling to a common voxel spacing and orientation as a transform.
 * Training features for state-of-the-art results: weight EMA, test-time augmentation,
     higher-resolution pretrained backbones, and GPU recipes per benchmark.
