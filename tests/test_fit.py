@@ -137,3 +137,8 @@ def test_cli_fit(tmp_path):
     argv = ["fit", "-c", "configs/smoke/classification.yaml", "--trainer.max_epochs=1"]
     assert main([*argv, f"--output_dir={out}"]) == 0
     assert (out / "smoke-classification").is_dir()
+
+
+def test_prepare_readies_a_configs_data_without_training(root, capsys):
+    assert main(["prepare", "-c", str(root / "configs/smoke/classification.yaml")]) == 0
+    assert "prepared the data for smoke-classification" in capsys.readouterr().out

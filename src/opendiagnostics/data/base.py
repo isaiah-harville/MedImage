@@ -19,7 +19,7 @@ from typing import Any, Literal, Protocol
 import numpy as np
 import torch
 from lightning.pytorch import LightningDataModule
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import StratifiedGroupKFold, train_test_split
 from torch.utils.data import DataLoader, Dataset
 from torchvision import tv_tensors
 from torchvision.transforms import v2
@@ -68,6 +68,34 @@ class Source:
     strata: list[Hashable] | None = None
     splits: dict[str, list[int]] | None = None
     fingerprint: dict[str, Any] = field(default_factory=dict)
+
+
+def kfold_split(
+    pool: Sequence[int],
+    test: Sequence[int],
+    patient_ids: Sequence[str],
+    strata: Sequence[Hashable] | None,
+    folds: int,
+    fold: int,
+    seed: int = 0,
+) -> dict[str, list[int]]:
+    """Hold out fold ``fold`` of ``folds`` from ``pool`` as validation and train on the rest.
+
+    Folds are grouped by patient, so no patient spans two folds, and stratified on ``strata``
+    when given. ``test`` is passed through untouched.
+    """
+    if not 0 <= fold < folds:
+        raise ValueError(f"fold must be in 0..{folds - 1}, got {fold}")
+    pool = list(pool)
+    groups = [patient_ids[i] for i in pool]
+    labels = [strata[i] for i in pool] if strata is not None else [0] * len(pool)
+    splitter = StratifiedGroupKFold(n_splits=folds, shuffle=True, random_state=seed)
+    train, val = list(splitter.split(pool, labels, groups))[fold]
+    return {
+        "train": sorted(pool[i] for i in train),
+        "val": sorted(pool[i] for i in val),
+        "test": list(test),
+    }
 
 
 def patient_split(
@@ -230,8 +258,10 @@ class SplitDataset(Dataset):
 class MedicalDataModule(LightningDataModule):
     """Base data module. Subclasses set ``info`` in ``__init__`` and implement :meth:`load`.
 
-    ``split`` is ``predefined`` (the dataset's official split) or ``patient`` (a random
-    patient-level split with ``fractions``, stratified by label when ``stratify`` is true).
+    ``split`` is ``predefined`` (the dataset's official split), ``patient`` (a random
+    patient-level split with ``fractions``, stratified by label when ``stratify`` is true), or
+    ``kfold``: the official train and validation splits pooled into ``folds`` patient-grouped
+    folds, fold ``fold`` held out as validation, and the official test split untouched.
     ``train_transforms`` and ``eval_transforms`` are callables such as a
     ``torchvision.transforms.v2.Compose`` or a MONAI ``Compose``.
     """
@@ -240,8 +270,10 @@ class MedicalDataModule(LightningDataModule):
 
     def __init__(
         self,
-        split: Literal["predefined", "patient"] = "predefined",
+        split: Literal["predefined", "patient", "kfold"] = "predefined",
         fractions: tuple[float, float, float] = (0.7, 0.15, 0.15),
+        folds: int = 5,
+        fold: int = 0,
         stratify: bool = True,
         split_seed: int = 0,
         train_transforms: Transform | None = None,
@@ -253,6 +285,8 @@ class MedicalDataModule(LightningDataModule):
         super().__init__()
         self.split = split
         self.fractions = fractions
+        self.folds = folds
+        self.fold = fold
         self.stratify = stratify
         self.split_seed = split_seed
         self.train_transforms = train_transforms
@@ -276,12 +310,22 @@ class MedicalDataModule(LightningDataModule):
         if self._source is not None:
             return
         source = self.load()
-        if self.split == "predefined":
+        if self.split in ("predefined", "kfold"):
             if source.splits is None:
                 raise ValueError(
                     f"{type(self).__name__} has no predefined split; use split: patient"
                 )
             splits = source.splits
+            if self.split == "kfold":
+                splits = kfold_split(
+                    [*splits["train"], *splits["val"]],
+                    splits["test"],
+                    source.patient_ids,
+                    source.strata if self.stratify else None,
+                    self.folds,
+                    self.fold,
+                    self.split_seed,
+                )
         else:
             if not self.info.patient_ids_available:
                 log.warning(

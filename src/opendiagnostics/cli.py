@@ -33,6 +33,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from jsonargparse import ArgumentParser
 from jsonargparse.typing import register_type
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint
@@ -248,12 +249,35 @@ def load_run(
     return cli
 
 
-def evaluate_run(run_dir: Path | str, splits: list[str] | None = None) -> dict[str, Any]:
+def load_data_module(config: dict[str, Any]) -> MedicalDataModule:
+    """The config's data module alone, without building the model or trainer."""
+    parser = ArgumentParser()
+    parser.add_subclass_arguments(MedicalDataModule, "data")
+    return parser.instantiate_classes(parser.parse_object({"data": config["data"]})).data
+
+
+def _prepare(args: argparse.Namespace) -> int:
+    config = yaml.safe_load(Path(args.config).read_text())
+    load_data_module(config).prepare_data()
+    print(f"prepared the data for {config.get('name', args.config)}")
+    return 0
+
+
+def evaluate_run(
+    run_dir: Path | str,
+    splits: list[str] | None = None,
+    threshold_from: list[Path] | None = None,
+) -> dict[str, Any]:
     """Re-score a finished run's checkpoint with the current code and rewrite metrics.json.
 
     The model selection is kept; ``rescored`` records the commit that produced the numbers.
+    With ``threshold_from`` (k-fold runs), the binary threshold comes from their out-of-fold
+    predictions instead of this run's validation split.
     """
+    from opendiagnostics.crossval import out_of_fold_threshold
+
     run_dir = Path(run_dir)
+    calibration = out_of_fold_threshold(run_dir, threshold_from) if threshold_from else None
     cli = load_run(run_dir, splits)
     results = evaluate(
         cli.trainer,
@@ -263,6 +287,7 @@ def evaluate_run(run_dir: Path | str, splits: list[str] | None = None) -> dict[s
         cli.config.seed_everything,
         run_dir / "checkpoint.ckpt",
         run_dir,
+        calibration,
     )
     previous = json.loads((run_dir / "metrics.json").read_text())
     results["selection"] = previous["selection"]
@@ -292,7 +317,8 @@ def _examples(args: argparse.Namespace) -> int:
 
 
 def _evaluate(args: argparse.Namespace) -> int:
-    print(json.dumps(evaluate_run(args.run_dir, args.split), indent=2, default=str))
+    results = evaluate_run(args.run_dir, args.split, args.threshold_from)
+    print(json.dumps(results, indent=2, default=str))
     return 0
 
 
@@ -356,6 +382,13 @@ def _parser() -> argparse.ArgumentParser:
     evaluate = sub.add_parser("evaluate", help="re-evaluate a finished run")
     evaluate.add_argument("run_dir", type=Path)
     evaluate.add_argument("--split", action="append", help="split to evaluate (repeatable)")
+    evaluate.add_argument(
+        "--threshold-from",
+        nargs="+",
+        type=Path,
+        metavar="FOLD_RUN",
+        help="fit the binary threshold on these k-fold runs' out-of-fold predictions",
+    )
     evaluate.set_defaults(handler=_evaluate)
 
     examples = sub.add_parser(
@@ -393,6 +426,10 @@ def _parser() -> argparse.ArgumentParser:
     )
     publish.add_argument("--allow-dirty", action="store_true", help="publish a dirty-tree run")
     publish.set_defaults(handler=_publish)
+
+    prepare = sub.add_parser("prepare", help="download and unpack a config's dataset, no training")
+    prepare.add_argument("-c", "--config", required=True, type=Path)
+    prepare.set_defaults(handler=_prepare)
 
     notebook = sub.add_parser("notebook", help="generate the lab notebook pages for the docs")
     notebook.add_argument("--models", type=Path, default=Path("models"))

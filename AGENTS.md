@@ -26,6 +26,9 @@ smoke-trains every config in `configs/smoke/`. On an NVIDIA machine, use
 | One test file | `uv run pytest tests/test_fit.py` |
 | Fill or update expectations | `uv run pytest --expect-create`, then `uv run xpt failures` and `uv run xpt accept <id>` |
 | Train | `uv run opendiagnostics fit -c models/<name>/config.yaml [--trainer.max_epochs=2 ...]` |
+| Download a config's dataset only | `uv run opendiagnostics prepare -c models/<name>/config.yaml` |
+| Queue runs, downloads in parallel | `uv run python scripts/run_queue.py queue.yaml --downloads 3` (see `docs/guide.md`) |
+| Threshold from k-fold runs | `uv run opendiagnostics evaluate runs/<name>/<run> --threshold-from runs/<name>-fold*/*` |
 | Regenerate the MedMNIST recipes | `uv run python scripts/medmnist_recipes.py` |
 | Compare two runs, paired | `uv run opendiagnostics compare <a>/predictions_test.csv <b>/predictions_test.csv` |
 | Publish a run (uploads the checkpoint to the public weights bucket; see `docs/weights.md`) | `uv run opendiagnostics publish runs/<name>/<run-id> models/<name>` |

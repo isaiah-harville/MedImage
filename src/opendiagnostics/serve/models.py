@@ -20,10 +20,9 @@ from typing import Any
 import numpy as np
 import torch
 import yaml
-from jsonargparse import ArgumentParser
 from PIL import Image
 
-from opendiagnostics.cli import load_run
+from opendiagnostics.cli import load_data_module, load_run
 from opendiagnostics.data import MedicalDataModule
 from opendiagnostics.data.base import DatasetInfo, Transform, prepare
 from opendiagnostics.examples import explain
@@ -72,13 +71,6 @@ class Listing:
 
     description: dict[str, Any]
     demos: dict[str, DemoImage]
-
-
-def _data_module(config: dict[str, Any]) -> MedicalDataModule:
-    parser = ArgumentParser()
-    parser.add_subclass_arguments(MedicalDataModule, "data")
-    parsed = parser.parse_object({"data": config["data"]})
-    return parser.instantiate_classes(parsed).data
 
 
 def _listing(
@@ -130,7 +122,7 @@ def _artifact(folder: Path) -> Artifact:
 def load_listing(folder: Path) -> Listing:
     """The model's listing, built from its data module alone, so it costs no model memory."""
     config = yaml.safe_load((folder / "config.yaml").read_text())
-    return _listing(folder, config, _data_module(config), _artifact(folder))
+    return _listing(folder, config, load_data_module(config), _artifact(folder))
 
 
 def load_model(folder: Path, cache: Path) -> ServedModel:

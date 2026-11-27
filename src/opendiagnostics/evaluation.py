@@ -71,9 +71,11 @@ def evaluate(
     seed: int,
     checkpoint: Path,
     run_dir: Path,
+    calibration: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    """Score the checkpoint on each split. ``calibration`` replaces the one fitted on val."""
     val = predict(trainer, module, data, "val", checkpoint)
-    calibration = module.calibrate(val)
+    calibration = calibration or module.calibrate(val)
     epoch = torch.load(checkpoint, map_location="cpu", weights_only=True)["epoch"]
     unit = settings.bootstrap_unit if data.info.patient_ids_available else "sample"
     bootstrap = {
