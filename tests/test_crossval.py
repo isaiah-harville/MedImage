@@ -71,3 +71,16 @@ def test_folds_that_miss_samples_or_touch_test_are_refused(tmp_path):
     leaky = _run(tmp_path / "leaky", {"train": [], "val": ["t0"], "test": []})
     with pytest.raises(CrossValidationError, match="test split"):
         out_of_fold_threshold(run, [*folds, leaky])
+
+
+def test_a_fold_folder_means_its_newest_run(tmp_path):
+    from opendiagnostics.crossval import resolve_run
+
+    folder = tmp_path / "breast-fold0"
+    for run in ("20260101-a", "20260102-b"):
+        (folder / run).mkdir(parents=True)
+        (folder / run / "splits.json").write_text("{}")
+    assert resolve_run(folder) == folder / "20260102-b"
+    assert resolve_run(folder / "20260101-a") == folder / "20260101-a"
+    with pytest.raises(CrossValidationError, match="holds no runs"):
+        resolve_run(tmp_path)

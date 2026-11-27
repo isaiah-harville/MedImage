@@ -24,6 +24,16 @@ class CrossValidationError(ValueError):
     """Raised when fold runs cannot give a valid out-of-fold threshold."""
 
 
+def resolve_run(path: Path) -> Path:
+    """``path`` if it is a run, else the newest run inside it (``runs/<name>/``)."""
+    if (path / "splits.json").exists():
+        return path
+    runs = sorted(p for p in path.glob("*") if (p / "splits.json").exists())
+    if not runs:
+        raise CrossValidationError(f"{path} is not a run and holds no runs")
+    return runs[-1]
+
+
 def _ids(run: Path) -> dict[str, list[str]]:
     return json.loads((run / "splits.json").read_text())["ids"]
 
@@ -34,6 +44,7 @@ def out_of_fold_threshold(run: Path, folds: Sequence[Path]) -> dict[str, Any]:
     The folds' held-out sets must not overlap, must not contain any of ``run``'s test samples,
     and must together cover ``run``'s train and validation samples.
     """
+    folds = [resolve_run(fold) for fold in folds]
     if len(folds) < 2:
         raise CrossValidationError("give at least two fold runs")
     test = set(_ids(run)["test"])

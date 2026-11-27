@@ -204,5 +204,3 @@ docs/notebook/
 weights/
 weights-cache/
 
-# Queued runs on the training machine
-queue-logs/

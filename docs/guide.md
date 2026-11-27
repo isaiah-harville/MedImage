@@ -79,31 +79,14 @@ Override any value on the command line, for example `--trainer.max_epochs=2` or
 | `checkpoint.ckpt` | weights from the best validation epoch |
 | `examples/` | test images beside the model's attribution map or boxes, for the notebook |
 
-## Queue several runs
+## Download while another run trains
 
-`scripts/run_queue.py` runs a list of jobs on one GPU while their datasets download in
-parallel, so the GPU never waits on a download it could have overlapped:
-
-```yaml
-# queue.yaml
-jobs:
-  - name: organmnist3d
-    config: models/organmnist3d-densenet/config.yaml
-  - name: nih-chestxray14
-    config: models/nih-chestxray14-convnext/config.yaml
-    prepare: [uv, run, python, scripts/datasets/nih_chestxray14.py, data/nih-chestxray14]
-```
+`opendiagnostics prepare` downloads and unpacks a config's dataset without training. Run it in
+a second terminal for the next dataset while the GPU trains the current one:
 
 ```bash
-uv run python scripts/run_queue.py queue.yaml --downloads 3
+uv run opendiagnostics prepare -c models/<next>/config.yaml
 ```
-
-Every job's data step starts at once, up to `--downloads` at a time: `prepare` if given,
-otherwise `opendiagnostics prepare -c <config>`, which downloads and unpacks the config's
-dataset without training. The GPU then trains the jobs in order, each as soon as its own
-data is ready. A failed job is recorded and the queue moves on. Status is in
-`queue-logs/queue-status.json`, and rerunning the queue skips jobs that already succeeded.
-A job can also be a plain command (`run: [...]`) that runs in the GPU lane in order.
 
 ## A threshold from cross-validation
 
@@ -117,12 +100,13 @@ for k in 0 1 2 3 4; do
   uv run opendiagnostics fit -c models/<name>/config.yaml --name=<name>-fold$k \
     --data.init_args.split=kfold --data.init_args.folds=5 --data.init_args.fold=$k
 done
-uv run opendiagnostics evaluate runs/<name>/<run> --threshold-from runs/<name>-fold*/*
+uv run opendiagnostics evaluate runs/<name>/<run> \
+  --threshold-from runs/<name>-fold0 runs/<name>-fold1 runs/<name>-fold2 runs/<name>-fold3 runs/<name>-fold4
 ```
 
 Folds are grouped by patient and stratified by label, and the official test split is never
 used. `evaluate` checks that the folds' held-out sets are disjoint, cover the run's train and
-validation samples, and contain no test sample, then rescores the run with that threshold.
+validation samples, and contain no test sample, then rescores the run with that threshold. A fold given as `runs/<name>-fold0` means its newest run.
 Publish the run again to update its project.
 
 ## Compare
