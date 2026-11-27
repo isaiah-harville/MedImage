@@ -65,6 +65,13 @@ def _input_size(config: dict[str, Any]) -> int:
     return int(data.get("size") or data.get("image_size") or 224)
 
 
+SERVABLE_MODEL = "opendiagnostics.modules.ImageClassifier"
+
+
+class NotServableError(ValueError):
+    """A published run the demo cannot run: not a 2D image classifier."""
+
+
 @dataclass(frozen=True)
 class Listing:
     """What a model is, from its run files alone: no network, no weights."""
@@ -77,8 +84,14 @@ def _listing(
     folder: Path, config: dict[str, Any], data: MedicalDataModule, artifact: Artifact
 ) -> Listing:
     model_id = folder.parent.name
-    metrics = json.loads((folder / "metrics.json").read_text())
     info = data.info
+    model = config["model"]["class_path"]
+    if model != SERVABLE_MODEL or info.spatial_dims != 2:
+        raise NotServableError(
+            f"{model_id} is a {info.spatial_dims}D {model.rsplit('.', 1)[-1]}; the demo serves "
+            "2D image classifiers only"
+        )
+    metrics = json.loads((folder / "metrics.json").read_text())
     flag = (config["data"].get("init_args") or {}).get("flag")
     scan = describe(flag, model_id)
     test_auroc = metrics.get("test", {}).get("auroc")
@@ -132,6 +145,8 @@ def load_model(folder: Path, cache: Path) -> ServedModel:
     if not checkpoint.is_file():
         raise FileNotFoundError(f"{model_id}: {checkpoint} is missing; sync the cache first")
     config = yaml.safe_load((folder / "config.yaml").read_text())
+    if config["model"]["class_path"] != SERVABLE_MODEL:
+        raise NotServableError(f"{model_id}: the demo serves 2D image classifiers only")
     cli = load_run(folder, with_data=False)
     module = cli.model
     if not isinstance(module, ImageClassifier):
@@ -164,6 +179,8 @@ def load_models(folders: list[Path], cache: Path) -> dict[str, ServedModel]:
     for folder in folders:
         try:
             models.append(load_model(folder, cache))
+        except NotServableError as reason:
+            log.info("not serving %s: %s", folder.parent.name, reason)
         except Exception:
             log.exception("could not load %s/%s", folder.parent.name, folder.name)
     return {m.id: m for m in sorted(models, key=_rank)}

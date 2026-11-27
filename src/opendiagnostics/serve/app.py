@@ -27,6 +27,7 @@ from pydantic import BaseModel, ConfigDict, model_validator
 from opendiagnostics.serve.models import (
     DemoImage,
     Listing,
+    NotServableError,
     ServedModel,
     load_listing,
     load_models,
@@ -64,6 +65,8 @@ def describe(folders: list[Path]) -> dict[str, Listing]:
     for folder in folders:
         try:
             listings.append(load_listing(folder))
+        except NotServableError as reason:
+            log.info("not serving %s: %s", folder.parent.name, reason)
         except Exception:
             log.exception("could not list %s/%s", folder.parent.name, folder.name)
     return {listing.description["id"]: listing for listing in listings}
