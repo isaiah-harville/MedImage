@@ -46,13 +46,14 @@ Sivir declares a peer dependency on SvelteKit 2 but uses no SvelteKit API, so
 `src/lib/server/config.ts` when the server starts. A bad value stops the server with a message
 that says what to fix.
 
-| Variable          | Required      | Default            | Meaning                                                                                                                   |
-| ----------------- | ------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------- |
-| `API_URL`         | yes           |                    | Base URL of the inference service, for example `http://localhost:8000`.                                                   |
-| `ALLOW_UPLOADS`   | no            | `true`             | `false` hides the upload form and makes the upload action return 404.                                                     |
-| `PORT`            | no            | `3000`             | Port the server listens on (adapter-node).                                                                                |
-| `ORIGIN`          | in production |                    | Public URL of the site, for example `https://demo.example.org`. SvelteKit rejects form posts whose origin does not match. |
-| `BODY_SIZE_LIMIT` | no            | `11M` in the image | Largest request body. Keep it above the 10 MB upload limit.                                                               |
+| Variable          | Required      | Default                                 | Meaning                                                                                                                   |
+| ----------------- | ------------- | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- |
+| `API_URL`         | yes           |                                         | Base URL of the inference service, for example `http://localhost:8000`.                                                   |
+| `ALLOW_UPLOADS`   | no            | `true`                                  | `false` hides the upload form and makes the upload action return 404.                                                     |
+| `PORT`            | no            | `3000`                                  | Port the server listens on (adapter-node).                                                                                |
+| `ORIGIN`          | in production |                                         | Public URL of the site, for example `https://demo.example.org`. SvelteKit rejects form posts whose origin does not match. |
+| `BODY_SIZE_LIMIT` | no            | `11M` in the image                      | Largest request body. Keep it above the 10 MB upload limit.                                                               |
+| `PAPERS_DIR`      | no            | `../papers`; `/app/papers` in the image | Folder of papers shown on `/papers`: one subfolder each with `paper.yaml`, the PDF, and `preview.png`.                    |
 
 ## Run locally
 
@@ -92,7 +93,7 @@ real value is read when the server starts.
 ## Container
 
 ```bash
-docker build -t opendiagnostics-web .
+docker build --build-context papers=../papers -t opendiagnostics-web .
 docker run -p 3000:3000 -e API_URL=http://inference:8000 -e ORIGIN=http://localhost:3000 opendiagnostics-web
 ```
 
