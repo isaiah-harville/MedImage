@@ -9,30 +9,47 @@ import h5py
 import numpy as np
 import pytest
 
-from opendiagnostics.data import PCamDataModule, pcam
-from opendiagnostics.data.pcam import archive_name, download
+from opendiagnostics.data import LeakageError, PCamDataModule, pcam
+from opendiagnostics.data.pcam import download, official_name
 
 COUNTS = {"train": 6, "val": 2, "test": 4}
 
 
-def _fake_record(root):
-    """The six archives of the Zenodo record, in its layout, with a few tiny patches."""
+def _labels(n):
+    return np.arange(n) % 2
+
+
+def _slides(split, n):
+    return [f"camelyon16_{split}_{i // 2:03d}" for i in range(n)]
+
+
+def _meta(labels, slides, index=None):
+    rows = [",coord_y,coord_x,tumor_patch,center_tumor_patch,wsi"]
+    index = range(len(labels)) if index is None else index
+    for i, label, slide in zip(index, labels, slides, strict=True):
+        rows.append(f"{i},0,0,{bool(label)},{bool(label)},{slide}")
+    return "\n".join(rows) + "\n"
+
+
+def _fake_record(root, slides=_slides):
+    """The nine files of the Zenodo record, in its layout, with a few tiny patches."""
     for split, n in COUNTS.items():
         images = np.zeros((n, 96, 96, 3), np.uint8)
         images[:, :, :, 0] = np.arange(n).reshape(-1, 1, 1) * 10
-        labels = (np.arange(n) % 2).astype(np.uint8).reshape(n, 1, 1, 1)
-        for key, array in (("x", images), ("y", labels)):
+        labels = _labels(n)
+        for key, array in (("x", images), ("y", labels.astype(np.uint8).reshape(n, 1, 1, 1))):
             buffer = io.BytesIO()
             with h5py.File(buffer, "w") as handle:
                 handle.create_dataset(key, data=array)
-            (root / archive_name(split, key)).write_bytes(gzip.compress(buffer.getvalue()))
+            (root / official_name(split, key)).write_bytes(gzip.compress(buffer.getvalue()))
+        (root / official_name(split, "meta")).write_text(_meta(labels, slides(split, n)))
 
 
 def _module(root):
     return PCamDataModule(root=str(root), download=False, eval_batch_size=4)
 
 
-def test_pcam_serves_the_official_split_without_patient_ids(tmp_path):
+def test_pcam_serves_the_official_split_with_slides_as_patients(tmp_path):
     _fake_record(tmp_path)
     data = _module(tmp_path)
     data.setup()
@@ -40,13 +57,48 @@ def test_pcam_serves_the_official_split_without_patient_ids(tmp_path):
     assert data.info.label_mode == "binary"
     assert data.info.class_names == ("normal", "tumor")
     assert data.info.license == "CC0 1.0"
-    assert not data.info.patient_ids_available
+    assert data.info.patient_ids_available
     batch = next(iter(data.loader("test")))
     assert batch["image"].shape == (4, 3, 96, 96)
     assert batch["image"][:, 0, 0, 0].tolist() == pytest.approx([0, 10 / 255, 20 / 255, 30 / 255])
     assert batch["target"].tolist() == [0, 1, 0, 1]
     assert batch["id"] == ["test-0", "test-1", "test-2", "test-3"]
-    assert batch["patient_id"] == batch["id"]
+    assert batch["patient_id"] == ["camelyon16_test_000"] * 2 + ["camelyon16_test_001"] * 2
+
+
+def test_pcam_refuses_a_slide_that_appears_in_two_splits(tmp_path):
+    def shared(split, n):
+        return ["camelyon16_train_tumor_001", *_slides(split, n - 1)]
+
+    _fake_record(tmp_path, slides=shared)
+    with pytest.raises(LeakageError, match="camelyon16_train_tumor_001"):
+        _module(tmp_path).setup()
+
+
+def test_pcam_refuses_metadata_out_of_order_with_the_labels(tmp_path):
+    _fake_record(tmp_path)
+    n = COUNTS["val"]
+    reordered = _meta(_labels(n)[::-1], _slides("val", n), index=[1, 0])
+    (tmp_path / official_name("val", "meta")).write_text(reordered)
+    with pytest.raises(ValueError, match=r"row 0 of .* does not match patch 0"):
+        _module(tmp_path).setup()
+
+
+def test_pcam_refuses_metadata_whose_labels_disagree(tmp_path):
+    _fake_record(tmp_path)
+    n = COUNTS["test"]
+    flipped = _meta(1 - _labels(n), _slides("test", n))
+    (tmp_path / official_name("test", "meta")).write_text(flipped)
+    with pytest.raises(ValueError, match="slide IDs cannot be trusted"):
+        _module(tmp_path).setup()
+
+
+def test_pcam_refuses_metadata_with_missing_rows(tmp_path):
+    _fake_record(tmp_path)
+    short = _meta(_labels(3), _slides("test", 3))
+    (tmp_path / official_name("test", "meta")).write_text(short)
+    with pytest.raises(ValueError, match="has 3 rows for 4 patches"):
+        _module(tmp_path).setup()
 
 
 def test_pcam_unpacks_to_npy_and_skips_what_is_already_unpacked(tmp_path):
@@ -76,7 +128,7 @@ def test_pcam_dataset_pickles_without_its_images(tmp_path):
     assert len(pickle.dumps(data.source.dataset)) < 10_000
 
 
-def test_pcam_without_archives_or_download_is_an_error(tmp_path):
+def test_pcam_without_files_or_download_is_an_error(tmp_path):
     with pytest.raises(FileNotFoundError, match="set download: true"):
         _module(tmp_path).setup()
 
@@ -155,7 +207,7 @@ def test_download_refuses_a_resume_that_starts_at_the_wrong_byte(tmp_path):
         download("https://example.test/file", tmp_path / "file.h5.gz", MD5, opener)
 
 
-def test_pcam_downloads_each_missing_archive_from_zenodo_with_its_md5(tmp_path, monkeypatch):
+def test_pcam_downloads_each_missing_file_from_zenodo_with_its_md5(tmp_path, monkeypatch):
     source = tmp_path / "record"
     source.mkdir()
     _fake_record(source)
@@ -169,6 +221,7 @@ def test_pcam_downloads_each_missing_archive_from_zenodo_with_its_md5(tmp_path, 
     root = tmp_path / "data"
     PCamDataModule(root=str(root)).setup()
     assert sorted(fetched) == sorted((pcam.RECORD + name, md5) for name, md5 in pcam.MD5.items())
+    assert len(fetched) == 9
     assert fetched[0][0] == (
-        "https://zenodo.org/records/2546921/files/camelyonpatch_level_2_split_train_x.h5.gz"
+        "https://zenodo.org/records/2546921/files/camelyonpatch_level_2_split_train_meta.csv"
     )

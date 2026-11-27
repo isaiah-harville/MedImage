@@ -4,9 +4,9 @@ protocol: >-
   the centre 32x32 region. Accuracy is reported for reference; neither paper states its
   threshold, so compare our accuracy_at_0.5. Both papers report single runs at the native 96
   px with no intervals; Graham et al. do not state their split, but PCam ships with one and
-  they cite it as the dataset. Our runs upsample to 224 px. The files carry no slide IDs, so
-  our intervals resample patches, which makes them narrower than slide-level intervals would
-  be; a claim to beat a published number needs it outside our 95% interval by a clear margin.
+  they cite it as the dataset. Our runs upsample to 224 px. Our intervals resample the 129
+  Camelyon16 test slides, not patches, so a claim to beat a published number needs it
+  outside our 95% interval.
 baselines:
   - method: "DSF-CNN (C8, 2.2M parameters)"
     metrics: {auroc: 0.975}
