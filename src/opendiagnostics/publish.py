@@ -49,7 +49,9 @@ RETRIES = {"max_attempts": 10, "mode": "standard"}
 # Licenses that allow redistributing a dataset's images and models trained on it, so example
 # figures and checkpoints may be published. Anything else, including credentialed data and
 # unknown licenses, publishes neither.
-OPEN_LICENSES = frozenset({"CC0 1.0", "CC BY 3.0", "CC BY 4.0", "CC BY-NC 4.0", "generated"})
+OPEN_LICENSES = frozenset(
+    {"CC0 1.0", "CC BY 3.0", "CC BY 4.0", "CC BY-NC 4.0", "CC BY-NC-SA", "generated"}
+)
 CATALOG = "catalog.json"
 DEMO_BUNDLE = "demo.tar"
 DEMO_FILES = ("config.yaml", "metrics.json", "artifacts.yaml")

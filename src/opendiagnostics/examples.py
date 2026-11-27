@@ -46,42 +46,69 @@ def _class_columns(rows: Sequence[dict[str, str]], prefix: str) -> list[str]:
     return [c for c in rows[0] if c.startswith(prefix)]
 
 
+def _round_robin(groups: list[list[dict[str, str]]], limit: int) -> list[dict[str, str]]:
+    picks: list[dict[str, str]] = []
+    seen: set[str] = set()
+    depth = 0
+    while len(picks) < limit and any(depth < len(g) for g in groups):
+        for group in groups:
+            if depth < len(group) and group[depth]["id"] not in seen and len(picks) < limit:
+                picks.append(group[depth])
+                seen.add(group[depth]["id"])
+        depth += 1
+    return picks
+
+
+def _shuffled(rows: list[dict[str, str]], rng: np.random.Generator) -> list[dict[str, str]]:
+    ordered = sorted(rows, key=lambda r: r["id"])
+    return [ordered[i] for i in rng.permutation(len(ordered))]
+
+
 def choose_classification(
-    rows: Sequence[dict[str, str]], class_names: Sequence[str], threshold: float, limit: int
+    rows: Sequence[dict[str, str]],
+    class_names: Sequence[str],
+    threshold: float,
+    limit: int,
+    seed: int = 0,
 ) -> list[dict[str, Any]]:
     """Pick test samples to show, from ``predictions_test.csv`` rows.
 
-    For each class, the most confident correct prediction and the most confident wrong one,
-    taken in turn across classes until ``limit``. Multilabel runs show, for each label, the
-    sample the model is most confident has it.
+    A seeded random sample, taken in turn across the true classes until ``limit``, so every
+    class appears and the share the model gets right reflects its test accuracy rather than
+    its best or worst cases. Multilabel runs take, in turn, a random sample that has each
+    label.
     """
     if not rows:
         return []
+    rng = np.random.default_rng(seed)
     probs = _class_columns(rows, "prob/")
     names = [c.removeprefix("prob/") for c in probs]
     if "target" not in rows[0]:
+        groups = [
+            _shuffled([r for r in rows if float(r[f"target/{name}"]) == 1], rng) for name in names
+        ]
         picks = []
-        for column, name in zip(probs, names, strict=True):
-            positives = [r for r in rows if float(r[f"target/{name}"]) == 1]
-            if positives:
-                best = max(positives, key=lambda r: (float(r[column]), r["id"]))
-                picks.append(
-                    {
-                        "id": best["id"],
-                        "truth": ", ".join(n for n in names if float(best[f"target/{n}"]) == 1),
-                        "prediction": ", ".join(
-                            n for c, n in zip(probs, names, strict=True) if float(best[c]) >= 0.5
-                        )
-                        or "none",
-                        "confidence": float(best[column]),
-                        "correct": None,
-                        "label": names.index(name),
-                    }
-                )
-        return picks[:limit]
+        for row in _round_robin(groups, limit):
+            values = [float(row[c]) for c in probs]
+            picks.append(
+                {
+                    "id": row["id"],
+                    "truth": ", ".join(n for n in names if float(row[f"target/{n}"]) == 1),
+                    "prediction": ", ".join(
+                        n for n, p in zip(names, values, strict=True) if p >= 0.5
+                    )
+                    or "none",
+                    "confidence": max(values),
+                    "correct": None,
+                    "label": int(np.argmax(values)),
+                }
+            )
+        return picks
     binary = len(probs) == 1
-    candidates: dict[tuple[int, bool], list[dict[str, Any]]] = {}
-    for row in rows:
+    classes = sorted({int(r["target"]) for r in rows})
+    groups = [_shuffled([r for r in rows if int(r["target"]) == k], rng) for k in classes]
+    picks = []
+    for row in _round_robin(groups, limit):
         truth = int(row["target"])
         if binary:
             p = float(row[probs[0]])
@@ -91,27 +118,16 @@ def choose_classification(
             values = [float(row[c]) for c in probs]
             predicted = int(np.argmax(values))
             confidence = values[predicted]
-        correct = predicted == truth
-        candidates.setdefault((truth, correct), []).append(
+        picks.append(
             {
                 "id": row["id"],
                 "truth": class_names[truth],
                 "prediction": class_names[predicted],
                 "confidence": confidence,
-                "correct": correct,
+                "correct": predicted == truth,
                 "label": 0 if binary else predicted,
             }
         )
-    for group in candidates.values():
-        group.sort(key=lambda c: (-c["confidence"], c["id"]))
-    keys = sorted(candidates, key=lambda key: (not key[1], key[0]))
-    picks: list[dict[str, Any]] = []
-    depth = 0
-    while len(picks) < limit and any(depth < len(g) for g in candidates.values()):
-        for key in keys:
-            if depth < len(candidates[key]) and len(picks) < limit:
-                picks.append(candidates[key][depth])
-        depth += 1
     return picks
 
 

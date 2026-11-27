@@ -277,11 +277,12 @@ The docs site, built with [Zensical](https://zensical.org), is the project's lab
 **Example images.** Each run renders up to eight test images into `examples/`, each beside
 what the model made of it. For a classifier that is a Captum Integrated Gradients map for
 the predicted class; for a detector, ground-truth boxes in green and predicted boxes with
-scores in red. Classifier examples are the most confident correct prediction and the most
-confident mistake per class, so the page shows failures as well as successes.
+scores in red. Classifier examples are a seeded random sample of the test split, taken in turn
+across classes, so the share shown correct matches the model's test accuracy.
 `opendiagnostics examples RUN_DIR` renders them for an existing run. Images are data, so
 `publish` copies them only when the dataset's license allows redistribution (CC0, CC BY,
-CC BY-NC, or generated data) and predictions are published too. Attribution maps show what
+CC BY-NC, CC BY-NC-SA, or generated data; the demo site is non-commercial and credits each
+dataset) and predictions are published too. Attribution maps show what
 the network responded to; they are not proof that it uses the clinically relevant region.
 
 The generated pages are not committed. They are rebuilt from the committed run files, so
