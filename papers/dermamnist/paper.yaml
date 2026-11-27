@@ -1,9 +1,0 @@
-title: "ImageNet-22k Pretraining, Augmentation, and Regularization: How a ConvNeXt Recipe Differs from the MedMNIST+ Setup on DermaMNIST"
-description: >-
-  On DermaMNIST at 224 pixels, one run of a ConvNeXt-Small recipe reached a test AUROC of
-  0.9865 (95% CI 0.9809 to 0.9909), above the best published 0.9683. The paper sets the
-  recipe against the MedMNIST+ setup and treats each of five differences as a hypothesis,
-  with the ablation that would test it.
-project: dermamnist-convnext
-run: 20261126-141911-ab39eb97
-pdf: main.pdf
