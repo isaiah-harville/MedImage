@@ -40,9 +40,11 @@ WEIGHTS_BUCKET = "opendiagnostics-weights"
 WEIGHTS_URL = f"https://diagnostics.harville.dev/{WEIGHTS_BUCKET}"
 # Cloudflare, in front of the weights host, refuses Python's default User-Agent.
 USER_AGENT = "opendiagnostics"
-# The homelab's S3 gateway is limited to 256 MiB of memory; boto3's default of ten parallel
-# 8 MiB parts gets it killed mid-upload. Two 16 MiB parts at a time stay well inside it.
-UPLOAD_CONFIG = TransferConfig(max_concurrency=2, multipart_chunksize=16 * 1024 * 1024)
+# The homelab's S3 gateway has 256 MiB of memory and restarts under sustained uploads, which
+# takes about 30 s. Upload one 16 MiB part at a time, and retry with backoff long enough to
+# ride out a restart; retrying a part is safe.
+UPLOAD_CONFIG = TransferConfig(max_concurrency=1, multipart_chunksize=16 * 1024 * 1024)
+RETRIES = {"max_attempts": 10, "mode": "standard"}
 # Licenses that allow redistributing a dataset's images and models trained on it, so example
 # figures and checkpoints may be published. Anything else, including credentialed data and
 # unknown licenses, publishes neither.
@@ -103,7 +105,9 @@ class S3Bucket:
             self._client = boto3.client(
                 "s3",
                 config=Config(
-                    s3={"addressing_style": "path"}, request_checksum_calculation="when_required"
+                    s3={"addressing_style": "path"},
+                    request_checksum_calculation="when_required",
+                    retries=RETRIES,
                 ),
             )
         return self._client
