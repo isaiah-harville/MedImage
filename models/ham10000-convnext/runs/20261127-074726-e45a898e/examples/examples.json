@@ -1,0 +1,82 @@
+[
+  {
+    "id": "images/ISIC2018_Task3_Test_Images/ISIC_0035287.jpg",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "akiec",
+    "prediction": "akiec",
+    "confidence": 0.9467548727989197,
+    "correct": true
+  },
+  {
+    "id": "images/ISIC2018_Task3_Test_Images/ISIC_0035446.jpg",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "bcc",
+    "prediction": "bcc",
+    "confidence": 0.955771267414093,
+    "correct": true
+  },
+  {
+    "id": "images/ISIC2018_Task3_Test_Images/ISIC_0035645.jpg",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "bkl",
+    "prediction": "bkl",
+    "confidence": 0.9545322060585022,
+    "correct": true
+  },
+  {
+    "id": "images/ISIC2018_Task3_Test_Images/ISIC_0035982.jpg",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "df",
+    "prediction": "df",
+    "confidence": 0.9328138828277588,
+    "correct": true
+  },
+  {
+    "id": "images/ISIC2018_Task3_Test_Images/ISIC_0035326.jpg",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "mel",
+    "prediction": "mel",
+    "confidence": 0.9605588912963867,
+    "correct": true
+  },
+  {
+    "id": "images/ISIC2018_Task3_Test_Images/ISIC_0035387.jpg",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "nv",
+    "prediction": "nv",
+    "confidence": 0.9472424983978271,
+    "correct": true
+  },
+  {
+    "id": "images/ISIC2018_Task3_Test_Images/ISIC_0035206.jpg",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "vasc",
+    "prediction": "vasc",
+    "confidence": 0.95340895652771,
+    "correct": true
+  },
+  {
+    "id": "images/ISIC2018_Task3_Test_Images/ISIC_0034970.jpg",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "akiec",
+    "prediction": "bkl",
+    "confidence": 0.9299437999725342,
+    "correct": false
+  }
+]
