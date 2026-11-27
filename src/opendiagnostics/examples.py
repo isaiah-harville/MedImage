@@ -25,7 +25,12 @@ from torchvision.utils import draw_bounding_boxes
 
 from opendiagnostics.data import MedicalDataModule
 from opendiagnostics.data.base import prepare
-from opendiagnostics.modules import DiagnosticModule, ImageClassifier, ObjectDetector
+from opendiagnostics.modules import (
+    DiagnosticModule,
+    ImageClassifier,
+    ObjectDetector,
+    VolumeDetector,
+)
 from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST
 
 DISPLAY_SIZE = 224
@@ -213,7 +218,10 @@ def write_examples(
     device: torch.device,
     limit: int = 8,
 ) -> list[dict[str, Any]]:
-    """Render example pairs for the run's test split into ``run_dir/examples``."""
+    """Render example pairs for the run's test split into ``run_dir/examples``. 3D detection
+    has no figures yet, so it writes none."""
+    if isinstance(module, VolumeDetector):
+        return []
     state = torch.load(checkpoint, map_location="cpu", weights_only=True)["state_dict"]
     module.load_state_dict(state)
     module.to(device).eval()
