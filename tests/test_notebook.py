@@ -102,3 +102,44 @@ def test_roc_plot_is_skipped_for_a_multilabel_run(tmp_path):
     csv.write_text("id,patient_id,target/a,target/b,prob/a,prob/b\ns1,p1,1.0,0.0,0.9,0.2\n")
     assert plots.roc_and_pr(csv, tmp_path / "roc.svg") is False
     assert not (tmp_path / "roc.svg").exists()
+
+
+def _paper(papers, run_id, pdf=True, run=None):
+    folder = papers / "smoke"
+    folder.mkdir(parents=True)
+    if pdf:
+        (folder / "main.pdf").write_bytes(b"%PDF-1.5 stub")
+    record = {"title": "A smoke paper", "project": "smoke-project", "run": run or run_id}
+    (folder / "paper.yaml").write_text(yaml.safe_dump({**record, "pdf": "main.pdf"}))
+
+
+def test_a_paper_is_listed_copied_and_linked_from_its_run_and_the_dataset_table(
+    notebook, project, tmp_path
+):
+    _, run_id = notebook
+    papers, out = tmp_path / "papers", tmp_path / "with-papers"
+    _paper(papers, run_id)
+    build_notebook(project.parent, out, papers)
+    assert (out / "papers" / "smoke.pdf").read_bytes() == b"%PDF-1.5 stub"
+    page = (out / "papers.md").read_text()
+    assert "[A smoke paper](papers/smoke.pdf)" in page
+    assert f"[{run_id}](smoke-project/{run_id}/index.md)" in page
+    run_page = (out / "smoke-project" / run_id / "index.md").read_text()
+    assert "**Paper:** [A smoke paper](../../papers/smoke.pdf)" in run_page
+    published = (out / "published-table.snippet").read_text()
+    assert f"[results](notebook/smoke-project/{run_id}/index.md)" in published
+    assert "[PDF](notebook/papers/smoke.pdf)" in published
+
+
+@pytest.mark.parametrize(
+    ("pdf", "run", "message"),
+    [(True, "no-such-run", "is not published"), (False, None, "tectonic")],
+)
+def test_a_paper_without_its_run_or_pdf_stops_the_build(
+    notebook, project, tmp_path, pdf, run, message
+):
+    _, run_id = notebook
+    papers = tmp_path / "papers"
+    _paper(papers, run_id, pdf=pdf, run=run)
+    with pytest.raises(NotebookError, match=message):
+        build_notebook(project.parent, tmp_path / "out", papers)

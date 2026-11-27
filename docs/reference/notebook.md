@@ -7,3 +7,5 @@
 ::: opendiagnostics.notebook.pages
 
 ::: opendiagnostics.notebook.plots
+
+::: opendiagnostics.notebook.papers

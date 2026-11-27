@@ -185,7 +185,12 @@ def _demote(markdown: str) -> str:
     )
 
 
-def run_page(run: Run, plots: Sequence[tuple[str, str]], downloads: Sequence[Download]) -> str:
+def run_page(
+    run: Run,
+    plots: Sequence[tuple[str, str]],
+    downloads: Sequence[Download],
+    paper: tuple[str, str] | None = None,
+) -> str:
     record, metrics = run.record, run.metrics
     git = record.get("git", {})
     env = record.get("environment", {})
@@ -217,6 +222,7 @@ def run_page(run: Run, plots: Sequence[tuple[str, str]], downloads: Sequence[Dow
         + f". Started {record.get('started')}, finished {record.get('finished')}, on `{record.get('device')}`. "
         f"{record.get('parameters', 0):,} parameters.\n\n",
         weights_button(run),
+        (f"**Paper:** [{paper[0]}]({paper[1]}) (PDF)\n\n" if paper else ""),
         "## Results\n\n",
         f"Checkpoint from epoch {selection.get('best_epoch')}, chosen on validation `{selection.get('monitor')}` "
         f"({selection.get('mode')}). Intervals are {boot.get('replicates')}-replicate percentile bootstrap at "
