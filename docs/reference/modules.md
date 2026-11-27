@@ -11,3 +11,5 @@
 ::: opendiagnostics.modules.slide
 
 ::: opendiagnostics.modules.segmentation
+
+::: opendiagnostics.networks
