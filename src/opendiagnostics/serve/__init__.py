@@ -5,6 +5,8 @@ Configuration comes from the environment, read and checked once at startup:
 | Variable | Default | Meaning |
 |---|---|---|
 | ``WEIGHTS_DIR`` | required | folder of bundled models (``scripts/bundle_models.py``) |
+| ``WEIGHTS_CACHE`` | required | folder of checkpoints, filled by ``opendiagnostics-fetch-weights`` |
+| ``WEIGHTS_BASE_URL`` | the public weights URL | where ``opendiagnostics-fetch-weights`` downloads from |
 | ``LISTEN_ADDRESS`` | ``:8080`` | ``host:port`` to listen on |
 | ``ATTRIBUTION_STEPS`` | ``16`` | Integrated Gradients steps per explanation |
 | ``MAX_CONCURRENT`` | ``2`` | predictions that may run at once |
@@ -15,11 +17,15 @@ from __future__ import annotations
 import os
 from pathlib import Path
 
-from pydantic import BaseModel, Field, ValidationError, field_validator
+from pydantic import BaseModel, Field, HttpUrl, ValidationError, field_validator
+
+from opendiagnostics.publish import WEIGHTS_URL
 
 
 class Settings(BaseModel):
     weights_dir: Path
+    weights_cache: Path
+    weights_base_url: HttpUrl = HttpUrl(WEIGHTS_URL)
     listen_address: str = ":8080"
     attribution_steps: int = Field(16, ge=1, le=256)
     max_concurrent: int = Field(2, ge=1, le=64)
@@ -38,13 +44,22 @@ class Settings(BaseModel):
 
 
 def settings_from(environ: dict[str, str]) -> Settings:
-    names = ("weights_dir", "listen_address", "attribution_steps", "max_concurrent")
+    names = (
+        "weights_dir",
+        "weights_cache",
+        "weights_base_url",
+        "listen_address",
+        "attribution_steps",
+        "max_concurrent",
+    )
     values = {n: environ[n.upper()] for n in names if n.upper() in environ}
     try:
         return Settings.model_validate(values)
     except ValidationError as error:
         problems = "; ".join(f"{e['loc'][0]}: {e['msg']}" for e in error.errors())
-        raise SystemExit(f"invalid configuration: {problems}. WEIGHTS_DIR is required.") from None
+        raise SystemExit(
+            f"invalid configuration: {problems}. WEIGHTS_DIR and WEIGHTS_CACHE are required."
+        ) from None
 
 
 def main() -> None:
@@ -55,7 +70,9 @@ def main() -> None:
 
     settings = settings_from(dict(os.environ))
     app = create_app(
-        load_models(settings.weights_dir), settings.attribution_steps, settings.max_concurrent
+        load_models(settings.weights_dir, settings.weights_cache),
+        settings.attribution_steps,
+        settings.max_concurrent,
     )
     host, port = settings.host_port
     uvicorn.run(app, host=host, port=port, log_level="info", access_log=False)

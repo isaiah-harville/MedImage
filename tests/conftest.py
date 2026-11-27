@@ -1,6 +1,10 @@
+import importlib.util
 import json
+import shutil
 from collections.abc import Iterator
 from pathlib import Path
+from types import ModuleType
+from typing import Any
 
 import pytest
 
@@ -34,6 +38,44 @@ def finished_run(tmp_path_factory: pytest.TempPathFactory) -> Path:
     record["git"] = {"commit": "0" * 40, "branch": "main", "dirty": False}
     (run_dir / "run.json").write_text(json.dumps(record))
     return run_dir
+
+
+def bundler() -> ModuleType:
+    spec = importlib.util.spec_from_file_location("bundle", ROOT / "scripts/bundle_models.py")
+    assert spec
+    assert spec.loader
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module
+
+
+def smoke_project(finished_run: Path, models: Path, **publish: Any) -> Path:
+    from opendiagnostics.publish import publish_run
+
+    project = models / "smoke-project"
+    project.mkdir(parents=True)
+    shutil.copyfile(ROOT / "configs/smoke/classification.yaml", project / "config.yaml")
+    publish_run(finished_run, project, **publish)
+    return project
+
+
+def bundle_published(finished_run: Path, tmp: Path) -> Path:
+    """Publish ``finished_run`` into a smoke project and bundle it; returns the bundle."""
+    smoke_project(finished_run, tmp / "models", upload=lambda path, key: None)
+    weights = tmp / "weights"
+    assert bundler().main([str(weights), "--models", str(tmp / "models")]) == 0
+    return weights
+
+
+def serve_checkpoint(path: Path, served: list[str] | None = None):
+    """An opener for ``fetch`` that serves ``path`` for every URL and records the URLs."""
+
+    def open_url(url: str):
+        if served is not None:
+            served.append(url)
+        return path.open("rb")
+
+    return open_url
 
 
 @pytest.fixture

@@ -1,4 +1,5 @@
-# The demo inference service (opendiagnostics-serve) with its model weights baked in.
+# The demo inference service (opendiagnostics-serve) with each published model's run files.
+# Checkpoints are not in the image; opendiagnostics-fetch-weights downloads them at start.
 # Build context: the repository root after `scripts/bundle_models.py weights` has filled
 # weights/. CI does this in .github/workflows/serve-image.yml.
 FROM python:3.12-slim-bookworm AS build

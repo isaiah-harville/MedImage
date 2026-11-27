@@ -237,7 +237,7 @@ they cannot go stale.
 | Artifact | Size | Where | Why |
 |---|---|---|---|
 | Config, run record, metrics, history, split summary, predictions | KB to a few MB | git, under `models/<project>/runs/<run-id>/`; served by the docs site | Reviewed with the code, versioned with it, and rendered and downloadable from the run page. `opendiagnostics publish` refuses files over 20 MB. |
-| Checkpoints | about 200 MB each | the public `opendiagnostics-weights` bucket on the homelab's S3 storage, when the dataset's license allows sharing weights | No quota to manage. Anyone can download them, and CI downloads them to build the demo image. Git holds each one's URL and SHA-256 in `artifacts.yaml`. See [model weights](weights.md). |
+| Checkpoints | about 200 MB each | the public `opendiagnostics-weights` bucket on the homelab's S3 storage, when the dataset's license allows sharing weights | No quota to manage. Anyone can download them, and the demo downloads them when it starts. Git holds each one's URL and SHA-256 in `artifacts.yaml`. See [model weights](weights.md). |
 | Citable snapshots | the repository at a release | Zenodo, through its GitHub release integration | A DOI per version plus a concept DOI for all versions, for papers that cite our results. |
 
 We weighed five hosts for checkpoints, against limits taken from each host's documentation

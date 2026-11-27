@@ -1,39 +1,25 @@
-import importlib.util
 import io
-import shutil
 import tempfile
 
 import numpy as np
 import pytest
+from conftest import bundle_published, bundler, serve_checkpoint, smoke_project
 from fastapi.testclient import TestClient
 from PIL import Image
 
-from opendiagnostics.publish import publish_run
+from opendiagnostics.publish import WEIGHTS_URL
 from opendiagnostics.serve import settings_from
 from opendiagnostics.serve.app import create_app
 from opendiagnostics.serve.models import DISCLAIMER, load_models
-
-
-def _bundler(root):
-    spec = importlib.util.spec_from_file_location("bundle", root / "scripts/bundle_models.py")
-    assert spec
-    assert spec.loader
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
+from opendiagnostics.serve.weights import fetch
 
 
 @pytest.fixture(scope="module")
-def client(finished_run, tmp_path_factory, root):
-    models = tmp_path_factory.mktemp("models")
-    project = models / "smoke-project"
-    project.mkdir()
-    shutil.copyfile(root / "configs/smoke/classification.yaml", project / "config.yaml")
-    publish_run(finished_run, project, upload=lambda path, key: None)
-    weights = tmp_path_factory.mktemp("weights")
-    runs = finished_run.parent.parent
-    assert _bundler(root).main([str(weights), "--runs", str(runs), "--models", str(models)]) == 0
-    return TestClient(create_app(load_models(weights), attribution_steps=4))
+def client(finished_run, tmp_path_factory):
+    tmp = tmp_path_factory.mktemp("serve")
+    weights = bundle_published(finished_run, tmp)
+    fetch(weights, tmp / "cache", WEIGHTS_URL, serve_checkpoint(finished_run / "checkpoint.ckpt"))
+    return TestClient(create_app(load_models(weights, tmp / "cache"), attribution_steps=4))
 
 
 def _png(size=(32, 32), mode="L", fmt="PNG"):
@@ -53,24 +39,6 @@ def test_health_and_model_listing(client):
     assert set(model["test_auroc"]) == {"value", "lower", "upper"}
     assert model["weights"]["url"].endswith(f"/smoke-project/{model['run_id']}/checkpoint.ckpt")
     assert len(model["weights"]["sha256"]) == 64
-
-
-def test_bundling_again_reuses_a_checkpoint_that_matches(finished_run, tmp_path, root):
-    models = tmp_path / "models"
-    project = models / "smoke-project"
-    project.mkdir(parents=True)
-    shutil.copyfile(root / "configs/smoke/classification.yaml", project / "config.yaml")
-    publish_run(finished_run, project, include_checkpoint=False)
-    weights = tmp_path / "weights"
-    bundler = _bundler(root)
-    runs = finished_run.parent.parent
-    assert bundler.main([str(weights), "--runs", str(runs), "--models", str(models)]) == 0
-    (weights / "removed-project").mkdir()
-    assert (
-        bundler.main([str(weights), "--runs", str(tmp_path / "none"), "--models", str(models)]) == 0
-    )
-    assert (weights / "smoke-project" / "checkpoint.ckpt").is_file()
-    assert not (weights / "removed-project").exists()
 
 
 def test_demo_images_are_listed_served_and_predicted(client):
@@ -118,10 +86,12 @@ def test_unknown_model_and_sample_are_404(client):
     assert client.post("/models/smoke-project/demo/nope/predict").status_code == 404
 
 
-def test_settings_require_an_existing_weights_dir(tmp_path):
-    assert settings_from({"WEIGHTS_DIR": str(tmp_path)}).host_port == ("0.0.0.0", 8080)
-    with pytest.raises(SystemExit, match="WEIGHTS_DIR"):
-        settings_from({})
+def test_settings_require_an_existing_weights_dir_and_a_cache(tmp_path):
+    settings = settings_from({"WEIGHTS_DIR": str(tmp_path), "WEIGHTS_CACHE": str(tmp_path)})
+    assert settings.host_port == ("0.0.0.0", 8080)
+    assert str(settings.weights_base_url) == WEIGHTS_URL
+    with pytest.raises(SystemExit, match="WEIGHTS_DIR and WEIGHTS_CACHE"):
+        settings_from({"WEIGHTS_DIR": str(tmp_path)})
 
 
 def test_every_response_is_marked_no_store(client):
@@ -147,7 +117,11 @@ def test_large_uploads_never_touch_disk(client, monkeypatch):
     assert response.status_code == 200
 
 
-def test_bundler_exits_3_only_when_nothing_is_published(tmp_path, root):
-    (tmp_path / "models" / "empty-project").mkdir(parents=True)
-    args = [str(tmp_path / "weights"), "--models", str(tmp_path / "models")]
-    assert _bundler(root).main(args) == 3
+def test_bundler_skips_runs_without_a_public_checkpoint_and_exits_3_when_none_remain(
+    finished_run, tmp_path
+):
+    smoke_project(finished_run, tmp_path / "models", include_checkpoint=False)
+    weights = tmp_path / "weights"
+    (weights / "removed-project").mkdir(parents=True)
+    assert bundler().main([str(weights), "--models", str(tmp_path / "models")]) == 3
+    assert list(weights.iterdir()) == []

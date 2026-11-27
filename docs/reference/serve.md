@@ -7,3 +7,5 @@
 ::: opendiagnostics.serve.models
 
 ::: opendiagnostics.serve.catalog
+
+::: opendiagnostics.serve.weights

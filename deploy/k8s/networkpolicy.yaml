@@ -1,4 +1,6 @@
-# The API takes traffic only from the frontend and makes no outbound connections.
+# The API takes traffic only from the frontend. Its only outbound connections are DNS and
+# the SeaweedFS S3 port, where the init container downloads checkpoints; the bucket allows
+# anonymous reads of the weights only.
 # The frontend takes traffic only from traefik-public and talks only to DNS and the API.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
@@ -18,7 +20,26 @@ spec:
       ports:
         - protocol: TCP
           port: 8080
-  egress: []
+  egress:
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: kube-system
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    - to:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: seaweedfs
+      ports:
+        - protocol: TCP
+          port: 8333
 ---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

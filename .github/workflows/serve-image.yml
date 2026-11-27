@@ -28,18 +28,11 @@ jobs:
       cancel-in-progress: false
     steps:
       - uses: actions/checkout@v7
-      # Checkpoints (about 200 MB each) download from the public weights bucket. The cache
-      # keeps them between builds; the bundler re-downloads only those whose SHA-256 changed.
-      - uses: actions/cache@v4
-        with:
-          path: weights
-          key: weights-${{ hashFiles('models/*/runs/*/artifacts.yaml') }}
-          restore-keys: weights-
       - uses: astral-sh/setup-uv@v10.4.0
         with:
           python-version: "3.12"
           enable-cache: true
-      # Takes each project's latest published run and checks its checkpoint's SHA-256.
+      # Copies each project's latest published run files; the pod downloads checkpoints.
       # Until a run is published there is nothing to serve.
       - name: Bundle the published models
         id: bundle

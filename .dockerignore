@@ -7,4 +7,3 @@ docs/notebook
 web
 models
 *.ckpt
-!weights/**/*.ckpt

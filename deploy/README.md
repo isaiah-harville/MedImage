@@ -20,8 +20,8 @@ logged; uploaded content never is.
   and a test fails if one is. Both pods' `/tmp` is a RAM-backed `emptyDir`, so even a
   library that spooled could not reach a node's disk.
 - **Gone after the response.** Nothing keeps the image or the result once the response
-  is sent. There is no database, cache, or object store. Responses carry
-  `Cache-Control: no-store`.
+  is sent. Nothing stores uploads or results: the only volume holds model checkpoints, and
+  the API mounts it read-only. Responses carry `Cache-Control: no-store`.
 - **Request logs carry metadata only.** Logging a request's time, path, status, client IP,
   and user agent is allowed. Logging the uploaded image, its file name, the result, or any
   request body is not. Today the API runs with access logs off, the frontend logs nothing
@@ -42,7 +42,8 @@ invariant 9 in `AGENTS.md`.
 
 - **`opendiagnostics.serve`**, the inference API (`Dockerfile.serve`). It loads every
   bundled model on CPU at startup and implements the [demo API](api.md). Only the
-  frontends can reach it, and it makes no outbound connections.
+  frontend can reach it. Its only outbound connections are DNS and the in-cluster S3
+  port, used at startup to download checkpoints.
 - **`web/`**, the SvelteKit frontend (`web/Dockerfile`), with the privacy policy at
   `/privacy`. Only its server calls the API; the browser never sees the API's address. See
   `web/README.md`.
@@ -52,17 +53,21 @@ invariant 9 in `AGENTS.md`.
 | Variable | Default | Meaning |
 |---|---|---|
 | `WEIGHTS_DIR` | required (`/weights` in the image) | folder of bundled models |
+| `WEIGHTS_CACHE` | required | folder of downloaded checkpoints |
+| `WEIGHTS_BASE_URL` | the public weights URL | where `opendiagnostics-fetch-weights` downloads from |
 | `LISTEN_ADDRESS` | `:8080` | `host:port` to listen on |
 | `ATTRIBUTION_STEPS` | `16` | Integrated Gradients steps per explanation |
 | `MAX_CONCURRENT` | `2` | predictions that may run at once |
 
 ## Run it locally
 
-Download and check the published checkpoints, then start the API:
+Bundle the published runs, download their checkpoints, then start the API:
 
 ```bash
 uv run python scripts/bundle_models.py weights
-WEIGHTS_DIR=weights uv run --extra serve opendiagnostics-serve
+export WEIGHTS_DIR=weights WEIGHTS_CACHE=weights-cache
+uv run --extra serve opendiagnostics-fetch-weights
+uv run --extra serve opendiagnostics-serve
 ```
 
 Then start the frontend against it (`API_URL=http://localhost:8080`); see
@@ -70,11 +75,13 @@ Then start the frontend against it (`API_URL=http://localhost:8080`); see
 
 ## Model weights
 
-The image carries the weights (about 200 MB per model). `scripts/bundle_models.py` takes
-each project's latest published run and downloads its checkpoint from the public weights
-bucket, checking it against the SHA-256 in `artifacts.yaml`. CI caches the downloads, so a
-rebuild fetches only changed checkpoints. Until a run is published, the image workflow
-skips the build. Each model page links its weights for download; see
+The image carries each project's latest published run files, which `scripts/bundle_models.py`
+copies, but no checkpoints. When the pod starts, the `fetch-weights` init container runs
+`opendiagnostics-fetch-weights`, which downloads each checkpoint from the in-cluster SeaweedFS
+S3 endpoint into a cache volume as `<sha256>.ckpt`. It checks each file's size and SHA-256
+against `artifacts.yaml` before giving it that name, skips checkpoints already in the cache,
+and deletes ones no bundled model uses. A new image downloads only the checkpoints that
+changed. Until a run is published, the image workflow skips the build. See
 [model weights](../docs/weights.md).
 
 ## Deployment
@@ -84,4 +91,4 @@ skips the build. Each model page links its weights for download; see
 | Images | `ghcr.io/isaiah-harville/opendiagnostics-serve`, `ghcr.io/isaiah-harville/opendiagnostics-web` |
 | Manifests | `k8s/` (Kustomize), applied by Flux from the homelab repo |
 | Tags | CI pushes `main`, `sha-<commit>`, and a sortable `<UTC time>-<short sha>` per build. Flux image automation in the homelab repo pins the newest sortable tag; CI never pushes to `main`. |
-| Owned by homelab | namespace, the Ingress and its host, TLS, rate and body-size limits, the `ghcr-pull-secret`, the weights bucket and its public route |
+| Owned by homelab | namespace, the Ingress and its host, TLS, rate and body-size limits, the `ghcr-pull-secret`, the weights bucket, its public route, and SeaweedFS's network policy, which must admit the `opendiagnostics` namespace |

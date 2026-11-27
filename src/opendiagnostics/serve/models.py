@@ -1,9 +1,10 @@
 """Load published models from a weights directory and run them on single images.
 
 The weights directory holds one folder per model, made by ``scripts/bundle_models.py``:
-``config.yaml`` (the run's resolved config), ``checkpoint.ckpt``, ``metrics.json``,
-``artifacts.yaml`` (where the weights can be downloaded), and optionally ``examples/`` with
-the run's license-cleared example images.
+``config.yaml`` (the run's resolved config), ``metrics.json``, ``artifacts.yaml`` (the
+checkpoint's URL and SHA-256), and optionally ``examples/`` with the run's license-cleared
+example images. Checkpoints are loaded from the cache that ``opendiagnostics-fetch-weights``
+fills.
 """
 
 from __future__ import annotations
@@ -25,8 +26,9 @@ from opendiagnostics.cli import load_run
 from opendiagnostics.data.base import DatasetInfo, Transform, prepare
 from opendiagnostics.examples import explain
 from opendiagnostics.modules import ImageClassifier
-from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST, load_artifacts
+from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST
 from opendiagnostics.serve.catalog import ORDER, describe
+from opendiagnostics.serve.weights import cached, checkpoint_of
 
 DISCLAIMER = (
     "Research model, not a medical device. It has not been cleared or approved for clinical "
@@ -60,14 +62,15 @@ def _input_size(config: dict[str, Any]) -> int:
     return int(data.get("size") or data.get("image_size") or 224)
 
 
-def _weights(folder: Path) -> dict[str, Any] | None:
-    for artifact in load_artifacts(folder / "artifacts.yaml").files:
-        if artifact.file == "checkpoint.ckpt" and artifact.url:
-            return {"url": artifact.url, "bytes": artifact.bytes, "sha256": artifact.sha256}
-    return None
-
-
-def load_model(folder: Path) -> ServedModel:
+def load_model(folder: Path, cache: Path) -> ServedModel:
+    artifact = checkpoint_of(folder)
+    if artifact is None:
+        raise ValueError(f"{folder.name}: artifacts.yaml has no checkpoint URL")
+    checkpoint = cached(cache, artifact)
+    if not checkpoint.is_file():
+        raise FileNotFoundError(
+            f"{folder.name}: {checkpoint} is missing; run opendiagnostics-fetch-weights first"
+        )
     config = yaml.safe_load((folder / "config.yaml").read_text())
     cli = load_run(folder, with_data=False)
     module = cli.model
@@ -75,7 +78,7 @@ def load_model(folder: Path) -> ServedModel:
         raise ValueError(
             f"{folder.name}: only classifiers can be served, got {type(module).__name__}"
         )
-    state = torch.load(folder / "checkpoint.ckpt", map_location="cpu", weights_only=True)
+    state = torch.load(checkpoint, map_location="cpu", weights_only=True)
     module.load_state_dict(state["state_dict"])
     module.eval()
     metrics = json.loads((folder / "metrics.json").read_text())
@@ -117,17 +120,17 @@ def load_model(folder: Path) -> ServedModel:
                 else None
             ),
             "demo_count": len(demos),
-            "weights": _weights(folder),
+            "weights": {"url": artifact.url, "bytes": artifact.bytes, "sha256": artifact.sha256},
         },
         demos=demos,
     )
 
 
-def load_models(weights_dir: Path) -> dict[str, ServedModel]:
-    folders = [p for p in sorted(weights_dir.iterdir()) if (p / "checkpoint.ckpt").is_file()]
+def load_models(weights_dir: Path, cache: Path) -> dict[str, ServedModel]:
+    folders = [p for p in sorted(weights_dir.iterdir()) if checkpoint_of(p) is not None]
     if not folders:
-        raise FileNotFoundError(f"{weights_dir} holds no model folders with a checkpoint.ckpt")
-    models = [load_model(folder) for folder in folders]
+        raise FileNotFoundError(f"{weights_dir} holds no model folders with a checkpoint URL")
+    models = [load_model(folder, cache) for folder in folders]
 
     def rank(model: ServedModel) -> tuple[int, str]:
         flag = model.id.split("-")[0]
