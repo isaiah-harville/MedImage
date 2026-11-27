@@ -1,0 +1,60 @@
+{
+  "name": "pcam-convnext",
+  "seed": 0,
+  "deterministic": "warn",
+  "git": {
+    "commit": "b1597946c80bae4801c6adbd67f9fbe537cc5803",
+    "branch": "main",
+    "dirty": false
+  },
+  "environment": {
+    "python": "3.12.16",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "machine": "AMD64",
+    "packages": {
+      "opendiagnostics": "0.1.0",
+      "torch": "2.15.0+cu132",
+      "torchvision": "0.29.2+cu132",
+      "lightning": "2.6.6",
+      "torchmetrics": "1.9.0",
+      "timm": "1.0.31",
+      "monai": "1.6.2",
+      "medmnist": "3.0.2",
+      "numpy": "2.5.5"
+    },
+    "cuda_available": true,
+    "cuda_version": "13.2",
+    "gpu": "NVIDIA GeForce RTX 4070 Ti",
+    "mps_available": false
+  },
+  "device": "cuda:0",
+  "command": [
+    "opendiagnostics",
+    "fit",
+    "-c",
+    "models/pcam-convnext/config.yaml"
+  ],
+  "dataset": {
+    "name": "PCamDataModule",
+    "license": "CC0 1.0",
+    "citation": "Veeling, B. S., Linmans, J., Winkens, J., Cohen, T. & Welling, M. Rotation Equivariant CNNs for Digital Pathology. MICCAI 2018. https://arxiv.org/abs/1806.03962. Camelyon16: Ehteshami Bejnordi, B. et al. JAMA 318(22), 2199-2210 (2017). https://doi.org/10.1001/jama.2017.14585",
+    "patient_ids_available": true,
+    "fingerprint": {
+      "record": "https://zenodo.org/records/2546921/files/",
+      "md5": {
+        "camelyonpatch_level_2_split_train_x.h5.gz": "1571f514728f59376b705fc836ff4b63",
+        "camelyonpatch_level_2_split_train_y.h5.gz": "35c2d7259d906cfc8143347bb8e05be7",
+        "camelyonpatch_level_2_split_train_meta.csv": "5a3dd671e465cfd74b5b822125e65b0a",
+        "camelyonpatch_level_2_split_valid_x.h5.gz": "d5b63470df7cfa627aeec8b9dc0c066e",
+        "camelyonpatch_level_2_split_valid_y.h5.gz": "2b85f58b927af9964a4c15b8f7e8f179",
+        "camelyonpatch_level_2_split_valid_meta.csv": "67589e00a4a37ec317f2d1932c7502ca",
+        "camelyonpatch_level_2_split_test_x.h5.gz": "d8c2d60d490dbd479f8199bdfa0cf6ec",
+        "camelyonpatch_level_2_split_test_y.h5.gz": "60a7035772fbdb7f34eb86d4420cf66a",
+        "camelyonpatch_level_2_split_test_meta.csv": "3455fd69135b66734e1008f3af684566"
+      }
+    }
+  },
+  "parameters": 49455457,
+  "started": "2026-11-27T11:45:46+00:00",
+  "finished": "2026-11-27T13:45:45+00:00"
+}

@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 197962575
+  sha256: 1960feaaaa9f0c5f9a7e39a0204411fc78540cd1ff814d03f2b632ac0ab6a307
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/pcam-convnext/20261127-054546-b1597946/checkpoint.ckpt
