@@ -64,12 +64,18 @@ spec:
               value: http://seaweedfs-s3.seaweedfs.svc.cluster.local:8333/opendiagnostics-weights
             - name: REFRESH_SECONDS
               value: "600"
+            # Integrated Gradients is most of a prediction's cost. On two CPUs, 8 steps keep a
+            # prediction well under the frontend's 90 s wait.
             - name: ATTRIBUTION_STEPS
-              value: "16"
+              value: "8"
             - name: WORKERS
               value: "1"
             # One BLAS thread per CPU in the limit.
             - name: OMP_NUM_THREADS
+              value: "2"
+            # glibc gives each thread its own arena; with torch's threads that keeps freed
+            # memory resident. Two arenas keep the worker near its measured working set.
+            - name: MALLOC_ARENA_MAX
               value: "2"
           # The first start downloads every checkpoint (about 200 MB each) before serving.
           startupProbe:
@@ -92,10 +98,12 @@ spec:
           resources:
             requests:
               cpu: 500m
-              memory: 3Gi
+              memory: 4Gi
             limits:
               cpu: "2"
-              memory: 6Gi
+              # Measured: 12 models in the worker use about 3 GB, a prediction peaks near
+              # 4.4 GB, and the API process adds about 0.6 GB.
+              memory: 8Gi
           securityContext:
             allowPrivilegeEscalation: false
             readOnlyRootFilesystem: true

@@ -20,13 +20,15 @@ from typing import Any
 import numpy as np
 import torch
 import yaml
+from jsonargparse import ArgumentParser
 from PIL import Image
 
 from opendiagnostics.cli import load_run
+from opendiagnostics.data import MedicalDataModule
 from opendiagnostics.data.base import DatasetInfo, Transform, prepare
 from opendiagnostics.examples import explain
 from opendiagnostics.modules import ImageClassifier
-from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST
+from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST, Artifact
 from opendiagnostics.serve.catalog import ORDER, describe
 from opendiagnostics.serve.weights import cached, checkpoint_of
 
@@ -64,11 +66,76 @@ def _input_size(config: dict[str, Any]) -> int:
     return int(data.get("size") or data.get("image_size") or 224)
 
 
-def load_model(folder: Path, cache: Path) -> ServedModel:
+@dataclass(frozen=True)
+class Listing:
+    """What a model is, from its run files alone: no network, no weights."""
+
+    description: dict[str, Any]
+    demos: dict[str, DemoImage]
+
+
+def _data_module(config: dict[str, Any]) -> MedicalDataModule:
+    parser = ArgumentParser()
+    parser.add_subclass_arguments(MedicalDataModule, "data")
+    parsed = parser.parse_object({"data": config["data"]})
+    return parser.instantiate_classes(parsed).data
+
+
+def _listing(
+    folder: Path, config: dict[str, Any], data: MedicalDataModule, artifact: Artifact
+) -> Listing:
     model_id = folder.parent.name
+    metrics = json.loads((folder / "metrics.json").read_text())
+    info = data.info
+    flag = (config["data"].get("init_args") or {}).get("flag")
+    scan = describe(flag, model_id)
+    test_auroc = metrics.get("test", {}).get("auroc")
+    demos = {}
+    manifest = folder / EXAMPLES / EXAMPLES_MANIFEST
+    if manifest.exists():
+        for example in json.loads(manifest.read_text()):
+            demos[example["id"]] = DemoImage(
+                example["id"], example["truth"], folder / EXAMPLES / example["input"]
+            )
+    description = {
+        "id": model_id,
+        "scan_type": scan.scan_type,
+        "modality": scan.modality,
+        "question": scan.question,
+        "label_mode": info.label_mode,
+        "classes": list(info.class_names),
+        "input": {"channels": info.in_channels, "size": _input_size(config)},
+        "dataset": f"{flag} (MedMNIST v2)" if flag else type(data).__name__,
+        "license": info.license,
+        "citation": info.citation,
+        "run_id": folder.name,
+        "test_auroc": (
+            {k: test_auroc[k] for k in ("value", "lower", "upper")}
+            if isinstance(test_auroc, dict)
+            else None
+        ),
+        "demo_count": len(demos),
+        "weights": {"url": artifact.url, "bytes": artifact.bytes, "sha256": artifact.sha256},
+    }
+    return Listing(description, demos)
+
+
+def _artifact(folder: Path) -> Artifact:
     artifact = checkpoint_of(folder)
     if artifact is None:
-        raise ValueError(f"{model_id}: artifacts.yaml has no checkpoint URL")
+        raise ValueError(f"{folder.parent.name}: artifacts.yaml has no checkpoint URL")
+    return artifact
+
+
+def load_listing(folder: Path) -> Listing:
+    """The model's listing, built from its data module alone, so it costs no model memory."""
+    config = yaml.safe_load((folder / "config.yaml").read_text())
+    return _listing(folder, config, _data_module(config), _artifact(folder))
+
+
+def load_model(folder: Path, cache: Path) -> ServedModel:
+    model_id = folder.parent.name
+    artifact = _artifact(folder)
     checkpoint = cached(cache, artifact)
     if not checkpoint.is_file():
         raise FileNotFoundError(f"{model_id}: {checkpoint} is missing; sync the cache first")
@@ -80,46 +147,17 @@ def load_model(folder: Path, cache: Path) -> ServedModel:
     state = torch.load(checkpoint, map_location="cpu", weights_only=True)
     module.load_state_dict(state["state_dict"])
     module.eval()
+    listing = _listing(folder, config, cli.datamodule, artifact)
     metrics = json.loads((folder / "metrics.json").read_text())
-    info = cli.datamodule.info
-    flag = (config["data"].get("init_args") or {}).get("flag")
-    scan = describe(flag, model_id)
-    test_auroc = metrics.get("test", {}).get("auroc")
-    demos = {}
-    manifest = folder / EXAMPLES / EXAMPLES_MANIFEST
-    if manifest.exists():
-        for example in json.loads(manifest.read_text()):
-            demos[example["id"]] = DemoImage(
-                example["id"], example["truth"], folder / EXAMPLES / example["input"]
-            )
     return ServedModel(
         id=model_id,
         module=module,
         transform=cli.datamodule.eval_transforms,
-        info=info,
+        info=cli.datamodule.info,
         size=_input_size(config),
         threshold=float(metrics.get("calibration", {}).get("threshold", 0.5)),
-        description={
-            "id": model_id,
-            "scan_type": scan.scan_type,
-            "modality": scan.modality,
-            "question": scan.question,
-            "label_mode": info.label_mode,
-            "classes": list(info.class_names),
-            "input": {"channels": info.in_channels, "size": _input_size(config)},
-            "dataset": f"{flag} (MedMNIST v2)" if flag else type(cli.datamodule).__name__,
-            "license": info.license,
-            "citation": info.citation,
-            "run_id": folder.name,
-            "test_auroc": (
-                {k: test_auroc[k] for k in ("value", "lower", "upper")}
-                if isinstance(test_auroc, dict)
-                else None
-            ),
-            "demo_count": len(demos),
-            "weights": {"url": artifact.url, "bytes": artifact.bytes, "sha256": artifact.sha256},
-        },
-        demos=demos,
+        description=listing.description,
+        demos=listing.demos,
     )
 
 

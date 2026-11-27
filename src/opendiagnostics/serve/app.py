@@ -13,8 +13,8 @@ written to disk, stored, or logged. Every response carries ``Cache-Control: no-s
 import base64
 import binascii
 import io
+import logging
 from collections.abc import Mapping
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Self
 
@@ -24,7 +24,16 @@ from fastapi.responses import FileResponse
 from PIL import Image, UnidentifiedImageError
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from opendiagnostics.serve.models import DemoImage, ServedModel, load_models, predict
+from opendiagnostics.serve.models import (
+    DemoImage,
+    Listing,
+    ServedModel,
+    load_listing,
+    load_models,
+    predict,
+)
+
+log = logging.getLogger("opendiagnostics.serve")
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
 # Base64 grows the image by a third; the JSON around it adds a little.
@@ -32,14 +41,6 @@ MAX_BODY_BYTES = MAX_UPLOAD_BYTES * 4 // 3 + 64 * 1024
 MAX_SIDE = 4096
 FORMATS = {"PNG", "JPEG"}
 Image.MAX_IMAGE_PIXELS = MAX_SIDE * MAX_SIDE
-
-
-@dataclass(frozen=True)
-class Listing:
-    """What the API process knows about a served model: no weights, only its files."""
-
-    description: dict[str, Any]
-    demos: dict[str, DemoImage]
 
 
 class PredictRequest(BaseModel):
@@ -56,10 +57,16 @@ class PredictRequest(BaseModel):
         return self
 
 
-def describe(folders: list[Path], cache: Path) -> dict[str, Listing]:
-    """Each model's listing. The weights are loaded to check them, then let go: only the
+def describe(folders: list[Path]) -> dict[str, Listing]:
+    """Each model's listing, from its run files. The API process loads no weights: only the
     worker keeps models in memory."""
-    return {i: Listing(m.description, m.demos) for i, m in load_models(folders, cache).items()}
+    listings = []
+    for folder in folders:
+        try:
+            listings.append(load_listing(folder))
+        except Exception:
+            log.exception("could not list %s/%s", folder.parent.name, folder.name)
+    return {listing.description["id"]: listing for listing in listings}
 
 
 def _decode(data: bytes) -> Image.Image:

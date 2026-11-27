@@ -8,6 +8,9 @@ import {
   predictionSchema,
 } from '#lib/contract.ts';
 
+// A prediction runs on two CPUs. Cloudflare drops a request after 100 s, so give up before.
+const API_TIMEOUT_MS = 90_000;
+
 export class ApiError extends Error {
   override name = 'ApiError';
   constructor(
@@ -31,7 +34,10 @@ export function createApiClient({
   async function request(path: string, init?: RequestInit): Promise<Response> {
     let response: Response;
     try {
-      response = await fetch(`${baseUrl}${path}`, { ...init, signal: AbortSignal.timeout(60_000) });
+      response = await fetch(`${baseUrl}${path}`, {
+        ...init,
+        signal: AbortSignal.timeout(API_TIMEOUT_MS),
+      });
     } catch (cause) {
       throw new ApiError(`The inference service at ${baseUrl} did not answer ${path}.`, null, {
         cause,

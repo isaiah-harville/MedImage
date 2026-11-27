@@ -88,7 +88,7 @@ def main() -> None:
     cache = settings.weights_cache
     folders = _synced(cache, str(settings.weights_base_url)) or []
     prune(cache, folders)
-    listings = describe(folders, cache)
+    listings = describe(folders)
     log.info("serving %d models", len(listings))
     api = ClassifierAPI(folders, cache, settings.attribution_steps)
     server = create_server(listings, api, settings.workers)

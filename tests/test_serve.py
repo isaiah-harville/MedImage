@@ -32,7 +32,7 @@ def client(finished_run, tmp_path_factory):
     smoke_project(finished_run, tmp / "models", bucket=bucket)
     cache = tmp / "cache"
     folders = sync(cache, WEIGHTS_URL, bucket.open_url)
-    server = create_server(describe(folders, cache), ClassifierAPI(folders, cache, 4))
+    server = create_server(describe(folders), ClassifierAPI(folders, cache, 4))
     with wrap_litserve_start(server) as started, TestClient(started.app) as client:
         yield _ready(client)
 
@@ -179,3 +179,19 @@ def test_the_watcher_restarts_only_when_the_catalog_names_different_runs(tmp_pat
     monkeypatch.setattr(stop, "wait", lambda timeout: False)
     serve.watch(settings, served, stop)
     assert kills == [serve.signal.SIGTERM]
+
+
+def test_a_listing_matches_the_model_and_needs_no_weights(finished_run, tmp_path):
+    import shutil
+
+    from opendiagnostics.serve.models import load_listing, load_model
+
+    bucket = MemoryBucket()
+    smoke_project(finished_run, tmp_path / "models", bucket=bucket)
+    cache = tmp_path / "cache"
+    [folder] = sync(cache, WEIGHTS_URL, bucket.open_url)
+    model = load_model(folder, cache)
+    shutil.rmtree(cache / "checkpoints")
+    listing = load_listing(folder)
+    assert listing.description == model.description
+    assert listing.demos.keys() == model.demos.keys()
