@@ -204,3 +204,6 @@ docs/notebook/
 weights/
 weights-cache/
 
+
+# Datasets, downloaded or generated
+/data/
