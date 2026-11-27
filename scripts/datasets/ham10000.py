@@ -38,6 +38,7 @@ ARCHIVES = {
 }
 METADATA = ("HAM10000_metadata.csv", 4338392, 690_218)
 TEST_TRUTH = ("ISIC2018_Task3_Test_GroundTruth.csv", 6924466, 108_383)
+MAX_MISSING = 5
 CLASSES = ("akiec", "bcc", "bkl", "df", "mel", "nv", "vasc")
 
 
@@ -49,8 +50,14 @@ def manifest_rows(
 ) -> list[dict[str, str]]:
     names = [r["image_id"] for r in [*metadata, *test_truth]]
     missing = [n for n in names if n not in images]
-    if missing:
+    # The Dataverse archives omit one labelled ISIC 2018 test image (ISIC_0035068). A few
+    # missing images are left out and reported; many mean a broken download.
+    if len(missing) > MAX_MISSING:
         raise RuntimeError(f"{len(missing)} labelled images are not on disk: {missing[:5]}")
+    if missing:
+        print(f"leaving out {len(missing)} labelled images with no file: {missing}")
+        metadata = [r for r in metadata if r["image_id"] in images]
+        test_truth = [r for r in test_truth if r["image_id"] in images]
     unknown = {r["dx"] for r in [*metadata, *test_truth]} - set(CLASSES)
     if unknown:
         raise RuntimeError(f"the label files have unexpected diagnoses {sorted(unknown)}")

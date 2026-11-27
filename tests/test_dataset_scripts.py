@@ -393,3 +393,27 @@ def test_cmmd_script_downloads_each_series_and_labels_by_breast(script, tmp_path
     requested = len(server.requested)
     cmmd.main()
     assert len(server.requested) == requested
+
+
+def test_ham10000_leaves_out_a_few_labelled_images_with_no_file_but_not_many(script, tmp_path):
+    ham = script("ham10000")
+    metadata = [
+        {
+            "lesion_id": f"HAM_{i // 2:04d}",
+            "image_id": f"ISIC_{i:04d}",
+            "dx": ham.CLASSES[(i // 2) % 7],
+        }
+        for i in range(84)
+    ]
+    test_truth = [
+        {"lesion_id": f"HAMTEST_{i:07d}", "image_id": f"ISIC_9{i:03d}", "dx": ham.CLASSES[i % 7]}
+        for i in range(7)
+    ]
+    images = _jpegs(tmp_path / "images", [r["image_id"] for r in [*metadata, *test_truth]])
+    del images["ISIC_9000"]
+    rows = ham.manifest_rows(metadata, test_truth, images, tmp_path)
+    assert len([r for r in rows if r["split"] == "test"]) == 6
+    for name in list(images)[: ham.MAX_MISSING + 1]:
+        del images[name]
+    with pytest.raises(RuntimeError, match="labelled images are not on disk"):
+        ham.manifest_rows(metadata, test_truth, images, tmp_path)
