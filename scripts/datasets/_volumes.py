@@ -22,6 +22,8 @@ from collections.abc import Iterable, Sequence
 from pathlib import Path
 from typing import Any
 
+from _download import retrying
+
 TCIA = "https://services.cancerimagingarchive.net/nbia-api/services/v1"
 USER_AGENT = "opendiagnostics-dataset-script"
 CHUNK = 1 << 20
@@ -51,6 +53,7 @@ def md5sum(path: Path) -> str:
     return digest.hexdigest()
 
 
+@retrying
 def download(url: str, dest: Path, md5: str | None = None, size: int | None = None) -> Path:
     """Download ``url`` to ``dest``, resuming a ``.part`` file left by an interrupted run.
 

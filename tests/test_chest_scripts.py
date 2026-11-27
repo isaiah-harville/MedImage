@@ -3,6 +3,7 @@ import hashlib
 import importlib
 import io
 import tarfile
+import urllib.error
 import zipfile
 
 import pytest
@@ -244,3 +245,47 @@ def test_kermany_files_that_break_the_naming_scheme_are_an_error(scripts):
     kermany = scripts("_kermany")
     with pytest.raises(RuntimeError, match=r"unexpected file train/CNV/scan\.jpeg"):
         kermany.manifest_rows(["train/CNV/scan.jpeg"], ("CNV",))
+
+
+class Dropping(io.BytesIO):
+    """A response whose connection drops after ``keep`` bytes."""
+
+    def __init__(self, data: bytes, keep: int):
+        super().__init__(data[:keep])
+        self.status = 200
+
+    def read(self, size=-1):
+        chunk = super().read(size)
+        if not chunk:
+            raise TimeoutError("the connection timed out")
+        return chunk
+
+
+def test_download_retries_a_dropped_connection_and_resumes(scripts, tmp_path, monkeypatch):
+    download = scripts("_download")
+    waits = []
+    monkeypatch.setattr(download.time, "sleep", waits.append)
+    server = Server({"https://x/blob": BLOB})
+    calls = []
+
+    def opener(request):
+        calls.append(request)
+        return Dropping(BLOB, 1000) if len(calls) == 1 else server(request)
+
+    download.download("https://x/blob", tmp_path / "blob.bin", len(BLOB), opener=opener)
+    assert (tmp_path / "blob.bin").read_bytes() == BLOB
+    assert waits == [10.0]
+    assert server.requests == [("https://x/blob", "bytes=1000-", "opendiagnostics")]
+
+
+def test_download_does_not_retry_a_missing_file(scripts, tmp_path, monkeypatch):
+    download = scripts("_download")
+    waits = []
+    monkeypatch.setattr(download.time, "sleep", waits.append)
+
+    def opener(request):
+        raise urllib.error.HTTPError(request.full_url, 404, "Not Found", None, None)  # ty: ignore[invalid-argument-type]
+
+    with pytest.raises(urllib.error.HTTPError):
+        download.download("https://x/blob", tmp_path / "blob.bin", opener=opener)
+    assert waits == []

@@ -9,20 +9,54 @@ from __future__ import annotations
 
 import argparse
 import csv
+import functools
 import hashlib
 import shutil
 import tarfile
+import time
+import urllib.error
 import urllib.request
 import zipfile
 from collections.abc import Callable, Iterable, Mapping
 from pathlib import Path
-from typing import Any, BinaryIO
+from typing import Any, BinaryIO, ParamSpec, TypeVar
 
 MANIFEST_COLUMNS = ("path", "patient_id", "label", "split")
 CHUNK = 1 << 20
 # Mendeley Data refuses Python's default User-Agent.
 USER_AGENT = "opendiagnostics"
 Opener = Callable[[urllib.request.Request], Any]
+ATTEMPTS = 6
+P = ParamSpec("P")
+R = TypeVar("R")
+TRANSIENT_STATUS = {429, 500, 502, 503, 504}
+
+
+def _transient(error: Exception) -> bool:
+    if isinstance(error, urllib.error.HTTPError):
+        return error.code in TRANSIENT_STATUS
+    return isinstance(error, urllib.error.URLError | ConnectionError | TimeoutError)
+
+
+def retrying(fetch: Callable[P, R]) -> Callable[P, R]:
+    """Rerun ``fetch`` after a dropped connection, a timeout, or a 429 or 5xx response,
+    waiting 10 s, then twice as long each time up to 5 minutes. A download resumes from its
+    ``.part`` file, so each attempt continues where the last one stopped."""
+
+    @functools.wraps(fetch)
+    def run(*args: P.args, **kwargs: P.kwargs) -> R:
+        for attempt in range(1, ATTEMPTS + 1):
+            try:
+                return fetch(*args, **kwargs)
+            except OSError as error:
+                if attempt == ATTEMPTS or not _transient(error):
+                    raise
+                wait = min(10.0 * 2 ** (attempt - 1), 300.0)
+                print(f"{error}; retrying in {wait:.0f} s ({attempt}/{ATTEMPTS - 1})", flush=True)
+                time.sleep(wait)
+        raise AssertionError("unreachable")
+
+    return run
 
 
 def arguments(description: str) -> argparse.Namespace:
@@ -60,6 +94,7 @@ def _matches(path: Path, size: int | None, md5: str | None, sha256: str | None =
     return md5 is None or md5sum(path) == md5
 
 
+@retrying
 def download(
     url: str,
     dest: Path,

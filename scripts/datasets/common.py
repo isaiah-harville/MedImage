@@ -11,10 +11,13 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import Any
 
+from _download import retrying
+
 Opener = Callable[..., Any]
 DONE = ".complete"
 
 
+@retrying
 def download(url: str, dest: Path, opener: Opener = urllib.request.urlopen) -> Path:
     """Download ``url`` to ``dest``, resuming ``dest.part`` with a Range request after an
     interruption. A finished ``dest`` is never fetched again."""
