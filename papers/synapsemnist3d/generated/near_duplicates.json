@@ -1,0 +1,30 @@
+{
+  "run": "20261127-051633-f5029e64",
+  "test_volumes": 352,
+  "reference_volumes": 1407,
+  "similarity_quantiles": {
+    "0.5": 0.1009,
+    "0.9": 0.1533,
+    "0.99": 0.2137,
+    "1.0": 0.2524
+  },
+  "auroc_all": 0.9845,
+  "thresholds": {
+    "0.99": {
+      "near_duplicates": 0,
+      "auroc_without": 0.9845
+    },
+    "0.95": {
+      "near_duplicates": 0,
+      "auroc_without": 0.9845
+    },
+    "0.9": {
+      "near_duplicates": 0,
+      "auroc_without": 0.9845
+    },
+    "0.8": {
+      "near_duplicates": 0,
+      "auroc_without": 0.9845
+    }
+  }
+}
