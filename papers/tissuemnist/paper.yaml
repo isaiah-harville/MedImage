@@ -1,0 +1,4 @@
+title: "ImageNet-22k Pretraining, Augmentation, and Regularization: Where a ConvNeXt Recipe Departs from the MedMNIST+ Setup on TissueMNIST"
+project: tissuemnist-convnext
+run: 20261126-200655-ab39eb97
+pdf: main.pdf

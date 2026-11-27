@@ -1,0 +1,4 @@
+title: "ImageNet-22k Pretraining, Augmentation, and Regularization: How a ConvNeXt Recipe Differs from the MedMNIST+ Setup on DermaMNIST"
+project: dermamnist-convnext
+run: 20261126-141911-ab39eb97
+pdf: main.pdf
