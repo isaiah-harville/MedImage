@@ -1,0 +1,100 @@
+# Prepare the data once: uv run python scripts/datasets/cmmd.py data/cmmd
+#   uv run opendiagnostics fit -c models/cmmd-convnext/config.yaml
+name: cmmd-convnext
+notes: CMMD benign vs malignant mammograms at 1024x832 px. Patient-level 70/15/15 split.
+seed_everything: 0
+trainer:
+  accelerator: auto
+  precision: bf16-mixed
+  deterministic: warn
+  max_epochs: 30
+  log_every_n_steps: 50
+  accumulate_grad_batches: 8
+  callbacks:
+  - class_path: lightning.pytorch.callbacks.EMAWeightAveraging
+    init_args:
+      decay: 0.998
+  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+model:
+  class_path: opendiagnostics.modules.ImageClassifier
+  init_args:
+    network:
+      class_path: timm.create_model
+      init_args:
+        model_name: convnext_small.fb_in22k_ft_in1k
+        pretrained: true
+      dict_kwargs:
+        num_classes: 1
+        in_chans: 1
+        drop_path_rate: 0.2
+    tta: true
+data:
+  class_path: opendiagnostics.data.CSVImageDataModule
+  init_args:
+    manifest: data/cmmd/manifest.csv
+    split: predefined
+    split_column: split
+    class_names:
+    - benign
+    - malignant
+    in_channels: 1
+    license: CC BY 4.0
+    citation: Cui C, et al. The Chinese Mammography Database (CMMD). The Cancer Imaging Archive (2021).
+      doi:10.7937/tcia.eqde-4b16
+    batch_size: 4
+    eval_batch_size: 8
+    num_workers: 8
+    train_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: torchvision.transforms.v2.Resize
+          init_args:
+            size:
+            - 1024
+            - 832
+            antialias: true
+        - class_path: torchvision.transforms.v2.RandomHorizontalFlip
+        - class_path: torchvision.transforms.v2.ColorJitter
+          init_args:
+            brightness: 0.1
+            contrast: 0.1
+        - class_path: torchvision.transforms.v2.Normalize
+          init_args:
+            mean:
+            - 0.449
+            std:
+            - 0.226
+    eval_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: torchvision.transforms.v2.Resize
+          init_args:
+            size:
+            - 1024
+            - 832
+            antialias: true
+        - class_path: torchvision.transforms.v2.Normalize
+          init_args:
+            mean:
+            - 0.449
+            std:
+            - 0.226
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 0.0001
+    weight_decay: 0.05
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CosineAnnealingLR
+  init_args:
+    T_max: 30
+    eta_min: 1.0e-06
+checkpoint:
+  monitor: val/auroc
+  mode: max
+eval:
+  bootstrap_samples: 1000
