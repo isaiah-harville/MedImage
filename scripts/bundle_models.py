@@ -23,6 +23,8 @@ import yaml
 
 CHECKPOINT = "checkpoint.ckpt"
 NOTHING_PUBLISHED = 3
+# Cloudflare, in front of the weights host, refuses Python's default User-Agent.
+USER_AGENT = "opendiagnostics-bundle"
 
 
 def _sha256(path: Path) -> str:
@@ -58,7 +60,10 @@ def bundle(project: Path, out: Path, runs: Path) -> Path | None:
             shutil.copyfile(local, checkpoint)
         elif artifact.get("url"):
             with (
-                urllib.request.urlopen(artifact["url"], timeout=60) as response,
+                urllib.request.urlopen(
+                    urllib.request.Request(artifact["url"], headers={"User-Agent": USER_AGENT}),
+                    timeout=60,
+                ) as response,
                 checkpoint.open("wb") as handle,
             ):
                 shutil.copyfileobj(response, handle, length=1 << 20)

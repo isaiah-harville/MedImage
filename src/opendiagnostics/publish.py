@@ -31,6 +31,8 @@ EXAMPLES = "examples"
 EXAMPLES_MANIFEST = "examples.json"
 WEIGHTS_BUCKET = "opendiagnostics-weights"
 WEIGHTS_URL = f"https://diagnostics.harville.dev/{WEIGHTS_BUCKET}"
+# Cloudflare, in front of the weights host, refuses Python's default User-Agent.
+USER_AGENT = "opendiagnostics"
 # Licenses that allow redistributing a dataset's images and models trained on it, so example
 # figures and checkpoints may be published. Anything else, including credentialed data and
 # unknown licenses, publishes neither.
@@ -94,7 +96,8 @@ def upload_weights(path: Path, key: str) -> None:
         ) from error
     url = f"{WEIGHTS_URL}/{key}"
     try:
-        with urllib.request.urlopen(urllib.request.Request(url, method="HEAD"), timeout=30) as r:
+        request = urllib.request.Request(url, method="HEAD", headers={"User-Agent": USER_AGENT})
+        with urllib.request.urlopen(request, timeout=30) as r:
             served = int(r.headers.get("Content-Length", -1))
     except OSError as error:
         raise PublishError(
