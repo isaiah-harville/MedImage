@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 197971791
+  sha256: ebb446525a3fada0c1e193dd544fbfc4981a08065f4caddf2e38bb4b4b64adef
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/tissuemnist-convnext/20261126-200655-ab39eb97/checkpoint.ckpt

@@ -1,0 +1,284 @@
+{
+  "checkpoint_epoch": 11,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.8933939514648135,
+      "lower": 0.8356334989440508,
+      "upper": 0.9411122761749179,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.673567479625946,
+      "lower": 0.5760028194950167,
+      "upper": 0.7992399127109203,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.7166666666666667,
+      "lower": 0.6416666666666667,
+      "upper": 0.7916666666666666,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.5821692943572998,
+      "lower": 0.4722084164619446,
+      "upper": 0.6991819813847542,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/0": {
+      "value": 0.9259259259259259,
+      "lower": 0.8743948362061548,
+      "upper": 0.9632572234623017,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/0": {
+      "value": 0.926776244095819,
+      "lower": 0.8722629421566424,
+      "upper": 0.9655950999750744,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/1": {
+      "value": 0.8503086419753086,
+      "lower": 0.759772079535121,
+      "upper": 0.9241718415897988,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/1": {
+      "value": 0.34511450350301376,
+      "lower": 0.1556929529976405,
+      "upper": 0.6327036260818871,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/2": {
+      "value": 0.8940217391304348,
+      "lower": 0.8206312892995289,
+      "upper": 0.9552066544566544,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/2": {
+      "value": 0.7175531520798786,
+      "lower": 0.5592028660448679,
+      "upper": 0.8766231787214153,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/3": {
+      "value": 0.978,
+      "lower": 0.9511118524543059,
+      "upper": 0.9958337627980486,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/3": {
+      "value": 0.8902384182371148,
+      "lower": 0.7387229250634425,
+      "upper": 0.9831813861551909,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/4": {
+      "value": 0.8187134502923976,
+      "lower": 0.579110863371733,
+      "upper": 0.9886098710317461,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/4": {
+      "value": 0.48815508021390375,
+      "lower": 0.05197052238148129,
+      "upper": 0.8528663003662998,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 120,
+    "n_patients": 120
+  },
+  "test": {
+    "auroc": {
+      "value": 0.8861181326428325,
+      "lower": 0.8620372974642218,
+      "upper": 0.9102583552429752,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.6333509803402197,
+      "lower": 0.5834116375927824,
+      "upper": 0.6969163905502552,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.68,
+      "lower": 0.635,
+      "upper": 0.7250624999999999,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.532426118850708,
+      "lower": 0.4787524163722992,
+      "upper": 0.590740641951561,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/0": {
+      "value": 0.929584986267928,
+      "lower": 0.9057652169260133,
+      "upper": 0.9523672241560948,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/0": {
+      "value": 0.9011648600434818,
+      "lower": 0.8598278382373975,
+      "upper": 0.941966216494034,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/1": {
+      "value": 0.7983296487349546,
+      "lower": 0.7415626159368701,
+      "upper": 0.8531765758308419,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/1": {
+      "value": 0.2826342310454809,
+      "lower": 0.20431009556216564,
+      "upper": 0.4037795122505881,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/2": {
+      "value": 0.8809288537549406,
+      "lower": 0.8445735657292363,
+      "upper": 0.9162114984985722,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/2": {
+      "value": 0.6762048326546376,
+      "lower": 0.5797253117056799,
+      "upper": 0.7718167415179424,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/3": {
+      "value": 0.9456945428773919,
+      "lower": 0.9073153612872308,
+      "upper": 0.9728091291624901,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/3": {
+      "value": 0.8173571476165465,
+      "lower": 0.7326749007210568,
+      "upper": 0.887687599243756,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/4": {
+      "value": 0.8760526315789473,
+      "lower": 0.7884133686930505,
+      "upper": 0.9504089379207181,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/4": {
+      "value": 0.48939383034095213,
+      "lower": 0.2665650550050115,
+      "upper": 0.6933564242300669,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 400,
+    "n_patients": 400
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 11
+  },
+  "rescored": {
+    "git": {
+      "commit": "e9f733fd5507fabc0a1f6bbd223937069d23e7a2",
+      "branch": "HEAD",
+      "dirty": false
+    },
+    "at": "2026-11-27T04:32:33+00:00"
+  }
+}

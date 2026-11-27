@@ -1,0 +1,500 @@
+{
+  "checkpoint_epoch": 6,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.9999176121352714,
+      "lower": 0.9998227567178517,
+      "upper": 0.999981269507429,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.9994494309552923,
+      "lower": 0.9987950886152178,
+      "upper": 0.9998772945151688,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9869049453088893,
+      "lower": 0.9841318749037128,
+      "upper": 0.9895239562471114,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.9912341833114624,
+      "lower": 0.9893094792962074,
+      "upper": 0.9930839374661445,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/bladder": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/bladder": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/femur-left": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/femur-left": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/femur-right": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/femur-right": {
+      "value": 0.9999999999999999,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/heart": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/heart": {
+      "value": 0.9999999999999998,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/kidney-left": {
+      "value": 0.9999848406664875,
+      "lower": 0.9999604225335358,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/kidney-left": {
+      "value": 0.999847949217064,
+      "lower": 0.9996040187990073,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/kidney-right": {
+      "value": 0.9999812282012487,
+      "lower": 0.9999602811241388,
+      "upper": 0.9999964643422711,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/kidney-right": {
+      "value": 0.9998278745737474,
+      "lower": 0.9996368411649099,
+      "upper": 0.9999672196625924,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/liver": {
+      "value": 0.9995553477634542,
+      "lower": 0.9990487190846499,
+      "upper": 0.9999360925462871,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/liver": {
+      "value": 0.9958629905067137,
+      "lower": 0.9901525824074782,
+      "upper": 0.9996487049390234,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/lung-left": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/lung-left": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/lung-right": {
+      "value": 0.9995856337110479,
+      "lower": 0.9990228408702464,
+      "upper": 0.9999303658104164,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/lung-right": {
+      "value": 0.9985530343068385,
+      "lower": 0.9969447835306113,
+      "upper": 0.9996388865264597,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/pancreas": {
+      "value": 0.9999866831457453,
+      "lower": 0.9999666324956071,
+      "upper": 0.9999979015270457,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/pancreas": {
+      "value": 0.9998518919038509,
+      "lower": 0.9996313795688849,
+      "upper": 0.9999758102582196,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/spleen": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/spleen": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 6491,
+    "n_patients": 6491
+  },
+  "test": {
+    "auroc": {
+      "value": 0.9978928792651892,
+      "lower": 0.997397159486588,
+      "upper": 0.9983125338682969,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.986260444589976,
+      "lower": 0.9839262408351837,
+      "upper": 0.9883575988859288,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9642254471819103,
+      "lower": 0.9614678254021825,
+      "upper": 0.9668691641354483,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.9641125202178955,
+      "lower": 0.9612980619072914,
+      "upper": 0.9669704362750053,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/bladder": {
+      "value": 0.9982764199255657,
+      "lower": 0.9964055565983847,
+      "upper": 0.9995420090434589,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/bladder": {
+      "value": 0.992152902204818,
+      "lower": 0.9881906547661801,
+      "upper": 0.9956006178999932,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/femur-left": {
+      "value": 0.9999070800498616,
+      "lower": 0.9998358677074652,
+      "upper": 0.9999624979626135,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/femur-left": {
+      "value": 0.9982796106539602,
+      "lower": 0.9970423385882737,
+      "upper": 0.9992459145794212,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/femur-right": {
+      "value": 0.9973428820994417,
+      "lower": 0.9932626851293567,
+      "upper": 0.9999708974169098,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/femur-right": {
+      "value": 0.9959673256430973,
+      "lower": 0.9913524966789142,
+      "upper": 0.9994119187642573,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/heart": {
+      "value": 0.9998817047559111,
+      "lower": 0.9998156753608034,
+      "upper": 0.9999356209660181,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/heart": {
+      "value": 0.9976283727660631,
+      "lower": 0.9964015273160146,
+      "upper": 0.9986733903418226,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/kidney-left": {
+      "value": 0.9897591227345782,
+      "lower": 0.9878716327518163,
+      "upper": 0.9915716647731971,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/kidney-left": {
+      "value": 0.9364889746303066,
+      "lower": 0.9212977866468836,
+      "upper": 0.950558336802864,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/kidney-right": {
+      "value": 0.9964668166061068,
+      "lower": 0.994230412985901,
+      "upper": 0.9981249205365345,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/kidney-right": {
+      "value": 0.9881834533882007,
+      "lower": 0.9850446636438247,
+      "upper": 0.9909171807790789,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/liver": {
+      "value": 0.9998765792671023,
+      "lower": 0.9997722415004937,
+      "upper": 0.9999613843707637,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/liver": {
+      "value": 0.9993429451324123,
+      "lower": 0.9987186619364982,
+      "upper": 0.9998174080096106,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/lung-left": {
+      "value": 0.9999797544518514,
+      "lower": 0.999937153015328,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/lung-left": {
+      "value": 0.9997756325526643,
+      "lower": 0.999290328529089,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/lung-right": {
+      "value": 0.9992046860643343,
+      "lower": 0.9986764354490121,
+      "upper": 0.9996238001019897,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/lung-right": {
+      "value": 0.9962300165185644,
+      "lower": 0.9943853962650658,
+      "upper": 0.9978275269907986,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/pancreas": {
+      "value": 0.9996094261590674,
+      "lower": 0.9994267087724635,
+      "upper": 0.9997653664119147,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/pancreas": {
+      "value": 0.9967744879618315,
+      "lower": 0.9954733074609539,
+      "upper": 0.9979012686650568,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/spleen": {
+      "value": 0.9965171998032614,
+      "lower": 0.9957995889548407,
+      "upper": 0.9972202609852586,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/spleen": {
+      "value": 0.9480411690378174,
+      "lower": 0.9357627165096138,
+      "upper": 0.960045767948273,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 17778,
+    "n_patients": 17778
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 6
+  },
+  "rescored": {
+    "git": {
+      "commit": "8496d9cfc6132ce662937ff05c755f0f2fad972c",
+      "branch": "HEAD",
+      "dirty": false
+    },
+    "at": "2026-11-27T05:52:30+00:00"
+  }
+}

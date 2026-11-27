@@ -1,0 +1,590 @@
+{
+  "checkpoint_epoch": 6,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.8470400524102067,
+      "lower": 0.8400768704180311,
+      "upper": 0.8534855561477465,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.2679977568517984,
+      "lower": 0.2558036400765601,
+      "upper": 0.2859492935428589,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9483338214508551,
+      "lower": 0.9470539454751505,
+      "upper": 0.9495691301745762,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/atelectasis": {
+      "value": 0.8236390341447013,
+      "lower": 0.811622259094463,
+      "upper": 0.8358687076005236,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/atelectasis": {
+      "value": 0.35111966060226585,
+      "lower": 0.32429742132356987,
+      "upper": 0.38000695425714326,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/cardiomegaly": {
+      "value": 0.9052465692078817,
+      "lower": 0.8885388826510712,
+      "upper": 0.9214624450749345,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/cardiomegaly": {
+      "value": 0.24609465918130383,
+      "lower": 0.20401661146315542,
+      "upper": 0.30848703502822494,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/effusion": {
+      "value": 0.8847958908078509,
+      "lower": 0.8757935258677223,
+      "upper": 0.8935164333477742,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/effusion": {
+      "value": 0.5009788811025896,
+      "lower": 0.4742620299437086,
+      "upper": 0.5289257368947062,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/infiltration": {
+      "value": 0.7033704592586943,
+      "lower": 0.6905314701693408,
+      "upper": 0.7166645433132208,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/infiltration": {
+      "value": 0.34704632436835414,
+      "lower": 0.3268432638445915,
+      "upper": 0.3681236436764791,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/mass": {
+      "value": 0.8667238814423258,
+      "lower": 0.850127255068087,
+      "upper": 0.8819502553723502,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/mass": {
+      "value": 0.3931986994454151,
+      "lower": 0.35605808252724624,
+      "upper": 0.4388935352150574,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/nodule": {
+      "value": 0.7899034650274906,
+      "lower": 0.7707502224048035,
+      "upper": 0.808973623561409,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/nodule": {
+      "value": 0.24693374362707393,
+      "lower": 0.2166005059872479,
+      "upper": 0.28578076130213337,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/pneumonia": {
+      "value": 0.7747555339729442,
+      "lower": 0.726966329775585,
+      "upper": 0.8199908160223793,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/pneumonia": {
+      "value": 0.061330446503985225,
+      "lower": 0.0396238731848474,
+      "upper": 0.09697947405700202,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/pneumothorax": {
+      "value": 0.8886490900606626,
+      "lower": 0.8728405788941718,
+      "upper": 0.9027356277249206,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/pneumothorax": {
+      "value": 0.3179755584732189,
+      "lower": 0.28186466461064635,
+      "upper": 0.3586326819236785,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/consolidation": {
+      "value": 0.8247956837305433,
+      "lower": 0.8067678729327892,
+      "upper": 0.8428351412480105,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/consolidation": {
+      "value": 0.1635969464518155,
+      "lower": 0.14104274494584657,
+      "upper": 0.19182471495867476,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/edema": {
+      "value": 0.9091174335239132,
+      "lower": 0.8921283823707762,
+      "upper": 0.9250858321147436,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/edema": {
+      "value": 0.15566248429885016,
+      "lower": 0.12706809249772746,
+      "upper": 0.1960106116445324,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/emphysema": {
+      "value": 0.9069027563345745,
+      "lower": 0.8846385218382968,
+      "upper": 0.9271196224869516,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/emphysema": {
+      "value": 0.2812056546617655,
+      "lower": 0.23147422949663163,
+      "upper": 0.35479019716269683,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/fibrosis": {
+      "value": 0.8246324663532444,
+      "lower": 0.7936846325193012,
+      "upper": 0.8568296788866805,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/fibrosis": {
+      "value": 0.10983144570407807,
+      "lower": 0.0791452877753636,
+      "upper": 0.15761612479180734,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/pleural": {
+      "value": 0.8060952386616982,
+      "lower": 0.7813486453129096,
+      "upper": 0.8278033063565574,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/pleural": {
+      "value": 0.16901787323768636,
+      "lower": 0.1364899338719001,
+      "upper": 0.2059315442417009,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/hernia": {
+      "value": 0.9499332312163702,
+      "lower": 0.8903971781263476,
+      "upper": 0.9847337503018931,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/hernia": {
+      "value": 0.40797621826677505,
+      "lower": 0.25198167924205506,
+      "upper": 0.5797451864750456,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 11219,
+    "n_patients": 11219
+  },
+  "test": {
+    "auroc": {
+      "value": 0.841634400678794,
+      "lower": 0.8369284668732182,
+      "upper": 0.8460983967200404,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.27628381944199454,
+      "lower": 0.2646202709590354,
+      "upper": 0.2904977445348114,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9470295674102566,
+      "lower": 0.9460831778438653,
+      "upper": 0.947899061331839,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/atelectasis": {
+      "value": 0.8301463862538937,
+      "lower": 0.8222679851643134,
+      "upper": 0.8384660143016391,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/atelectasis": {
+      "value": 0.37636394986894117,
+      "lower": 0.3562283861342914,
+      "upper": 0.3975389002670536,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/cardiomegaly": {
+      "value": 0.9107567560426825,
+      "lower": 0.8996316993601504,
+      "upper": 0.9209790277389505,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/cardiomegaly": {
+      "value": 0.3061822794939638,
+      "lower": 0.26829935334211613,
+      "upper": 0.34807562312529927,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/effusion": {
+      "value": 0.8837684063053698,
+      "lower": 0.877770415510162,
+      "upper": 0.8895839736717209,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/effusion": {
+      "value": 0.5373957547880359,
+      "lower": 0.5178781873462879,
+      "upper": 0.55792726146312,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/infiltration": {
+      "value": 0.7092761196765602,
+      "lower": 0.7004570532516069,
+      "upper": 0.7179488115708099,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/infiltration": {
+      "value": 0.33716479174451963,
+      "lower": 0.3236504283714841,
+      "upper": 0.3529755807947136,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/mass": {
+      "value": 0.8523451595125326,
+      "lower": 0.840694860562333,
+      "upper": 0.864650804418432,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/mass": {
+      "value": 0.3245387359585423,
+      "lower": 0.297282008751411,
+      "upper": 0.35430886463522465,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/nodule": {
+      "value": 0.7871403221563149,
+      "lower": 0.7741956749339131,
+      "upper": 0.8003441874836493,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/nodule": {
+      "value": 0.2536266135066765,
+      "lower": 0.22993706337712103,
+      "upper": 0.27846294183807396,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/pneumonia": {
+      "value": 0.7594605958561863,
+      "lower": 0.7294424478580069,
+      "upper": 0.7874222548946965,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/pneumonia": {
+      "value": 0.044108779975075244,
+      "lower": 0.03280220965152732,
+      "upper": 0.06618533538148892,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/pneumothorax": {
+      "value": 0.8698847890104534,
+      "lower": 0.8578914255021749,
+      "upper": 0.8818263463345316,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/pneumothorax": {
+      "value": 0.32078833774624405,
+      "lower": 0.29266397608191164,
+      "upper": 0.35205626369240905,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/consolidation": {
+      "value": 0.8157855927435121,
+      "lower": 0.8025755699156116,
+      "upper": 0.8272628633256487,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/consolidation": {
+      "value": 0.16643652514676888,
+      "lower": 0.15071746967546842,
+      "upper": 0.18667925060666432,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/edema": {
+      "value": 0.8878438157695074,
+      "lower": 0.8735841638660928,
+      "upper": 0.9010543027067324,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/edema": {
+      "value": 0.16190070962843273,
+      "lower": 0.13527786969451772,
+      "upper": 0.197962276507604,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/emphysema": {
+      "value": 0.9270195861466778,
+      "lower": 0.9149589755303529,
+      "upper": 0.9383985709299256,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/emphysema": {
+      "value": 0.3939753458781097,
+      "lower": 0.34528047797746203,
+      "upper": 0.44274375533896987,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/fibrosis": {
+      "value": 0.8342288611014528,
+      "lower": 0.8119430795782213,
+      "upper": 0.8529320782684991,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/fibrosis": {
+      "value": 0.13576621117652476,
+      "lower": 0.10784402906545214,
+      "upper": 0.1718999657020416,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/pleural": {
+      "value": 0.7830825212879761,
+      "lower": 0.7648102645843661,
+      "upper": 0.7987584526894003,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/pleural": {
+      "value": 0.14741067745602082,
+      "lower": 0.12862129686888105,
+      "upper": 0.17237742617414048,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/hernia": {
+      "value": 0.9321426976399956,
+      "lower": 0.8962604654237504,
+      "upper": 0.9666772883704247,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/hernia": {
+      "value": 0.36231475982006844,
+      "lower": 0.21274082896695223,
+      "upper": 0.5069225641925702,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 22433,
+    "n_patients": 22433
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 6
+  },
+  "rescored": {
+    "git": {
+      "commit": "8496d9cfc6132ce662937ff05c755f0f2fad972c",
+      "branch": "HEAD",
+      "dirty": false
+    },
+    "at": "2026-11-27T05:43:40+00:00"
+  }
+}

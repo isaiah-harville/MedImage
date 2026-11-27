@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 197981007
+  sha256: 0e24ce1f705704e355516ab41d11fdc2fdd24c619d9e5959747e3926b29ff1a8
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/organcmnist-convnext/20261126-151300-ab39eb97/checkpoint.ckpt

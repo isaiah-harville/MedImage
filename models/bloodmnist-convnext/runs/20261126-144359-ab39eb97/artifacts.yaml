@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 197984079
+  sha256: 3c5a50cece25a881612c2265a9cebd494a3460c799d53a235202095f758b1136
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/bloodmnist-convnext/20261126-144359-ab39eb97/checkpoint.ckpt

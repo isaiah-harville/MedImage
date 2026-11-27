@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 197950223
+  sha256: 5f901b49c2f06c3d8ea833e5a26015bf7b3dfec00497f52cfb235ad667fc0e4d
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/breastmnist-convnext/20261126-135132-ab39eb97/checkpoint.ckpt

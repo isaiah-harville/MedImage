@@ -1,0 +1,82 @@
+[
+  {
+    "id": "test-12319",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "bladder",
+    "prediction": "bladder",
+    "confidence": 0.9635439515113831,
+    "correct": true
+  },
+  {
+    "id": "test-5829",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "femur-left",
+    "prediction": "femur-left",
+    "confidence": 0.9499571323394775,
+    "correct": true
+  },
+  {
+    "id": "test-17514",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "femur-right",
+    "prediction": "femur-right",
+    "confidence": 0.9607257843017578,
+    "correct": true
+  },
+  {
+    "id": "test-5788",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "heart",
+    "prediction": "heart",
+    "confidence": 0.9371795654296875,
+    "correct": true
+  },
+  {
+    "id": "test-14356",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "kidney-left",
+    "prediction": "kidney-left",
+    "confidence": 0.9596273303031921,
+    "correct": true
+  },
+  {
+    "id": "test-14023",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "kidney-right",
+    "prediction": "kidney-right",
+    "confidence": 0.9553148150444031,
+    "correct": true
+  },
+  {
+    "id": "test-1945",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "liver",
+    "prediction": "liver",
+    "confidence": 0.9348072409629822,
+    "correct": true
+  },
+  {
+    "id": "test-9286",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "lung-left",
+    "prediction": "lung-left",
+    "confidence": 0.9371522068977356,
+    "correct": true
+  }
+]

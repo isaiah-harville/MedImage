@@ -1,0 +1,392 @@
+{
+  "checkpoint_epoch": 15,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.9998088533544076,
+      "lower": 0.9995578985356645,
+      "upper": 0.999978519340003,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.9978712499736239,
+      "lower": 0.9944271513063656,
+      "upper": 0.9998785044952293,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9912383177570093,
+      "lower": 0.9865654205607477,
+      "upper": 0.9953271028037384,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.9928152561187744,
+      "lower": 0.9886424332857132,
+      "upper": 0.9963414236903191,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/basophil": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/basophil": {
+      "value": 1.0,
+      "lower": 0.9999999999999998,
+      "upper": 1.0000000000000002,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/eosinophil": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/eosinophil": {
+      "value": 0.9999999999999999,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/erythroblast": {
+      "value": 0.999809393581536,
+      "lower": 0.9993446571655042,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/erythroblast": {
+      "value": 0.9977718815101424,
+      "lower": 0.9920047703431977,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/immature granulocytes(myelocytes, metamyelocytes and promyelocytes)": {
+      "value": 0.9995683592802754,
+      "lower": 0.9989919921215392,
+      "upper": 0.999955492090165,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/immature granulocytes(myelocytes, metamyelocytes and promyelocytes)": {
+      "value": 0.9981058580782073,
+      "lower": 0.9956192380712301,
+      "upper": 0.9998001155116939,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/lymphocyte": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/lymphocyte": {
+      "value": 1.0,
+      "lower": 0.9999999999999998,
+      "upper": 1.0000000000000002,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/monocyte": {
+      "value": 0.9999554301657553,
+      "lower": 0.9998348438758268,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/monocyte": {
+      "value": 0.9995024038297049,
+      "lower": 0.9981714146961758,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/neutrophil": {
+      "value": 0.9991376438076945,
+      "lower": 0.9973528787026699,
+      "upper": 0.9999649327899076,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/neutrophil": {
+      "value": 0.9875898563709364,
+      "lower": 0.9613528661415184,
+      "upper": 0.9998544239073934,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/platelet": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/platelet": {
+      "value": 1.0,
+      "lower": 0.9999999999999998,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 1712,
+    "n_patients": 1712
+  },
+  "test": {
+    "auroc": {
+      "value": 0.9994456325470102,
+      "lower": 0.9985185808544007,
+      "upper": 0.9999555841817405,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.9975931344685836,
+      "lower": 0.9936382268811463,
+      "upper": 0.9997692002564567,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9921075708857059,
+      "lower": 0.9891844489915229,
+      "upper": 0.9947383805904706,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.9932675361633301,
+      "lower": 0.9905162870883941,
+      "upper": 0.9957326173782348,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/basophil": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/basophil": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/eosinophil": {
+      "value": 0.9998246747889222,
+      "lower": 0.9993576238417319,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/eosinophil": {
+      "value": 0.9989234173678507,
+      "lower": 0.9961659532264454,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/erythroblast": {
+      "value": 0.9999968982950963,
+      "lower": 0.9999874458174642,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/erythroblast": {
+      "value": 0.999969279292195,
+      "lower": 0.9998734911180224,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/immature granulocytes(myelocytes, metamyelocytes and promyelocytes)": {
+      "value": 0.9996420580024041,
+      "lower": 0.9992363098061304,
+      "upper": 0.9999267784118562,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/immature granulocytes(myelocytes, metamyelocytes and promyelocytes)": {
+      "value": 0.9979746341456454,
+      "lower": 0.9954340224002325,
+      "upper": 0.9996321776684081,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/lymphocyte": {
+      "value": 0.99969828579716,
+      "lower": 0.9990943195470098,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/lymphocyte": {
+      "value": 0.9888242769445718,
+      "lower": 0.9643423679045814,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/monocyte": {
+      "value": 0.997139996497955,
+      "lower": 0.9908778616405539,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/monocyte": {
+      "value": 0.9967467161106756,
+      "lower": 0.9898077275308821,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/neutrophil": {
+      "value": 0.9992631469945443,
+      "lower": 0.9978612462528168,
+      "upper": 0.9999010150187576,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/neutrophil": {
+      "value": 0.9983067518877295,
+      "lower": 0.9959820372939655,
+      "upper": 0.9996186085352937,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/platelet": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/platelet": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 3421,
+    "n_patients": 3421
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 15
+  },
+  "rescored": {
+    "git": {
+      "commit": "e9f733fd5507fabc0a1f6bbd223937069d23e7a2",
+      "branch": "HEAD",
+      "dirty": false
+    },
+    "at": "2026-11-27T04:12:57+00:00"
+  }
+}

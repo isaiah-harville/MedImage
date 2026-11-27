@@ -1,0 +1,248 @@
+{
+  "checkpoint_epoch": 9,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.9980341845375587,
+      "lower": 0.9969838183233546,
+      "upper": 0.998836098408599,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.9913560061889407,
+      "lower": 0.9885823886951596,
+      "upper": 0.9936467683736898,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9848596750369276,
+      "lower": 0.9824593796159528,
+      "upper": 0.9870753323485968,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.9709392189979553,
+      "lower": 0.9660556316375732,
+      "upper": 0.9758123680949211,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/choroidal neovascularization": {
+      "value": 0.9988827677488359,
+      "lower": 0.9981935040635321,
+      "upper": 0.9994475783877904,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/choroidal neovascularization": {
+      "value": 0.9974716306504056,
+      "lower": 0.9953652574535558,
+      "upper": 0.9990022732465155,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/diabetic macular edema": {
+      "value": 0.9991855421927578,
+      "lower": 0.9983402901374594,
+      "upper": 0.9998071192816477,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/diabetic macular edema": {
+      "value": 0.9959294477255568,
+      "lower": 0.9922826376735858,
+      "upper": 0.9986741380755167,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/drusen": {
+      "value": 0.9952496119448833,
+      "lower": 0.9919171073632888,
+      "upper": 0.9976407378322971,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/drusen": {
+      "value": 0.9735405578968102,
+      "lower": 0.9647086154370271,
+      "upper": 0.9811286061099186,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/normal": {
+      "value": 0.9988188162637578,
+      "lower": 0.9980228016151803,
+      "upper": 0.9994451994435986,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/normal": {
+      "value": 0.9984823884829904,
+      "lower": 0.9973319440942927,
+      "upper": 0.9993048774254302,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 10832,
+    "n_patients": 10832
+  },
+  "test": {
+    "auroc": {
+      "value": 0.9957266666666666,
+      "lower": 0.9922861748223322,
+      "upper": 0.9986416182049167,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.9927397389092146,
+      "lower": 0.9870025235609879,
+      "upper": 0.9973676814867409,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.951,
+      "lower": 0.937,
+      "upper": 0.965,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.9509999752044678,
+      "lower": 0.9377738550305367,
+      "upper": 0.9641338482499122,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/choroidal neovascularization": {
+      "value": 0.9970826666666667,
+      "lower": 0.9943782214454486,
+      "upper": 0.9991258972235254,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/choroidal neovascularization": {
+      "value": 0.9890564303895477,
+      "lower": 0.9765312547752991,
+      "upper": 0.9973282298312862,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/diabetic macular edema": {
+      "value": 0.999632,
+      "lower": 0.999164840685212,
+      "upper": 0.9999503643440993,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/diabetic macular edema": {
+      "value": 0.9989512137817405,
+      "lower": 0.9975710336380073,
+      "upper": 0.9998511224168083,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/drusen": {
+      "value": 0.986192,
+      "lower": 0.9739231659409702,
+      "upper": 0.9957790508964074,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/drusen": {
+      "value": 0.9829513114655705,
+      "lower": 0.9701173874028788,
+      "upper": 0.9937066375208624,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/normal": {
+      "value": 1.0,
+      "lower": 1.0,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/normal": {
+      "value": 1.0,
+      "lower": 0.9999999999999998,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 1000,
+    "n_patients": 1000
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 9
+  },
+  "rescored": {
+    "git": {
+      "commit": "e9f733fd5507fabc0a1f6bbd223937069d23e7a2",
+      "branch": "HEAD",
+      "dirty": false
+    },
+    "at": "2026-11-27T04:24:07+00:00"
+  }
+}

@@ -1,0 +1,428 @@
+{
+  "checkpoint_epoch": 4,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.9999545954745486,
+      "lower": 0.9999160007024579,
+      "upper": 0.999987128976153,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.9995090152632962,
+      "lower": 0.999045847798346,
+      "upper": 0.9998913314752796,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9953018792483007,
+      "lower": 0.9939999000399841,
+      "upper": 0.9966038584566174,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.9949166774749756,
+      "lower": 0.9934649154543876,
+      "upper": 0.9963289797306061,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/adipose": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/adipose": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/background": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/background": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/debris": {
+      "value": 0.9998211327007079,
+      "lower": 0.9995663640511872,
+      "upper": 0.9999945278405219,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/debris": {
+      "value": 0.9974561652068137,
+      "lower": 0.9937401471793985,
+      "upper": 0.999959165478888,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/lymphocytes": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/lymphocytes": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/mucus": {
+      "value": 0.9999186336368545,
+      "lower": 0.99978995254276,
+      "upper": 0.999992285715156,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/mucus": {
+      "value": 0.9993820883921256,
+      "lower": 0.9985059626918416,
+      "upper": 0.999920737361924,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/smooth muscle": {
+      "value": 0.9998965172770042,
+      "lower": 0.9997156788115944,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/smooth muscle": {
+      "value": 0.9990729947457305,
+      "lower": 0.9973498645622997,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/normal colon mucosa": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/normal colon mucosa": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/cancer-associated stroma": {
+      "value": 0.9999765011367576,
+      "lower": 0.9999544077539528,
+      "upper": 0.9999933783163554,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/cancer-associated stroma": {
+      "value": 0.9997998392242284,
+      "lower": 0.9996078224176806,
+      "upper": 0.9999429367306486,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/colorectal adenocarcinoma epithelium": {
+      "value": 0.9999785745196131,
+      "lower": 0.9999534228420984,
+      "upper": 0.9999968361862721,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/colorectal adenocarcinoma epithelium": {
+      "value": 0.9998700498007668,
+      "lower": 0.9997194102039074,
+      "upper": 0.9999815891152862,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 10004,
+    "n_patients": 10004
+  },
+  "test": {
+    "auroc": {
+      "value": 0.9893797847228719,
+      "lower": 0.9869196897287673,
+      "upper": 0.9917460967313773,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.950418260967186,
+      "lower": 0.942792191292937,
+      "upper": 0.9594903202399708,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9477715877437326,
+      "lower": 0.9427541782729805,
+      "upper": 0.9530640668523677,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.923183023929596,
+      "lower": 0.9173793792724609,
+      "upper": 0.9291799411177635,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/adipose": {
+      "value": 0.9991086913024544,
+      "lower": 0.9976847191046962,
+      "upper": 0.9998695384653767,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/adipose": {
+      "value": 0.9984996121418946,
+      "lower": 0.9970624114974709,
+      "upper": 0.9994239658696031,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/background": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/background": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/debris": {
+      "value": 0.9989435552341663,
+      "lower": 0.9983204632335139,
+      "upper": 0.9995259545151151,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/debris": {
+      "value": 0.959287251486499,
+      "lower": 0.9299531923811574,
+      "upper": 0.9861778736723548,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/lymphocytes": {
+      "value": 0.9999992771369999,
+      "lower": 0.9999970494593691,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/lymphocytes": {
+      "value": 0.9999925521432897,
+      "lower": 0.9999689809947463,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/mucus": {
+      "value": 0.9984349241164608,
+      "lower": 0.9970342648798931,
+      "upper": 0.9993171867333408,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/mucus": {
+      "value": 0.9946335211659548,
+      "lower": 0.9921123387797084,
+      "upper": 0.9967127215117836,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/smooth muscle": {
+      "value": 0.9913089318827023,
+      "lower": 0.9893653976666178,
+      "upper": 0.9932133565354289,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/smooth muscle": {
+      "value": 0.8215905139451309,
+      "lower": 0.78612227130149,
+      "upper": 0.8631643595992357,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/normal colon mucosa": {
+      "value": 0.998035964629339,
+      "lower": 0.9951009691136639,
+      "upper": 0.99954058235313,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/normal colon mucosa": {
+      "value": 0.9936452747955604,
+      "lower": 0.9893872896905894,
+      "upper": 0.996720266603669,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/cancer-associated stroma": {
+      "value": 0.9194040215228116,
+      "lower": 0.8992722765631666,
+      "upper": 0.9389660817715759,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/cancer-associated stroma": {
+      "value": 0.7941198245858774,
+      "lower": 0.757667361976222,
+      "upper": 0.8295105064554181,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/colorectal adenocarcinoma epithelium": {
+      "value": 0.9991826966809139,
+      "lower": 0.9987135804676321,
+      "upper": 0.999533696064916,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/colorectal adenocarcinoma epithelium": {
+      "value": 0.9919957984404661,
+      "lower": 0.9822534798497125,
+      "upper": 0.9979180063504298,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 7180,
+    "n_patients": 7180
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 4
+  },
+  "rescored": {
+    "git": {
+      "commit": "e9f733fd5507fabc0a1f6bbd223937069d23e7a2",
+      "branch": "HEAD",
+      "dirty": false
+    },
+    "at": "2026-11-27T04:30:44+00:00"
+  }
+}

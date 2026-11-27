@@ -1,0 +1,82 @@
+[
+  {
+    "id": "test-293",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "choroidal neovascularization",
+    "prediction": "choroidal neovascularization",
+    "confidence": 0.9436866044998169,
+    "correct": true
+  },
+  {
+    "id": "test-71",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "diabetic macular edema",
+    "prediction": "diabetic macular edema",
+    "confidence": 0.9462887048721313,
+    "correct": true
+  },
+  {
+    "id": "test-770",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "drusen",
+    "prediction": "drusen",
+    "confidence": 0.9474397301673889,
+    "correct": true
+  },
+  {
+    "id": "test-486",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "normal",
+    "prediction": "normal",
+    "confidence": 0.9363949298858643,
+    "correct": true
+  },
+  {
+    "id": "test-984",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "choroidal neovascularization",
+    "prediction": "drusen",
+    "confidence": 0.7817515134811401,
+    "correct": false
+  },
+  {
+    "id": "test-809",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "diabetic macular edema",
+    "prediction": "choroidal neovascularization",
+    "confidence": 0.9266966581344604,
+    "correct": false
+  },
+  {
+    "id": "test-555",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "drusen",
+    "prediction": "choroidal neovascularization",
+    "confidence": 0.9365307092666626,
+    "correct": false
+  },
+  {
+    "id": "test-795",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "choroidal neovascularization",
+    "prediction": "choroidal neovascularization",
+    "confidence": 0.9428054094314575,
+    "correct": true
+  }
+]

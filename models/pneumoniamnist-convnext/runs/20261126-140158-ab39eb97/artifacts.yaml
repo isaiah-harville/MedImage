@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 197950287
+  sha256: ef3c38952457098c9f3795737837dcf8f30bdaa33d17bc916a6eee6f96a3bed8
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/pneumoniamnist-convnext/20261126-140158-ab39eb97/checkpoint.ckpt
