@@ -134,5 +134,10 @@ Open datasets that need no account (MedMNIST, for example) can be downloaded wit
   `metrics/compare.py`). No library resamples whole patients; `torchmetrics`'
   `BootStrapper` resamples images, which gives intervals that are too narrow. Each
   replicate calls `torchmetrics`.
+- **LUNA16 FROC matching** (`metrics/froc.py`). It follows the official
+  `noduleCADEvaluationLUNA16.py`: a hit is a detection center inside the lesion's inscribed
+  ellipsoid, each lesion counts once at its best score, and detections on ignore boxes are
+  dropped. MONAI's `compute_froc_curve_data` drops the operating point that keeps every
+  detection, which changes CPM. The curve itself comes from scikit-learn.
 - **MedMNIST unpacking** (`data/medmnist.py`). The `medmnist` package loads whole splits
   into memory; we stream each array out of the archive to a memory-mapped `.npy` file.
