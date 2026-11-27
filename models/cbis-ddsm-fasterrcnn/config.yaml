@@ -1,0 +1,57 @@
+# Prepare the data first: uv run python scripts/datasets/cbis_ddsm.py
+#   uv run opendiagnostics fit -c models/cbis-ddsm-fasterrcnn/config.yaml
+name: cbis-ddsm-fasterrcnn
+notes: >-
+  CBIS-DDSM masses and calcifications on full mammograms. Official test split; validation is
+  one of five patient-grouped folds of the official training split.
+seed_everything: 0
+trainer:
+  accelerator: auto
+  precision: 32-true
+  deterministic: warn
+  max_epochs: 30
+  log_every_n_steps: 50
+  callbacks:
+  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+    init_args: {logging_interval: epoch}
+model:
+  class_path: opendiagnostics.modules.ObjectDetector
+  init_args:
+    network:
+      class_path: torchvision.models.detection.fasterrcnn_resnet50_fpn_v2
+      init_args: {num_classes: 3, weights_backbone: IMAGENET1K_V1}
+      dict_kwargs: {min_size: 1333, max_size: 2048}
+data:
+  class_path: opendiagnostics.data.BoxManifestDataModule
+  init_args:
+    manifest: data/cbis-ddsm/manifest.csv
+    class_names: [mass, calcification]
+    split_column: split
+    license: CC BY 3.0
+    citation: >-
+      Lee RS et al. A curated mammography data set for use in computer-aided detection and
+      diagnosis research. Sci Data 4:170177, 2017. doi:10.1038/sdata.2017.177. Data:
+      doi:10.7937/K9/TCIA.2016.7O02S9CY
+    split: kfold
+    folds: 5
+    fold: 0
+    batch_size: 2
+    eval_batch_size: 4
+    num_workers: 8
+    train_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: torchvision.transforms.v2.RGB
+        - class_path: torchvision.transforms.v2.RandomHorizontalFlip
+        - class_path: torchvision.transforms.v2.RandomVerticalFlip
+    eval_transforms:
+      class_path: torchvision.transforms.v2.RGB
+optimizer:
+  class_path: torch.optim.SGD
+  init_args: {lr: 0.0025, momentum: 0.9, weight_decay: 1.0e-4}
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CosineAnnealingLR
+  init_args: {T_max: 30}
+checkpoint: {monitor: val/map_50, mode: max}
+eval: {bootstrap_samples: 1000}

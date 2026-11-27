@@ -1,0 +1,81 @@
+benchmark: CAMELYON16 slide-level metastasis classification, official test set of 129 slides
+protocol: >-
+  Train on the official 270 training slides, report slide-level AUROC (tumor vs normal) on
+  the official test set (test_049 removed, 129 slides: 49 tumor, 80 normal). Accuracy is at a
+  0.5 threshold; compare our accuracy_at_0.5. CAMELYON16 has no patient IDs, so our
+  intervals resample slides. JAMA 2017 rows are single challenge submissions (Task 2) and
+  pathologists, with percentile-bootstrap 95% intervals in the paper; challenge entries could
+  train on the pixel-level tumour annotations, which our slide-label MIL does not. TransMIL
+  and DSMIL give no run count; DTFD-MIL values are means of 5 runs. TransMIL and our runs use
+  ImageNet ResNet-50 layer-3 features; DTFD-MIL uses ResNet-50 features (pretraining is in its
+  supplement, not checked); DSMIL rows use SimCLR ResNet-18 features trained on CAMELYON16.
+  No source publishes predictions, so a claim to beat one needs its value outside our 95%
+  interval.
+baselines:
+  - method: "HMS and MIT II (challenge winner, GoogLeNet ensemble)"
+    metrics: {auroc: 0.994}
+    source: Ehteshami Bejnordi et al., JAMA 318(22):2199-2210 (2017), Table 2, Task 2
+    url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5820737/
+    notes: "95% CI 0.983-0.999"
+  - method: "HMS and MGH III (ResNet)"
+    metrics: {auroc: 0.976}
+    source: Ehteshami Bejnordi et al., JAMA 318(22):2199-2210 (2017), Table 2, Task 2
+    url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5820737/
+    notes: "95% CI 0.941-0.999"
+  - method: "Pathologist without time constraint"
+    metrics: {auroc: 0.966}
+    source: Ehteshami Bejnordi et al., JAMA 318(22):2199-2210 (2017), Table 2, Task 2
+    url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5820737/
+    notes: "95% CI 0.927-0.998; one pathologist"
+  - method: "HMS and MGH I (GoogLeNet)"
+    metrics: {auroc: 0.964}
+    source: Ehteshami Bejnordi et al., JAMA 318(22):2199-2210 (2017), Table 2, Task 2
+    url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5820737/
+    notes: "95% CI 0.928-0.989"
+  - method: "DTFD-MIL (AFS), mean of 5 runs"
+    metrics: {auroc: 0.946, accuracy: 0.908}
+    source: Zhang et al., CVPR 2022, arXiv 2203.12081v1, Table 1
+    url: https://arxiv.org/abs/2203.12081
+    notes: "CI over 5 runs: AUROC 0.941-0.951, accuracy 0.892-0.925"
+  - method: "CULab III (VGG-16)"
+    metrics: {auroc: 0.940}
+    source: Ehteshami Bejnordi et al., JAMA 318(22):2199-2210 (2017), Table 2, Task 2
+    url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5820737/
+    notes: "95% CI 0.888-0.980"
+  - method: "TransMIL"
+    metrics: {auroc: 0.9309, accuracy: 0.8837}
+    source: Shao et al., NeurIPS 2021, arXiv 2106.00908v2, Table 1
+    url: https://arxiv.org/abs/2106.00908
+  - method: "TransMIL, mean of 5 runs (reproduced by DTFD-MIL)"
+    metrics: {auroc: 0.906, accuracy: 0.858}
+    source: Zhang et al., CVPR 2022, arXiv 2203.12081v1, Table 1
+    url: https://arxiv.org/abs/2203.12081
+  - method: "DSMIL (SimCLR ResNet-18 features, 20x)"
+    metrics: {auroc: 0.8944, accuracy: 0.8682}
+    source: Li et al., CVPR 2021, arXiv 2011.08939v3, Table 1
+    url: https://arxiv.org/abs/2011.08939
+  - method: "CLAM-SB"
+    metrics: {auroc: 0.8809, accuracy: 0.8760}
+    source: Shao et al., NeurIPS 2021, arXiv 2106.00908v2, Table 1
+    url: https://arxiv.org/abs/2106.00908
+  - method: "ABMIL"
+    metrics: {auroc: 0.8760, accuracy: 0.8682}
+    source: Shao et al., NeurIPS 2021, arXiv 2106.00908v2, Table 1
+    url: https://arxiv.org/abs/2106.00908
+  - method: "CLAM-SB, mean of 5 runs (reproduced by DTFD-MIL)"
+    metrics: {auroc: 0.871, accuracy: 0.837}
+    source: Zhang et al., CVPR 2022, arXiv 2203.12081v1, Table 1
+    url: https://arxiv.org/abs/2203.12081
+  - method: "ABMIL (SimCLR ResNet-18 features, 20x)"
+    metrics: {auroc: 0.8653, accuracy: 0.8450}
+    source: Li et al., CVPR 2021, arXiv 2011.08939v3, Table 1
+    url: https://arxiv.org/abs/2011.08939
+  - method: "ABMIL, mean of 5 runs (reproduced by DTFD-MIL)"
+    metrics: {auroc: 0.854, accuracy: 0.845}
+    source: Zhang et al., CVPR 2022, arXiv 2203.12081v1, Table 1
+    url: https://arxiv.org/abs/2203.12081
+  - method: "Mean of 11 pathologists with a time constraint"
+    metrics: {auroc: 0.810}
+    source: Ehteshami Bejnordi et al., JAMA 318(22):2199-2210 (2017), Table 2, Task 2
+    url: https://pmc.ncbi.nlm.nih.gov/articles/PMC5820737/
+    notes: "95% CI 0.750-0.869"

@@ -1,0 +1,44 @@
+# A seconds-long CPU run on generated whole-slide TIFFs: tissue detection, tiling, feature
+# extraction with a small random encoder, then attention MIL on the cached features.
+#   uv run opendiagnostics fit -c configs/smoke/slide_classification.yaml
+name: smoke-slide-classification
+seed_everything: 0
+trainer:
+  accelerator: cpu
+  max_epochs: 2
+  enable_progress_bar: false
+model:
+  class_path: opendiagnostics.modules.SlideClassifier
+  init_args:
+    network:
+      class_path: monai.networks.nets.MILModel
+      init_args:
+        num_classes: 1
+        mil_mode: att
+        pretrained: false
+        backbone:
+          class_path: torch.nn.Flatten
+        backbone_num_features: 96
+data:
+  class_path: opendiagnostics.data.SyntheticSlideDataModule
+  init_args:
+    root: runs/smoke-slides
+    features_dir: runs/smoke-slides/features
+    num_slides: 24
+    slide_size: 512
+    patch_size: 32
+    patch_level: 1
+    mask_downsample: 8
+    extract_batch_size: 64
+    extract_workers: 0
+    extract_device: cpu
+    split: patient
+    fractions: [0.5, 0.25, 0.25]
+    encoder:
+      class_path: timm.create_model
+      init_args: {model_name: test_resnet, pretrained: false}
+      dict_kwargs: {num_classes: 0}
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args: {lr: 0.001}
+eval: {bootstrap_samples: 200}

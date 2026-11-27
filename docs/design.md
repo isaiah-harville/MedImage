@@ -24,9 +24,11 @@ changing behaviour. When a decision changes, update this file in the same change
 ```
 src/opendiagnostics/
   cli.py             `opendiagnostics fit | evaluate | compare | froc | publish | notebook`; the LightningCLI
-  data/              the data module base class, patient-level splits, MedMNIST, CSV manifests,
-                     synthetic smoke data, 3D volumes with boxes
-  modules/           Lightning modules: ImageClassifier, ObjectDetector, VolumeDetector, and their base
+  data/              the data module base class, patient-level splits, MedMNIST, CSV manifests
+                     of labelled images or of boxes, whole-slide feature bags (CAMELYON16/17),
+                     3D volumes with boxes, synthetic smoke data
+  modules/           Lightning modules: ImageClassifier, ObjectDetector, SlideClassifier,
+                     VolumeDetector, and their base
   evaluation.py      final evaluation of the selected checkpoint with bootstrap intervals
   metrics/           torchmetrics-backed classification metrics, cluster bootstrap, paired compare, FROC
   provenance.py      git state and package versions for run.json
@@ -56,6 +58,7 @@ The pipeline is Lightning and existing libraries wherever one does the job:
 | Detectors | torchvision (`torchvision.models.detection`); MONAI's 3D RetinaNet (`monai.apps.detection`) |
 | 3D box transforms, world-to-voxel mapping | MONAI (`monai.apps.detection.transforms`) |
 | 3D networks, medical image reading | MONAI (`monai.networks.nets`, `LoadImage`) |
+| Whole-slide reading, tissue mask, MIL head | MONAI `WSIReader` on OpenSlide (`openslide-python`, `openslide-bin` wheels, Windows included), `ForegroundMask`, `MILModel` |
 | 2D transforms, keeping boxes aligned | `torchvision.transforms.v2` |
 | MedMNIST metadata and archives | `medmnist`, torchvision's `download_url` |
 | Patient-level split | scikit-learn `train_test_split` over patients |
@@ -127,6 +130,9 @@ manifest (`VolumeManifest`): image paths, patient ID, fold or split, boxes, labe
 Datasets hold only picklable data. MedMNIST arrays are unpacked to `.npy` files that each
 DataLoader worker memory-maps, because Windows workers start by pickling the dataset.
 
+Whole-slide datasets (`SlideFeatureDataModule`) serve one slide per batch: `image` is a
+`float32 (1, N, D)` bag of `N` tile features, because slides have different tile counts.
+
 ## Data handling
 
 ### Loading
@@ -137,6 +143,18 @@ DataLoader worker memory-maps, because Windows workers start by pickling the dat
 * **Image files** listed in a CSV manifest are read with MONAI's `LoadImage` (DICOM,
     NIfTI, PNG, and more) and min-max scaled per image. DICOM (LPS) and NIfTI (RAS) use
     different patient coordinate systems; do not mix them in one dataset without resampling.
+* **Boxes** listed in a CSV manifest (`BoxManifestDataModule`), one row per box in pixel
+    `x1, y1, x2, y2` with `x` along columns, are read the same way. An image whose one row has
+    no label is a negative. `scripts/datasets/` writes these manifests for RSNA Pneumonia and
+    CBIS-DDSM.
+* **Whole slides** train in two stages. `prepare_data()` makes an Otsu tissue mask on a
+    low-resolution level, keeps the tiles of one pyramid level that are mostly tissue, runs a
+    frozen encoder (any `timm` model by `class_path`) over them, and writes one feature file
+    per slide. It streams: each slide is downloaded (resumable, MD5-checked), encoded and
+    deleted while the next one downloads, so CAMELYON's terabytes never sit on disk at once.
+    It skips slides already done, so it resumes, and `extraction.json` refuses to
+    mix features from other settings or encoder weights in one directory. `fit` then reads
+    only the features, and a `SlideClassifier` trains MONAI's attention MIL head on them.
 
 ### Splits and leakage
 

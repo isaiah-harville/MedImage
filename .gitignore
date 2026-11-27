@@ -195,6 +195,9 @@ cython_debug/
 # Experiment outputs
 /runs/
 
+# Downloaded datasets
+/data/
+
 # Generated docs
 docs/notebook/
 /site/
@@ -204,6 +207,3 @@ docs/notebook/
 weights/
 weights-cache/
 
-
-# Downloaded datasets (scripts/datasets/)
-/data/

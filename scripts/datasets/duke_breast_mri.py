@@ -113,7 +113,7 @@ def same_grid(a: dict[str, dict[str, list[float]]], b: dict[str, dict[str, list[
 
 
 def read_boxes(path: Path) -> dict[str, dict[str, Any]]:
-    import openpyxl  # ty: ignore[import-not-found]
+    import openpyxl
 
     sheet = openpyxl.load_workbook(path, read_only=True).active
     if sheet is None:

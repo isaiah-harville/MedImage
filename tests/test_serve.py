@@ -210,3 +210,15 @@ def test_a_listing_matches_the_model_and_needs_no_weights(finished_run, tmp_path
     listing = load_listing(folder)
     assert listing.description == model.description
     assert listing.demos.keys() == model.demos.keys()
+
+
+def test_runs_the_demo_cannot_run_are_left_out_of_the_listing(finished_run, tmp_path):
+    import yaml
+
+    bucket = MemoryBucket()
+    smoke_project(finished_run, tmp_path / "models", bucket=bucket)
+    [folder] = sync(tmp_path / "cache", WEIGHTS_URL, bucket.open_url)
+    config = yaml.safe_load((folder / "config.yaml").read_text())
+    config["model"]["class_path"] = "opendiagnostics.modules.ObjectDetector"
+    (folder / "config.yaml").write_text(yaml.safe_dump(config))
+    assert describe([folder]) == {}

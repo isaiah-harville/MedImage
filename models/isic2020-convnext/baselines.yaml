@@ -1,0 +1,8 @@
+benchmark: ISIC 2020 training data, our patient-level 70/15/15 split
+protocol: >-
+  No published result is comparable. The official test labels were never released: the ISIC data
+  page offers the 2020 test images and metadata but no test ground truth, so the Kaggle and ISIC
+  leaderboard AUCs can only be matched by submitting test predictions there. Papers that report
+  AUC on their own split of the 2020 training data test on different patients, so their numbers
+  are not listed. Compare our own runs with `opendiagnostics compare` on this split.
+baselines: []
