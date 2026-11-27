@@ -5,9 +5,9 @@ downloadable checkpoint. Anyone can download one without an account.
 
 ## Download
 
-- **Demo site.** Each model page on `diagnostics.harville.dev` has a **Download weights**
-  button for the checkpoint it runs.
-- **Lab notebook.** Each run page has the same button, with the file's SHA-256.
+- **Lab notebook.** Each run page has a **Download weights** button, with the file's SHA-256.
+- **Demo site.** Each model page on [diagnostics.harville.dev](https://diagnostics.harville.dev)
+  has the same button.
 - **Directly.** Checkpoints are at
 
   ```
@@ -44,10 +44,6 @@ model.load_state_dict(state["state_dict"])
 model.eval()
 ```
 
-To run the demo API locally with every published model, run
-`uv run python scripts/bundle_models.py weights`, which downloads and checks them all, then
-follow [Demo site](demo.md#run-it-locally).
-
 ## License
 
 The training data's license covers the weights. Weights are published only for datasets
@@ -60,22 +56,8 @@ treat anyone.
 
 ## Where they are stored
 
-Checkpoints are stored in the `opendiagnostics-weights` bucket on the homelab's SeaweedFS S3
-storage. The homelab repository configures it:
-
-- Anonymous users can read objects in this bucket. They can't list it, write to it, or
-  read any other bucket.
-- The public route `diagnostics.harville.dev/opendiagnostics-weights/` reaches only this
-  bucket, and only for GET and HEAD. No other method reaches the storage, so nothing can
-  be written through it, even with a presigned URL. It removes any `Authorization` header,
-  so every request is anonymous. Each client may make 10 requests a minute and two
-  downloads at once. Requests may be logged with metadata only, like the rest of the site.
-- Apart from the homelab's admin key, only the `opendiagnostics` publisher key can write,
-  only to this bucket, and only through the LAN endpoint `https://s3.int.harville.dev`.
-
-Git holds only the small run files and each checkpoint's URL and SHA-256. CI downloads
-checkpoints from the public URL to build the demo image, so neither CI nor the cluster
-needs S3 credentials.
+Checkpoints are in the public, read-only `opendiagnostics-weights` bucket on the homelab's
+S3 storage. Git holds only each checkpoint's URL and SHA-256.
 
 ## Publish
 

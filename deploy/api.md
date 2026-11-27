@@ -39,7 +39,7 @@ One entry per servable model, in display order:
 ```
 
 `test_auroc` is `null` when the run has no test metrics. `weights` is the public download of
-the served checkpoint, and `null` when it was not published (see [weights](weights.md)).
+the served checkpoint, and `null` when it was not published (see [model weights](../docs/weights.md)).
 
 ## `GET /models/{id}/demo`
 

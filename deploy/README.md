@@ -4,7 +4,7 @@ A website where people pick a scan type and see what a published model makes of 
 its class probabilities and an attribution map of the pixels that drove the top prediction.
 Every page says plainly that these are research models, not medical devices.
 
-It runs at `diagnostics.harville.dev` on `traefik-public`. Anyone can try the demo images,
+It runs at `diagnostics.harville.dev`. Anyone can try the demo images,
 which are license-cleared test images from each published run's `examples/`, or upload a
 PNG or JPEG of at most 10 MB.
 
@@ -35,13 +35,13 @@ logged; uploaded content never is.
 - **No training on uploads.** Uploads are never used to train or evaluate models.
 
 A change that keeps any uploaded data, logs request contents, keeps logs longer, or adds a
-third-party script must update the privacy page in the same change; see invariant 9 in
-`AGENTS.md`.
+third-party script must update the privacy page and this file in the same change; see
+invariant 9 in `AGENTS.md`.
 
 ## Parts
 
 - **`opendiagnostics.serve`**, the inference API (`Dockerfile.serve`). It loads every
-  bundled model on CPU at startup and implements the [demo API](demo-api.md). Only the
+  bundled model on CPU at startup and implements the [demo API](api.md). Only the
   frontends can reach it, and it makes no outbound connections.
 - **`web/`**, the SvelteKit frontend (`web/Dockerfile`), with the privacy policy at
   `/privacy`. Only its server calls the API; the browser never sees the API's address. See
@@ -65,7 +65,8 @@ uv run python scripts/bundle_models.py weights
 WEIGHTS_DIR=weights uv run --extra serve opendiagnostics-serve
 ```
 
-Then start the frontend against it (`API_URL=http://localhost:8080`); see `web/README.md`.
+Then start the frontend against it (`API_URL=http://localhost:8080`); see
+[web/README.md](../web/README.md).
 
 ## Model weights
 
@@ -74,13 +75,13 @@ each project's latest published run and downloads its checkpoint from the public
 bucket, checking it against the SHA-256 in `artifacts.yaml`. CI caches the downloads, so a
 rebuild fetches only changed checkpoints. Until a run is published, the image workflow
 skips the build. Each model page links its weights for download; see
-[model weights](weights.md).
+[model weights](../docs/weights.md).
 
 ## Deployment
 
 | | |
 |---|---|
 | Images | `ghcr.io/isaiah-harville/opendiagnostics-serve`, `ghcr.io/isaiah-harville/opendiagnostics-web` |
-| Manifests | `deploy/k8s/` (Kustomize), applied by Flux from the homelab repo |
+| Manifests | `k8s/` (Kustomize), applied by Flux from the homelab repo |
 | Tags | CI pushes `main`, `sha-<commit>`, and a sortable `<UTC time>-<short sha>` per build. Flux image automation in the homelab repo pins the newest sortable tag; CI never pushes to `main`. |
 | Owned by homelab | namespace, the Ingress and its host, TLS, rate and body-size limits, the `ghcr-pull-secret`, the weights bucket and its public route |

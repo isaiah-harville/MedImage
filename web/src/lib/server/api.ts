@@ -52,7 +52,7 @@ export function createApiClient({
     const result = schema.safeParse(await response.json());
     if (!result.success) {
       throw new ApiError(
-        `The inference service answered ${path} with JSON that does not match docs/demo-api.md: ${z.prettifyError(result.error)}`,
+        `The inference service answered ${path} with JSON that does not match deploy/api.md: ${z.prettifyError(result.error)}`,
         response.status,
       );
     }

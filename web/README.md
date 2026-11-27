@@ -13,7 +13,7 @@ disappears and the upload action returns 404. Production leaves uploads on.
 
 Only the SvelteKit server talks to the inference service, through page loads, form actions, and an
 image proxy. The browser never sees `API_URL`. The contract between the two is
-[docs/demo-api.md](../docs/demo-api.md).
+[deploy/api.md](../deploy/api.md).
 
 ## Data handling
 

@@ -77,7 +77,9 @@ src/opendiagnostics/     LightningCLI, data modules, Lightning modules, evaluati
 models/<name>/           one project per model: config.yaml, baselines.yaml, MODEL_CARD.md, runs/
 configs/smoke/           tiny configs on generated data, run in CI
 scripts/                 generators, such as the MedMNIST recipe configs
-docs/                    design.md, datasets.md, guide.md
+docs/                    the docs site: guide, design, datasets, model weights
+deploy/                  the demo site: API contract, data handling, Kubernetes manifests
+web/                     the demo site's SvelteKit frontend
 tests/                   pytest suite
 ```
 

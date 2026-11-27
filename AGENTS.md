@@ -40,6 +40,7 @@ smoke-trains every config in `configs/smoke/`. On an NVIDIA machine, use
 | `configs/smoke/` | seconds-long configs on generated data |
 | `scripts/` | generators; `medmnist_recipes.py` writes the `models/*-convnext/config.yaml` files |
 | `docs/` | design, dataset survey, site home page; `docs/notebook/` is generated and ignored |
+| `deploy/`, `web/` | the demo site: inference API contract and data handling (`deploy/README.md`), Kubernetes manifests, SvelteKit frontend |
 | `runs/` | local training output, ignored |
 
 ## Invariants
@@ -71,7 +72,7 @@ smoke-trains every config in `configs/smoke/`. On an NVIDIA machine, use
    logged and kept for 14 days; it never includes uploaded content or file names. A change
    that keeps any uploaded data, logs request contents, adds analytics or a third-party
    script, or changes retention must update the privacy page (`web/src/routes/privacy`)
-   and `docs/demo.md` in the same change, and needs the user's approval first.
+   and `deploy/README.md` in the same change, and needs the user's approval first.
 
 ## Stop and ask first
 

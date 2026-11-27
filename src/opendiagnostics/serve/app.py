@@ -1,4 +1,4 @@
-"""The inference HTTP API. The contract is docs/demo-api.md.
+"""The inference HTTP API. The contract is deploy/api.md.
 
 Uploads stay in memory for the length of one request and are never written to disk, stored,
 or logged: the body is read into memory with a size cap and parsed there, and Starlette's

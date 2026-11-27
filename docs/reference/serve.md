@@ -1,4 +1,4 @@
-# Demo inference service
+# Inference service
 
 ::: opendiagnostics.serve
 

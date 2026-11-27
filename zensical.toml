@@ -1,5 +1,5 @@
 [project]
-site_name = "OpenDiagnostics lab notebook"
+site_name = "OpenDiagnostics"
 site_description = "Open research models for medical image diagnosis. Not a medical device."
 site_url = "https://isaiah-harville.github.io/opendiagnostics/"
 repo_url = "https://github.com/isaiah-harville/opendiagnostics"
@@ -8,9 +8,7 @@ docs_dir = "docs"
 site_dir = "site"
 nav = [
   { "Home" = "index.md" },
-  { "Guide" = "guide.md" },
   { "Lab notebook" = "notebook/index.md" },
-  { "Model weights" = "weights.md" },
   { "Datasets" = [
     "datasets.md",
     { "Bar to beat" = "benchmarks.md" },
@@ -18,18 +16,21 @@ nav = [
     { "MRI and CT" = "datasets/mri-ct.md" },
     { "Other modalities" = "datasets/other-modalities.md" },
   ] },
-  { "Design" = "design.md" },
-  { "Demo site" = ["demo.md", "demo-api.md"] },
   { "Code reference" = [
     "reference/index.md",
-    "reference/cli.md",
-    "reference/data.md",
-    "reference/modules.md",
-    "reference/evaluation.md",
-    "reference/metrics.md",
-    "reference/publish.md",
-    "reference/notebook.md",
-    "reference/serve.md",
+    { "Using the pipeline" = "guide.md" },
+    { "Design" = "design.md" },
+    { "Model weights" = "weights.md" },
+    { "Modules" = [
+      "reference/cli.md",
+      "reference/data.md",
+      "reference/modules.md",
+      "reference/evaluation.md",
+      "reference/metrics.md",
+      "reference/publish.md",
+      "reference/notebook.md",
+      "reference/serve.md",
+    ] },
   ] },
 ]
 
