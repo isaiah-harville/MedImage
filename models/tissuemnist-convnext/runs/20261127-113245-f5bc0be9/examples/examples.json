@@ -1,0 +1,82 @@
+[
+  {
+    "id": "test-29004",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "Collecting Duct, Connecting Tubule",
+    "prediction": "Collecting Duct, Connecting Tubule",
+    "confidence": 0.8792694807052612,
+    "correct": true
+  },
+  {
+    "id": "test-31037",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "Distal Convoluted Tubule",
+    "prediction": "Thick Ascending Limb",
+    "confidence": 0.5445215702056885,
+    "correct": false
+  },
+  {
+    "id": "test-6490",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "Glomerular endothelial cells",
+    "prediction": "Glomerular endothelial cells",
+    "confidence": 0.8347153067588806,
+    "correct": true
+  },
+  {
+    "id": "test-16065",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "Interstitial endothelial cells",
+    "prediction": "Interstitial endothelial cells",
+    "confidence": 0.683697521686554,
+    "correct": true
+  },
+  {
+    "id": "test-40932",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "Leukocytes",
+    "prediction": "Leukocytes",
+    "confidence": 0.5611321926116943,
+    "correct": true
+  },
+  {
+    "id": "test-20066",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "Podocytes",
+    "prediction": "Podocytes",
+    "confidence": 0.38289257884025574,
+    "correct": true
+  },
+  {
+    "id": "test-44794",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "Proximal Tubule Segments",
+    "prediction": "Leukocytes",
+    "confidence": 0.273826003074646,
+    "correct": false
+  },
+  {
+    "id": "test-26782",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "Thick Ascending Limb",
+    "prediction": "Thick Ascending Limb",
+    "confidence": 0.9077274799346924,
+    "correct": true
+  }
+]
