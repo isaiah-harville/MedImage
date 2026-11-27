@@ -1,0 +1,10 @@
+benchmark: CAMELYON17 slide-level metastasis size on the 100 labelled training patients
+protocol: >-
+  The challenge's own benchmark is patient pN stage on 100 test patients, scored by quadratic
+  weighted kappa, but their labels were never released (stages.csv covers patients 000-099
+  only). We split the 100 labelled patients (500 slides) 60/20/20 by patient, stratified by
+  pN stage, and report macro one-vs-rest AUROC over the four slide classes (negative, ITC,
+  micro, macro) with patient-level bootstrap intervals. No published result uses this
+  protocol, so the list is empty. CLAM's 0.953 AUC pools CAMELYON16 with these slides under
+  10-fold Monte Carlo cross-validation, a different task.
+baselines: []

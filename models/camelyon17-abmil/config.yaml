@@ -1,0 +1,74 @@
+# CAMELYON17 slide-level metastasis size (negative, ITC, micro, macro) with attention MIL.
+#   uv run python scripts/datasets/camelyon17.py                          (the 500 labelled slides)
+#   uv run opendiagnostics prepare -c models/camelyon17-abmil/config.yaml  (feature extraction)
+#   uv run opendiagnostics fit -c models/camelyon17-abmil/config.yaml
+name: camelyon17-abmil
+notes: >-
+  The 100 labelled training patients (500 slides), split by patient 60/20/20 and stratified by
+  pN stage; the challenge never released its test labels. Same features and MIL head as
+  camelyon16-abmil. Scored by macro one-vs-rest AUROC over the four slide classes.
+seed_everything: 0
+trainer:
+  accelerator: auto
+  precision: bf16-mixed
+  deterministic: warn
+  max_epochs: 40
+  log_every_n_steps: 50
+  callbacks:
+  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+model:
+  class_path: opendiagnostics.modules.SlideClassifier
+  init_args:
+    network:
+      class_path: monai.networks.nets.MILModel
+      init_args:
+        num_classes: 4
+        mil_mode: att
+        pretrained: false
+        backbone:
+          class_path: torch.nn.Flatten
+        backbone_num_features: 1024
+data:
+  class_path: opendiagnostics.data.Camelyon17DataModule
+  init_args:
+    root: data/camelyon17
+    features_dir: data/camelyon17/features/resnet50-tv-layer3-256px-level1
+    split: patient
+    fractions: [0.6, 0.2, 0.2]
+    patch_size: 256
+    patch_level: 1
+    mask_downsample: 32
+    min_tissue: 0.25
+    extract_batch_size: 256
+    extract_workers: 8
+    num_workers: 4
+    encoder:
+      class_path: timm.create_model
+      init_args:
+        model_name: resnet50.tv_in1k
+        pretrained: true
+      dict_kwargs:
+        features_only: true
+        out_indices: [3]
+    encoder_transform:
+      class_path: torchvision.transforms.v2.Normalize
+      init_args:
+        mean: [0.485, 0.456, 0.406]
+        std: [0.229, 0.224, 0.225]
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 0.0002
+    weight_decay: 0.0001
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CosineAnnealingLR
+  init_args:
+    T_max: 40
+    eta_min: 1.0e-06
+checkpoint:
+  monitor: val/auroc
+  mode: max
+eval:
+  bootstrap_samples: 2000
