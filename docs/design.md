@@ -24,8 +24,8 @@ changing behaviour. When a decision changes, update this file in the same change
 ```
 src/opendiagnostics/
   cli.py             `opendiagnostics fit | evaluate | compare | publish | notebook`; the LightningCLI
-  data/              the data module base class, patient-level splits, MedMNIST, CSV manifests,
-                     synthetic smoke data
+  data/              the data module base class, patient-level splits, MedMNIST, CSV manifests
+                     of labelled images or of boxes, synthetic smoke data
   modules/           Lightning modules: ImageClassifier, ObjectDetector, and their base
   evaluation.py      final evaluation of the selected checkpoint with bootstrap intervals
   metrics/           torchmetrics-backed classification metrics, cluster bootstrap, paired compare
@@ -120,6 +120,10 @@ DataLoader worker memory-maps, because Windows workers start by pickling the dat
 * **Image files** listed in a CSV manifest are read with MONAI's `LoadImage` (DICOM,
     NIfTI, PNG, and more) and min-max scaled per image. DICOM (LPS) and NIfTI (RAS) use
     different patient coordinate systems; do not mix them in one dataset without resampling.
+* **Boxes** listed in a CSV manifest (`BoxManifestDataModule`), one row per box in pixel
+    `x1, y1, x2, y2` with `x` along columns, are read the same way. An image whose one row has
+    no label is a negative. `scripts/datasets/` writes these manifests for RSNA Pneumonia and
+    CBIS-DDSM.
 
 ### Splits and leakage
 
