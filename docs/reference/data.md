@@ -7,3 +7,7 @@
 ::: opendiagnostics.data.manifest
 
 ::: opendiagnostics.data.synthetic
+
+::: opendiagnostics.data.slides
+
+::: opendiagnostics.data.camelyon
