@@ -2,12 +2,27 @@ benchmark: SynapseMNIST3D (MedMNIST v2), official test split of 352 volumes at 6
 protocol: 'Test AUROC and ACC on the official split, with the official medmnist evaluator''s definitions:
   AUROC is plain binary AUROC and ACC uses a 0.5 threshold (compare our accuracy_at_0.5). Our runs train
   and test on the 64³ volumes. The MedMNIST v2 rows use the 28³ volumes, so they are a weaker, lower-resolution
-  reference, not a like-for-like comparison; they are means of at least 3 trials. The BSDA and cross-plane
-  attention rows use 64³ and the official split. BSDA values are means of 3 seeds; the cross-plane attention
+  reference, not a like-for-like comparison; they are means of at least 3 trials. The BSDA, cross-plane
+  attention, TopoCAM and PlaneCycle rows use the official split (PlaneCycle does not state its resolution). BSDA values are means of 3 seeds; the cross-plane attention
   paper does not say. Its Table 1 also lists other methods, copied from their papers without a stated
   resolution, so they are left out. No source publishes intervals or predictions, so a claim to beat one
   needs its value outside our 95% interval.'
 baselines:
+- method: R3D-18, Kinetics-400 pretrained, fine-tuned (64³)
+  metrics:
+    auroc: 0.985
+    accuracy: 0.929
+  source: Nuwagira, Koung and Coskunuzer, TopoCAM, ML4H 2025 (PMLR 297), Table 2
+  url: https://proceedings.mlr.press/v297/nuwagira26a.html
+  notes: Official split. Seeds and intervals not stated. The paper's Table 9 repeats some rows
+    across datasets, so its numbers need care. The same table gives TopoCAM 0.984, R(2+1)D-18
+    0.975 and MC3-18 0.968.
+- method: DINOv3 ViT-L/16, fully fine-tuned, 3D baseline (mean of 5 runs)
+  metrics:
+    auroc: 0.973
+  source: Yu et al., PlaneCycle, doi:10.1007/978-3-032-38062-3_45 (arXiv 2603.04165v3), Table 2
+  url: https://arxiv.org/abs/2603.04165
+  notes: Official MedMNIST+ split. The paper does not state the resolution; its code defaults to 64³.
 - method: Axial-centric cross-plane attention (64³)
   metrics:
     auroc: 0.88
