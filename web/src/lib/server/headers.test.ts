@@ -6,7 +6,7 @@ describe('withPrivacyHeaders', () => {
     const response = withPrivacyHeaders('POST', new Response('prediction'));
 
     expect(response.headers.get('Cache-Control')).toBe('no-store');
-    expect(response.headers.get('Referrer-Policy')).toBe('no-referrer');
+    expect(response.headers.get('Referrer-Policy')).toBe('same-origin');
   });
 
   it('leaves caching of page and image reads to the route', () => {
@@ -16,6 +16,6 @@ describe('withPrivacyHeaders', () => {
     );
 
     expect(response.headers.get('Cache-Control')).toBe('public, max-age=3600');
-    expect(response.headers.get('Referrer-Policy')).toBe('no-referrer');
+    expect(response.headers.get('Referrer-Policy')).toBe('same-origin');
   });
 });

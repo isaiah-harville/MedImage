@@ -25,7 +25,9 @@ image proxy. The browser never sees `API_URL`. The contract between the two is
   path, status, client IP, user agent) may be logged; today the only logs are
   inference-service errors (name and message).
 - Every non-GET response (every form action, so every prediction) has `Cache-Control: no-store`.
-  Every response has `Referrer-Policy: no-referrer`.
+  Every response has `Referrer-Policy: same-origin`: no referrer reaches another site.
+  (`no-referrer` would make browsers send `Origin: null` on the site's own form posts,
+  and SvelteKit rejects those as cross-site.)
 - Results travel only in the form action's response body, never in a URL, and the server keeps no
   copy.
 - No cookies, analytics, trackers, or third-party scripts. The two fonts (Inter and
