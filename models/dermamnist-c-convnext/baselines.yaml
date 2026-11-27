@@ -1,0 +1,78 @@
+benchmark: DermaMNIST (MedMNIST v2), official test split of 2,005 images
+protocol: >-
+  Test AUROC and ACC on the official split, with the official medmnist evaluator's
+  definitions: AUROC is one-vs-rest macro for multiclass, macro over labels for ChestMNIST, and
+  plain for binary; ACC is argmax for multiclass and a 0.5 threshold for binary and ChestMNIST
+  (compare our accuracy_at_0.5 for binary subsets). Our runs train and test on the native 224 px
+  MedMNIST+ images, so the MedMNIST+ native-224 rows are the like-for-like comparison. MedMNIST
+  v2 "224" rows and both MedViT papers use 28 px images upscaled. MedMNIST+ values are means of
+  3 seeds; MedMNIST v2 values are means of at least 3 trials; the MedViT papers do not say. No
+  source publishes intervals or predictions, so a claim to beat one needs its value outside our
+  95% interval. MedViTV2's Table 5 misquotes several MedMNIST v2 rows, so treat its own numbers
+  with care.
+baselines:
+  - method: "DINOv2 ViT-B/14, end-to-end fine-tuned, native 224, mean of 3 runs"
+    metrics: {auroc: 0.9892, accuracy: 0.9202}
+    source: Wu and Papiez, arXiv 2501.14685v1 (2025), Table 1
+    url: https://arxiv.org/abs/2501.14685
+  - method: "CLIP ViT-B/16, end-to-end fine-tuned, native 224, mean of 3 runs"
+    metrics: {auroc: 0.9831}
+    source: Wu and Papiez, arXiv 2501.14685v1 (2025), Table 1
+    url: https://arxiv.org/abs/2501.14685
+  - method: "Soft-voting ensemble of four ImageNet-pretrained networks, native 224, one seed"
+    metrics: {auroc: 0.9877, accuracy: 0.9092}
+    source: Sanap, Neural Computing and Applications (2026), doi:10.1007/s00521-026-12521-1, Table 6
+    url: https://doi.org/10.1007/s00521-026-12521-1
+    notes: Read from the author's revision on Zenodo; the published version is paywalled.
+  - method: "ConvNeXt-Base, fine-tuned without augmentation, native 224, one seed"
+    metrics: {auroc: 0.9820, accuracy: 0.8948}
+    source: Sanap, Neural Computing and Applications (2026), doi:10.1007/s00521-026-12521-1, Table 6
+    url: https://doi.org/10.1007/s00521-026-12521-1
+  - method: "DINO ViT-B/16, linear probe, native 224 (MedMNIST+), mean of 3 seeds"
+    metrics: {auroc: 0.9683, accuracy: 0.8442}
+    source: Doerrich et al., arXiv 2404.15786v3 (2025), Supplementary Table S4
+    url: https://arxiv.org/html/2404.15786v3
+  - method: "DINO ViT-B/16, end-to-end, native 224 (MedMNIST+), mean of 3 seeds"
+    metrics: {auroc: 0.965, accuracy: 0.8131}
+    source: Doerrich et al., arXiv 2404.15786v3 (2025), Supplementary Table S4
+    url: https://arxiv.org/html/2404.15786v3
+  - method: "DenseNet-121, end-to-end, native 224 (MedMNIST+), mean of 3 seeds"
+    metrics: {auroc: 0.9626, accuracy: 0.8474}
+    source: Doerrich et al., arXiv 2404.15786v3 (2025), Supplementary Table S4
+    url: https://arxiv.org/html/2404.15786v3
+  - method: "MedViTV2-L (224, resized)"
+    metrics: {auroc: 0.95, accuracy: 0.817}
+    source: Manzari et al., arXiv 2502.13693v3 (2025), Table 5
+    url: https://arxiv.org/html/2502.13693v3
+  - method: "MedViT-S (224, resized)"
+    metrics: {auroc: 0.937, accuracy: 0.78}
+    source: Manzari et al., arXiv 2302.09462v1 (2023), Table 3
+    url: https://arxiv.org/html/2302.09462v1
+  - method: "ResNet-18 (28 upscaled to 224)"
+    metrics: {auroc: 0.92, accuracy: 0.754}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "ResNet-18 (28)"
+    metrics: {auroc: 0.917, accuracy: 0.735}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "AutoKeras (28)"
+    metrics: {auroc: 0.915, accuracy: 0.749}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "Google AutoML Vision (28)"
+    metrics: {auroc: 0.914, accuracy: 0.768}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "ResNet-50 (28)"
+    metrics: {auroc: 0.913, accuracy: 0.735}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "ResNet-50 (28 upscaled to 224)"
+    metrics: {auroc: 0.912, accuracy: 0.731}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3
+  - method: "auto-sklearn (28)"
+    metrics: {auroc: 0.902, accuracy: 0.719}
+    source: Yang et al., Scientific Data 10:41 (2023), Table 3
+    url: https://www.nature.com/articles/s41597-022-01721-8/tables/3

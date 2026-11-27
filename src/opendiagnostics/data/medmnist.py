@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import shutil
 import zipfile
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -32,6 +33,34 @@ CITATION = (
 # RibFrac's Zenodo record (3893508) is CC BY-NC 4.0, and the LiTS paper (arXiv 1901.04056,
 # section 3.2) licenses its data "as CC BY-NC-SA" without a version.
 SOURCE_LICENSES = {"fracturemnist3d": "CC BY-NC 4.0", "organmnist3d": "CC BY-NC-SA"}
+
+
+@dataclass(frozen=True)
+class Variant:
+    """A corrected release of a subset, in MedMNIST's own archive layout."""
+
+    flag: str
+    archives: dict[int, tuple[str, str]]
+    license: str
+    citation: str
+
+
+_DERMAMNIST_C = "https://zenodo.org/api/records/12739457/files/dermamnist_corrected_{}.npz/content"
+VARIANTS = {
+    "dermamnist_corrected": Variant(
+        flag="dermamnist",
+        archives={
+            28: (_DERMAMNIST_C.format(28), "96e2862980877d45d9cacb5c25de6950"),
+            224: (_DERMAMNIST_C.format(224), "84920fb70c83b234c295b6f0d4ae2bc0"),
+        },
+        license="CC BY-NC 4.0",
+        citation=(
+            "Abhishek, K., Jain, A. and Hamarneh, G. Investigating the Quality of DermaMNIST and "
+            "Fitzpatrick17k Dermatological Image Datasets. arXiv:2401.14497 (2024). "
+            "https://doi.org/10.5281/zenodo.11101337"
+        ),
+    )
+}
 
 
 class MemmapImages:
@@ -84,6 +113,8 @@ class MedMNISTDataModule(MedicalDataModule):
     """One MedMNIST subset (``flag``, e.g. ``pneumoniamnist``) at ``size`` 28, 64, 128, or 224.
 
     3D subsets have ``size`` 28 or 64. ``root`` defaults to the package's ``~/.medmnist``.
+    ``variant`` names a corrected release in ``VARIANTS`` to read instead of the original, for
+    example ``dermamnist_corrected`` (DermaMNIST-C, with no lesion in both train and test).
     """
 
     def __init__(
@@ -92,11 +123,22 @@ class MedMNISTDataModule(MedicalDataModule):
         size: int = 28,
         root: str | None = None,
         download: bool = True,
+        variant: str | None = None,
         **kwargs: Any,
     ) -> None:
         super().__init__(**kwargs)
         if flag not in INFO:
             raise ValueError(f"unknown MedMNIST subset {flag!r}; choose from {sorted(INFO)}")
+        self.variant = VARIANTS.get(variant or "")
+        if variant is not None and (
+            self.variant is None or self.variant.flag != flag or size not in self.variant.archives
+        ):
+            known = {k: (v.flag, sorted(v.archives)) for k, v in VARIANTS.items()}
+            raise ValueError(
+                f"no variant {variant!r} of {flag} at size {size}; known variants and their "
+                f"subsets and sizes: {known}"
+            )
+        self.variant_name = variant
         self.flag = flag
         self.size = size
         self.root = Path(root).expanduser() if root else Path.home() / ".medmnist"
@@ -117,20 +159,28 @@ class MedMNISTDataModule(MedicalDataModule):
             in_channels=meta["n_channels"],
             spatial_dims=3 if flag.endswith("3d") else 2,
             patient_ids_available=False,
-            license=SOURCE_LICENSES.get(flag, meta["license"]),
-            citation=CITATION,
+            license=self.variant.license
+            if self.variant
+            else SOURCE_LICENSES.get(flag, meta["license"]),
+            citation=f"{CITATION} {self.variant.citation}" if self.variant else CITATION,
         )
 
     @property
     def _suffix(self) -> str:
         return "" if self.size == 28 else f"_{self.size}"
 
-    def _md5(self) -> str | None:
+    @property
+    def _name(self) -> str:
+        return f"{self.variant_name or self.flag}{self._suffix}"
+
+    def _url_md5(self) -> tuple[str, str | None]:
+        if self.variant:
+            return self.variant.archives[self.size]
         meta: dict[str, Any] = INFO[self.flag]
-        return meta.get(f"MD5{self._suffix}")
+        return meta[f"url{self._suffix}"], meta.get(f"MD5{self._suffix}")
 
     def _array(self, split: str, kind: str) -> Path:
-        return self.root / f"{self.flag}{self._suffix}" / f"{split}_{kind}.npy"
+        return self.root / self._name / f"{split}_{kind}.npy"
 
     def prepare_data(self) -> None:
         """Download the archive (MD5-checked) and unpack each array to its own ``.npy`` file.
@@ -140,10 +190,10 @@ class MedMNISTDataModule(MedicalDataModule):
         """
         if all(self._array(s, k).exists() for s in SPLIT_NAMES for k in ("images", "labels")):
             return
-        meta: dict[str, Any] = INFO[self.flag]
-        archive = f"{self.flag}{self._suffix}.npz"
+        archive = f"{self._name}.npz"
         if self.download:
-            download_url(meta[f"url{self._suffix}"], str(self.root), archive, self._md5())
+            url, md5 = self._url_md5()
+            download_url(url, str(self.root), archive, md5)
         elif not (self.root / archive).exists():
             raise FileNotFoundError(f"{self.root / archive} is missing; set download: true")
         self._array("train", "images").parent.mkdir(parents=True, exist_ok=True)
@@ -173,8 +223,8 @@ class MedMNISTDataModule(MedicalDataModule):
             patient_ids=ids,
             splits=splits,
             fingerprint={
-                "subset": self.flag,
+                "subset": self._name.removesuffix(self._suffix),
                 "size": self.size,
-                "md5": INFO[self.flag].get("MD5" if self.size == 28 else f"MD5_{self.size}"),
+                "md5": self._url_md5()[1],
             },
         )

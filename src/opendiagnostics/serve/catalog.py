@@ -70,6 +70,9 @@ DATASETS = {
     "dermamnist": ScanType(
         "Skin lesion photo", "Dermatoscopy", "Which type of skin lesion is this?"
     ),
+    "dermamnist-c": ScanType(
+        "Skin lesion photo", "Dermatoscopy", "Which type of skin lesion is this?"
+    ),
     "ham10000": ScanType("Skin lesion photo", "Dermatoscopy", "Which type of skin lesion is this?"),
     "isic2019": ScanType("Skin lesion photo", "Dermatoscopy", "Which type of skin lesion is this?"),
     "isic2020": ScanType("Skin lesion photo", "Dermatoscopy", "Melanoma or not?"),

@@ -93,3 +93,27 @@ def _augmented_epoch(num_workers):
 @pytest.mark.parametrize("num_workers", [0, 2])
 def test_monai_random_transforms_follow_the_torch_seed(num_workers):
     assert torch.equal(_augmented_epoch(num_workers), _augmented_epoch(num_workers))
+
+
+def test_a_medmnist_variant_reads_its_own_archive_and_records_its_source(tmp_path):
+    _fake_archive(tmp_path, flag="dermamnist_corrected", size=224, counts=(4, 1, 2))
+    data = MedMNISTDataModule(
+        flag="dermamnist",
+        size=224,
+        root=str(tmp_path),
+        download=False,
+        variant="dermamnist_corrected",
+    )
+    data.setup()
+    assert {k: len(v) for k, v in data.splits.items()} == {"train": 4, "val": 1, "test": 2}
+    assert (tmp_path / "dermamnist_corrected_224" / "test_images.npy").is_file()
+    assert data.info.license == "CC BY-NC 4.0"
+    assert "Abhishek" in data.info.citation
+
+
+@pytest.mark.parametrize(
+    ("flag", "size"), [("pathmnist", 224), ("dermamnist", 64)], ids=["other-subset", "size"]
+)
+def test_a_medmnist_variant_must_match_its_subset_and_size(flag, size):
+    with pytest.raises(ValueError, match="no variant 'dermamnist_corrected'"):
+        MedMNISTDataModule(flag=flag, size=size, download=False, variant="dermamnist_corrected")
