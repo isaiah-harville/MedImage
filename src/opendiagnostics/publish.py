@@ -26,6 +26,7 @@ from typing import Protocol
 import boto3
 import yaml
 from boto3.exceptions import S3UploadFailedError
+from boto3.s3.transfer import TransferConfig
 from botocore.config import Config
 from botocore.exceptions import BotoCoreError, ClientError
 from pydantic import BaseModel, ConfigDict
@@ -39,6 +40,9 @@ WEIGHTS_BUCKET = "opendiagnostics-weights"
 WEIGHTS_URL = f"https://diagnostics.harville.dev/{WEIGHTS_BUCKET}"
 # Cloudflare, in front of the weights host, refuses Python's default User-Agent.
 USER_AGENT = "opendiagnostics"
+# The homelab's S3 gateway is limited to 256 MiB of memory; boto3's default of ten parallel
+# 8 MiB parts gets it killed mid-upload. Two 16 MiB parts at a time stay well inside it.
+UPLOAD_CONFIG = TransferConfig(max_concurrency=2, multipart_chunksize=16 * 1024 * 1024)
 # Licenses that allow redistributing a dataset's images and models trained on it, so example
 # figures and checkpoints may be published. Anything else, including credentialed data and
 # unknown licenses, publishes neither.
@@ -130,6 +134,7 @@ class S3Bucket:
                 WEIGHTS_BUCKET,
                 key,
                 ExtraArgs={"ContentType": "application/octet-stream"},
+                Config=UPLOAD_CONFIG,
             )
         except (BotoCoreError, ClientError, S3UploadFailedError) as error:
             raise self._failed(
