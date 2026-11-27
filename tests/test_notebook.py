@@ -93,3 +93,12 @@ def test_samples_page_says_when_there_are_no_examples(project, tmp_path):
     out = tmp_path / "notebook"
     build_notebook(project.parent, out)
     assert "No published run has example images yet." in (out / "samples.md").read_text()
+
+
+def test_roc_plot_is_skipped_for_a_multilabel_run(tmp_path):
+    from opendiagnostics.notebook import plots
+
+    csv = tmp_path / "predictions_test.csv"
+    csv.write_text("id,patient_id,target/a,target/b,prob/a,prob/b\ns1,p1,1.0,0.0,0.9,0.2\n")
+    assert plots.roc_and_pr(csv, tmp_path / "roc.svg") is False
+    assert not (tmp_path / "roc.svg").exists()

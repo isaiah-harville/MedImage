@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import csv
 from pathlib import Path
 from typing import Any
 
@@ -48,6 +49,9 @@ def training_curves(history: list[dict[str, Any]], monitor: str, path: Path) -> 
 
 def roc_and_pr(predictions_csv: Path, path: Path) -> bool:
     """ROC and precision-recall curves for a binary run. Returns False for other tasks."""
+    with predictions_csv.open(newline="") as handle:
+        if "target" not in next(csv.reader(handle), []):
+            return False
     predictions = read_predictions(predictions_csv)
     if predictions.prob.shape[1] != 1:
         return False
