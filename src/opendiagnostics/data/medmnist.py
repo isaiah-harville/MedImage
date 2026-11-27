@@ -1,8 +1,8 @@
 """MedMNIST v2 through the official ``medmnist`` package.
 
 MedMNIST publishes no patient IDs, so the official split is used as published and the run
-records that leakage could not be checked. Each subset keeps its source dataset's license;
-see docs/datasets.md.
+records that leakage could not be checked. A subset records its source dataset's license
+where that is stricter than what MedMNIST declares; see docs/datasets.md.
 
 Citation: Yang, J. et al. "MedMNIST v2 - A large-scale lightweight benchmark for 2D and 3D
 biomedical image classification." Scientific Data 10, 41 (2023).
@@ -27,6 +27,11 @@ CITATION = (
     "biomedical image classification. Scientific Data 10, 41 (2023). "
     "https://doi.org/10.1038/s41597-022-01721-8"
 )
+
+# Subsets whose source is stricter than the CC BY 4.0 the medmnist package declares:
+# RibFrac's Zenodo record (3893508) is CC BY-NC 4.0, and the LiTS paper (arXiv 1901.04056,
+# section 3.2) licenses its data "as CC BY-NC-SA" without a version.
+SOURCE_LICENSES = {"fracturemnist3d": "CC BY-NC 4.0", "organmnist3d": "CC BY-NC-SA"}
 
 
 class MemmapImages:
@@ -112,7 +117,7 @@ class MedMNISTDataModule(MedicalDataModule):
             in_channels=meta["n_channels"],
             spatial_dims=3 if flag.endswith("3d") else 2,
             patient_ids_available=False,
-            license=meta["license"],
+            license=SOURCE_LICENSES.get(flag, meta["license"]),
             citation=CITATION,
         )
 

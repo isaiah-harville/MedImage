@@ -47,6 +47,19 @@ def test_medmnist_3d_volumes_batch_channel_first_in_unit_range(tmp_path):
     assert image[:, :, 1:].max().item() == 0.0
 
 
+@pytest.mark.parametrize(
+    ("flag", "license"),
+    [
+        ("fracturemnist3d", "CC BY-NC 4.0"),
+        ("organmnist3d", "CC BY-NC-SA"),
+        ("nodulemnist3d", "CC BY 4.0"),
+        ("synapsemnist3d", "CC BY 4.0"),
+    ],
+)
+def test_medmnist_3d_subsets_record_their_source_license(flag, license):
+    assert MedMNISTDataModule(flag=flag, size=64, download=False).info.license == license
+
+
 def test_medmnist_dataset_pickles_without_its_images(tmp_path):
     _fake_archive(tmp_path)
     data = MedMNISTDataModule(flag="dermamnist", size=64, root=str(tmp_path), download=False)
