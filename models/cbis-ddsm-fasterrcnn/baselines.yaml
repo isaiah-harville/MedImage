@@ -1,0 +1,9 @@
+benchmark: CBIS-DDSM official Mass-Test and Calc-Test splits, full mammograms
+protocol: >-
+  mAP at IoU 0.5 over two classes, mass and calcification (torchmetrics MeanAveragePrecision,
+  COCO 101-point interpolation), on the official test split from TCIA's case-description CSVs.
+  Boxes are the bounding boxes of the ROI masks. Training participants who also appear in the
+  test split are dropped from training. We found no published mAP on this protocol: Famouri et
+  al. (arXiv 2104.12218) use the official split for masses only and report FROC, and the other
+  detection papers we checked use DDSM, custom splits, or a mask-overlap criterion.
+baselines: []

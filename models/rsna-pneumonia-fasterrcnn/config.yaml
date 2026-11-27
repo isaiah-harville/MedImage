@@ -1,0 +1,54 @@
+# Prepare the data first: uv run python scripts/datasets/rsna_pneumonia.py
+#   uv run opendiagnostics fit -c models/rsna-pneumonia-fasterrcnn/config.yaml
+name: rsna-pneumonia-fasterrcnn
+notes: >-
+  RSNA Pneumonia adjudicated release, one opacity class at 1024 px. Patient-level split by NIH
+  patient ID; mAP@0.5 is not the Kaggle leaderboard metric.
+seed_everything: 0
+trainer:
+  accelerator: auto
+  precision: 32-true
+  deterministic: warn
+  max_epochs: 12
+  log_every_n_steps: 50
+  callbacks:
+  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+    init_args: {logging_interval: epoch}
+model:
+  class_path: opendiagnostics.modules.ObjectDetector
+  init_args:
+    network:
+      class_path: torchvision.models.detection.fasterrcnn_resnet50_fpn_v2
+      init_args: {num_classes: 2, weights_backbone: IMAGENET1K_V1}
+      dict_kwargs: {min_size: 1024, max_size: 1024, box_detections_per_img: 20}
+data:
+  class_path: opendiagnostics.data.BoxManifestDataModule
+  init_args:
+    manifest: data/rsna-pneumonia/manifest.csv
+    class_names: [opacity]
+    license: RSNA Pneumonia Detection Challenge Terms of Use
+    citation: >-
+      Shih G et al. Augmenting the National Institutes of Health Chest Radiograph Dataset
+      with Expert Annotations of Possible Pneumonia. Radiology: Artificial Intelligence
+      1(1):e180041, 2019. doi:10.1148/ryai.2019180041
+    split: patient
+    fractions: [0.7, 0.15, 0.15]
+    batch_size: 4
+    eval_batch_size: 8
+    num_workers: 8
+    train_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: torchvision.transforms.v2.RGB
+        - class_path: torchvision.transforms.v2.RandomHorizontalFlip
+    eval_transforms:
+      class_path: torchvision.transforms.v2.RGB
+optimizer:
+  class_path: torch.optim.SGD
+  init_args: {lr: 0.005, momentum: 0.9, weight_decay: 1.0e-4}
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CosineAnnealingLR
+  init_args: {T_max: 12}
+checkpoint: {monitor: val/map_50, mode: max}
+eval: {bootstrap_samples: 1000}
