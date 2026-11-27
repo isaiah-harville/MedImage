@@ -127,7 +127,10 @@ def test_camelyon16_carves_validation_from_train_and_keeps_test(tmp_path):
     names = [r.split(".tif")[0] for r in rows[1:]]
     _fake_features(tmp_path / "features", names)
     data = Camelyon16DataModule(
-        root=str(tmp_path), features_dir=str(tmp_path / "features"), encoder=nn.Linear(2, 2)
+        root=str(tmp_path),
+        features_dir=str(tmp_path / "features"),
+        encoder=nn.Linear(2, 2),
+        download=False,
     )
     data.setup()
     ids = {k: {data.source.sample_ids[i] for i in v} for k, v in data.splits.items()}
@@ -157,7 +160,10 @@ def test_features_from_another_encoder_are_refused(tmp_path):
 def test_missing_slides_point_at_the_download_scripts(tmp_path):
     (tmp_path / "stages.csv").write_text(C17_STAGES)
     data = Camelyon17DataModule(
-        root=str(tmp_path), features_dir=str(tmp_path / "features"), encoder=nn.Linear(2, 2)
+        root=str(tmp_path),
+        features_dir=str(tmp_path / "features"),
+        encoder=nn.Linear(2, 2),
+        download=False,
     )
     with pytest.raises(FileNotFoundError, match="scripts/datasets"):
         data.prepare_data()

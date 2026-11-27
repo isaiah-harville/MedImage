@@ -131,7 +131,7 @@ def write_pyramid(path: Path, image: np.ndarray, levels: int, tile: int = 64) ->
 
 class SyntheticSlideDataModule(SlideFeatureDataModule):
     """Tiny generated slides: a pink tissue rectangle on white, with dark purple nests in
-    ``tumor`` slides. ``prepare_data()`` writes them to ``root/images`` before extracting."""
+    ``tumor`` slides. Fetching a slide writes it to ``root/images``."""
 
     def __init__(
         self,
@@ -163,21 +163,18 @@ class SyntheticSlideDataModule(SlideFeatureDataModule):
             for n, label in enumerate(labels)
         ]
 
-    def prepare_data(self) -> None:
-        rng = np.random.RandomState(self.seed + 1)
+    def fetch_slide(self, slide: Slide) -> None:
+        number = int(slide.slide_id.removeprefix("slide_"))
+        rng = np.random.RandomState(self.seed + 1 + number)
         size = self.slide_size
-        for slide in self.slides():
-            if slide.path.exists():
-                continue
-            image = np.full((size, size, 3), 240, np.uint8)
-            top, left = rng.randint(size // 8, size // 4, 2)
-            image[top : size - top, left : size - left] = (220, 150, 190)
-            if slide.label:
-                for _ in range(4):
-                    y, x = rng.randint(size // 4, 3 * size // 4 - size // 8, 2)
-                    image[y : y + size // 8, x : x + size // 8] = (90, 40, 120)
-            slide.path.parent.mkdir(parents=True, exist_ok=True)
-            partial = slide.path.with_suffix(".partial")
-            write_pyramid(partial, image, levels=4)
-            partial.replace(slide.path)
-        super().prepare_data()
+        image = np.full((size, size, 3), 240, np.uint8)
+        top, left = rng.randint(size // 8, size // 4, 2)
+        image[top : size - top, left : size - left] = (220, 150, 190)
+        if slide.label:
+            for _ in range(4):
+                y, x = rng.randint(size // 4, 3 * size // 4 - size // 8, 2)
+                image[y : y + size // 8, x : x + size // 8] = (90, 40, 120)
+        slide.path.parent.mkdir(parents=True, exist_ok=True)
+        partial = slide.path.with_suffix(".partial")
+        write_pyramid(partial, image, levels=4)
+        partial.replace(slide.path)

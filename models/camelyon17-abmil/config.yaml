@@ -1,6 +1,7 @@
 # CAMELYON17 slide-level metastasis size (negative, ITC, micro, macro) with attention MIL.
-#   uv run python scripts/datasets/camelyon17.py                          (the 500 labelled slides)
-#   uv run opendiagnostics prepare -c models/camelyon17-abmil/config.yaml  (feature extraction)
+#   uv run opendiagnostics prepare -c models/camelyon17-abmil/config.yaml
+#     streams each slide from the public bucket (1.46 TB in all), caches its features,
+#     and deletes it; peak disk is two slides plus the features. Rerun to resume.
 #   uv run opendiagnostics fit -c models/camelyon17-abmil/config.yaml
 name: camelyon17-abmil
 notes: >-

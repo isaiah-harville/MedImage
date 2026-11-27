@@ -11,3 +11,5 @@
 ::: opendiagnostics.data.slides
 
 ::: opendiagnostics.data.camelyon
+
+::: opendiagnostics.data.camelyon_download

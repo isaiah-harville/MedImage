@@ -25,10 +25,12 @@ Research only. Not a medical device. Do not use it to diagnose patients or to tr
 ## Training
 Two stages, both from `config.yaml`:
 
-1. `uv run opendiagnostics prepare -c models/camelyon16-abmil/config.yaml` finds tissue with an
-   Otsu threshold on saturation at the level nearest 32x downsampling, keeps 256 px level-1
-   tiles that are at least 25% tissue, and writes one feature file per slide to
-   `features_dir`. It resumes where it stopped.
+1. `uv run opendiagnostics prepare -c models/camelyon16-abmil/config.yaml` downloads one
+   slide at a time from the public bucket (MD5-checked), finds tissue with an Otsu threshold
+   on saturation at the level nearest 32x downsampling, keeps 256 px level-1 tiles that are
+   at least 25% tissue, writes the slide's features to `features_dir`, and deletes the slide.
+   The next slide downloads meanwhile. Peak disk is about two slides (8 GB at most) plus the
+   features; a rerun resumes. Set `keep_slides: true` to keep the 752 GB of slides.
 2. `uv run opendiagnostics fit -c models/camelyon16-abmil/config.yaml` trains the attention
    head on the cached features, one slide per step, for 40 epochs, keeping the epoch with the
    best validation AUROC.
@@ -52,7 +54,6 @@ The decision threshold is Youden's J on validation.
 
 ## Reproduce
 ```bash
-uv run python scripts/datasets/camelyon16.py --out data/camelyon16
 uv run opendiagnostics prepare -c models/camelyon16-abmil/config.yaml
 uv run opendiagnostics fit -c models/camelyon16-abmil/config.yaml
 ```

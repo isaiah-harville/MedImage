@@ -23,8 +23,9 @@ Research only. Not a medical device. Do not use it to stage patients.
 - Class counts in `stages.csv`: 318 negative, 36 ITC, 59 micro, 87 macro.
 
 ## Training
-As for camelyon16-abmil: `uv run opendiagnostics prepare` extracts and caches the tile
-features, then `uv run opendiagnostics fit` trains the attention head for 40 epochs and
+As for camelyon16-abmil: `uv run opendiagnostics prepare` streams the 500 labelled slides
+(1.46 TB in all; peak disk about two slides, 16 GB at most, plus the features) and caches
+their features, then `uv run opendiagnostics fit` trains the attention head for 40 epochs and
 keeps the epoch with the best validation macro AUROC. Commit, hardware and training time:
 from the run's `run.json`.
 
@@ -42,7 +43,6 @@ Test split, best-validation checkpoint, 95% patient-level bootstrap CIs from the
 
 ## Reproduce
 ```bash
-uv run python scripts/datasets/camelyon17.py --out data/camelyon17
 uv run opendiagnostics prepare -c models/camelyon17-abmil/config.yaml
 uv run opendiagnostics fit -c models/camelyon17-abmil/config.yaml
 ```

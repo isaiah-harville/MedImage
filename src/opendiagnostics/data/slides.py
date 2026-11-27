@@ -2,10 +2,13 @@
 
 Training on gigapixel slides is done in two stages. ``prepare_data()`` finds tissue on a
 low-resolution level, tiles it, runs a frozen pretrained encoder over every tile, and writes
-one ``<slide_id>.pt`` file of features per slide to ``features_dir``. It skips slides whose
-file exists, so an interrupted extraction resumes where it stopped. Training then reads only
-the cached features: each sample is a ``float32 (N, D)`` bag of ``N`` tile features, served
-one slide per batch because bags differ in size.
+one ``<slide_id>.pt`` file of features per slide to ``features_dir``. It streams: each slide
+is fetched (a subclass's :meth:`SlideFeatureDataModule.fetch_slide`), encoded, then deleted
+unless ``keep_slides`` is set, while the next ``prefetch`` slides download in the
+background. Peak disk is ``1 + prefetch`` slides plus the feature cache. Slides with a
+feature file are skipped without fetching, so an interrupted run resumes where it stopped.
+Training then reads only the cached features: each sample is a ``float32 (N, D)`` bag of
+``N`` tile features, served one slide per batch because bags differ in size.
 
 Slides are read with MONAI's ``WSIReader``. The default OpenSlide backend reads one tile at
 a time; MONAI's tifffile backend decodes a whole level per read, so it suits only tiny
@@ -17,7 +20,9 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
-from collections.abc import Hashable, Sequence
+from collections import deque
+from collections.abc import Hashable, Iterator, Sequence
+from concurrent.futures import Future, ThreadPoolExecutor
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any, Literal
@@ -229,6 +234,10 @@ class SlideFeatureDataModule(MedicalDataModule):
     and need ``min_tissue`` of their area to be tissue in an Otsu mask made at the level
     closest to ``mask_downsample``. When the dataset's official split has a train part but
     no validation part, ``val_fraction`` of the training patients become validation.
+
+    ``keep_slides: false`` deletes each slide file under ``root`` once its features are
+    saved, including slides that were there before. ``prefetch`` is how many slides to fetch
+    ahead of the one being encoded.
     """
 
     def __init__(
@@ -246,6 +255,8 @@ class SlideFeatureDataModule(MedicalDataModule):
         extract_workers: int = 4,
         extract_device: str = "auto",
         val_fraction: float = 0.15,
+        keep_slides: bool = False,
+        prefetch: int = 1,
         batch_size: int = 1,
         eval_batch_size: int | None = None,
         **kwargs: Any,
@@ -258,6 +269,8 @@ class SlideFeatureDataModule(MedicalDataModule):
         self.encoder = encoder
         self.encoder_transform = encoder_transform
         self.val_fraction = val_fraction
+        self.keep_slides = keep_slides
+        self.prefetch = prefetch
         self.extraction = Extraction(
             patch_size,
             patch_level,
@@ -272,33 +285,64 @@ class SlideFeatureDataModule(MedicalDataModule):
     def slides(self) -> list[Slide]:
         raise NotImplementedError
 
+    def fetch_slide(self, slide: Slide) -> None:
+        """Put ``slide`` at ``slide.path``. Subclasses that can download or make it override
+        this; it runs in a background thread."""
+        raise FileNotFoundError(
+            f"{slide.path} is missing. Put the slides in {self.root} first; see scripts/datasets/."
+        )
+
     def feature_path(self, slide: Slide) -> Path:
         return self.features_dir / f"{slide.slide_id}.pt"
 
+    def _ensure(self, slide: Slide) -> None:
+        if not slide.path.exists():
+            self.fetch_slide(slide)
+
+    def _fetched(self, todo: list[Slide], pool: ThreadPoolExecutor) -> Iterator[Slide]:
+        """``todo`` in order, each once it is on disk, with up to ``prefetch`` more fetching."""
+        pending: deque[tuple[Slide, Future[None]]] = deque()
+        upcoming = iter(todo)
+        for slide in upcoming:
+            pending.append((slide, pool.submit(self._ensure, slide)))
+            if len(pending) > self.prefetch:
+                break
+        while pending:
+            slide, fetched = pending.popleft()
+            fetched.result()
+            yield slide
+            following = next(upcoming, None)
+            if following is not None:
+                pending.append((following, pool.submit(self._ensure, following)))
+
     def prepare_data(self) -> None:
-        """Extract features for every slide that has no feature file yet."""
+        """Fetch, encode and (unless ``keep_slides``) delete every slide without features."""
         self._check_record(self.extraction.record(self.encoder, self.encoder_transform))
         todo = [s for s in self.slides() if not self.feature_path(s).exists()]
         if not todo:
             return
-        missing = [s.path for s in todo if not s.path.exists()]
-        if missing:
-            raise FileNotFoundError(
-                f"{len(missing)} slides are missing, the first {missing[0]}. Download them "
-                f"into {self.root} first; see the scripts in scripts/datasets/."
-            )
         device = self.extraction.resolved_device()
         encoder = self.encoder.to(device).eval()
-        for n, slide in enumerate(todo, start=1):
-            saved = extract_slide(slide.path, self.extraction, encoder, self.encoder_transform)
-            target = self.feature_path(slide)
-            partial = target.with_suffix(".partial")
-            torch.save(saved, partial)
-            partial.replace(target)
-            log.info(
-                "features %d/%d: %s, %d tiles", n, len(todo), slide.slide_id, len(saved["coords"])
-            )
-        encoder.cpu()
+        pool = ThreadPoolExecutor(max_workers=1)
+        try:
+            for n, slide in enumerate(self._fetched(todo, pool), start=1):
+                saved = extract_slide(slide.path, self.extraction, encoder, self.encoder_transform)
+                target = self.feature_path(slide)
+                partial = target.with_suffix(".partial")
+                torch.save(saved, partial)
+                partial.replace(target)
+                if not self.keep_slides:
+                    slide.path.unlink()
+                log.info(
+                    "features %d/%d: %s, %d tiles",
+                    n,
+                    len(todo),
+                    slide.slide_id,
+                    len(saved["coords"]),
+                )
+        finally:
+            pool.shutdown(wait=True, cancel_futures=True)
+            encoder.cpu()
 
     def _check_record(self, record: dict[str, Any]) -> None:
         self.features_dir.mkdir(parents=True, exist_ok=True)

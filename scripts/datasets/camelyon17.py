@@ -2,20 +2,24 @@
 
     uv run python scripts/datasets/camelyon17.py [--out data/camelyon17] [--dry-run]
 
+Training does not need this: ``opendiagnostics prepare`` streams each slide, extracts its
+features and deletes it. Use this script to keep the slides on disk, or for the annotations
+and masks.
+
 By default only the 500 slides of the 100 labelled training patients (000-099) come down,
 because ``stages.csv`` holds no labels for the 500 test slides. ``--test-slides`` adds them.
 """
 
 import re
 
-from camelyon_s3 import download, parser
+from opendiagnostics.data.camelyon_download import download, script_parser
 
 LABELS = "stages.csv"
 TRAINING_PATIENT = re.compile(r"patient_0\d\d_")
 
 
 def main() -> None:
-    arguments = parser("CAMELYON17", __doc__.split("\n\n")[0])
+    arguments = script_parser("CAMELYON17", __doc__.split("\n\n")[0])
     arguments.add_argument(
         "--test-slides", action="store_true", help="also download the 500 unlabelled test slides"
     )

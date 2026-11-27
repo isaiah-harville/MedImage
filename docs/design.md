@@ -128,7 +128,9 @@ Whole-slide datasets (`SlideFeatureDataModule`) serve one slide per batch: `imag
 * **Whole slides** train in two stages. `prepare_data()` makes an Otsu tissue mask on a
     low-resolution level, keeps the tiles of one pyramid level that are mostly tissue, runs a
     frozen encoder (any `timm` model by `class_path`) over them, and writes one feature file
-    per slide. It skips slides already done, so it resumes, and `extraction.json` refuses to
+    per slide. It streams: each slide is downloaded (resumable, MD5-checked), encoded and
+    deleted while the next one downloads, so CAMELYON's terabytes never sit on disk at once.
+    It skips slides already done, so it resumes, and `extraction.json` refuses to
     mix features from other settings or encoder weights in one directory. `fit` then reads
     only the features, and a `SlideClassifier` trains MONAI's attention MIL head on them.
 

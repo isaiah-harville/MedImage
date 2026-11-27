@@ -1,6 +1,7 @@
 # CAMELYON16 slide-level metastasis detection with attention MIL on cached tile features.
-#   uv run python scripts/datasets/camelyon16.py                          (762 GB of slides)
-#   uv run opendiagnostics prepare -c models/camelyon16-abmil/config.yaml  (feature extraction)
+#   uv run opendiagnostics prepare -c models/camelyon16-abmil/config.yaml
+#     streams each slide from the public bucket (752 GB in all), caches its features,
+#     and deletes it; peak disk is two slides plus the features. Rerun to resume.
 #   uv run opendiagnostics fit -c models/camelyon16-abmil/config.yaml
 name: camelyon16-abmil
 notes: >-

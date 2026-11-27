@@ -1,8 +1,9 @@
 """CAMELYON16 and CAMELYON17 sentinel lymph node slides, as cached feature bags.
 
-Both are CC0 and open: ``scripts/datasets/camelyon16.py`` and ``camelyon17.py`` download
-them from the AWS open data bucket into ``root`` with the bucket's layout
-(``images/<slide>.tif`` plus the label files).
+Both are CC0 and open. With ``download: true`` (the default), ``prepare_data()`` fetches the
+label and checksum files, then streams each slide from the AWS open data bucket into
+``root/images/``, encodes it and deletes it (see :class:`SlideFeatureDataModule`). Slides
+already under ``root`` with the bucket's layout are used as they are.
 
 Citations: Ehteshami Bejnordi B. et al. JAMA 318(22):2199-2210 (2017); Bandi P. et al. IEEE
 TMI 38(2):550-560 (2019); Litjens G. et al. GigaScience 7(6):giy065 (2018).
@@ -12,8 +13,9 @@ from __future__ import annotations
 
 import csv
 from pathlib import Path
-from typing import Any
+from typing import Any, ClassVar
 
+from opendiagnostics.data import camelyon_download as bucket
 from opendiagnostics.data.base import DatasetInfo
 from opendiagnostics.data.slides import Slide, SlideFeatureDataModule
 
@@ -77,12 +79,41 @@ def camelyon17_slides(root: Path) -> list[Slide]:
     return slides
 
 
-class Camelyon16DataModule(SlideFeatureDataModule):
+class CamelyonDataModule(SlideFeatureDataModule):
+    """Fetches the label files and slides of one CAMELYON dataset from the public bucket."""
+
+    dataset: ClassVar[str]
+    labels: ClassVar[str]
+
+    def __init__(self, download: bool = True, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        self.download = download
+
+    def prepare_data(self) -> None:
+        if self.download:
+            bucket.fetch_metadata(
+                bucket.client(), self.dataset, self.root, (self.labels, bucket.CHECKSUMS)
+            )
+        super().prepare_data()
+
+    def fetch_slide(self, slide: Slide) -> None:
+        if not self.download:
+            super().fetch_slide(slide)
+            return
+        name = slide.path.relative_to(self.root).as_posix()
+        expected = bucket.read_checksums(self.root / bucket.CHECKSUMS).get(name)
+        bucket.fetch_file(bucket.client(), self.dataset, name, slide.path, expected)
+
+
+class Camelyon16DataModule(CamelyonDataModule):
     """Slide-level metastasis detection, ``normal`` vs ``tumor``, on the official split.
 
     CAMELYON16 publishes slide IDs only, so each slide counts as its own patient and the
     run records that patient-level leakage could not be checked.
     """
+
+    dataset = "CAMELYON16"
+    labels = "evaluation/reference.csv"
 
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("split", "predefined")
@@ -101,10 +132,13 @@ class Camelyon16DataModule(SlideFeatureDataModule):
         return camelyon16_slides(self.root)
 
 
-class Camelyon17DataModule(SlideFeatureDataModule):
+class Camelyon17DataModule(CamelyonDataModule):
     """Slide-level metastasis size, ``negative``/``itc``/``micro``/``macro``, on the 100
     labelled training patients with ``split: patient``. There is no official test split to
     use: the challenge never released labels for its test patients."""
+
+    dataset = "CAMELYON17"
+    labels = "stages.csv"
 
     def __init__(self, **kwargs: Any) -> None:
         kwargs.setdefault("split", "patient")
