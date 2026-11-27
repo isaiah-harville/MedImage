@@ -3,8 +3,10 @@ from typing import Any
 
 import numpy as np
 import pytest
+import torch
+from monai.transforms import RandAffine
 
-from opendiagnostics.data import MedMNISTDataModule
+from opendiagnostics.data import MedMNISTDataModule, SyntheticClassificationDataModule
 
 
 def _fake_archive(root, flag="dermamnist", size=64, counts=(6, 2, 3)):
@@ -72,3 +74,22 @@ def test_medmnist_without_archive_or_download_is_an_error(tmp_path):
     data = MedMNISTDataModule(flag="dermamnist", size=64, root=str(tmp_path), download=False)
     with pytest.raises(FileNotFoundError, match="set download: true"):
         data.setup()
+
+
+def _augmented_epoch(num_workers):
+    torch.manual_seed(0)
+    data = SyntheticClassificationDataModule(
+        num_samples=24,
+        image_size=8,
+        spatial_dims=3,
+        batch_size=4,
+        num_workers=num_workers,
+        train_transforms=RandAffine(prob=1.0, rotate_range=[0.5, 0.5, 0.5]),
+    )
+    data.setup()
+    return torch.cat([batch["image"] for batch in data.loader("train", train=True)])
+
+
+@pytest.mark.parametrize("num_workers", [0, 2])
+def test_monai_random_transforms_follow_the_torch_seed(num_workers):
+    assert torch.equal(_augmented_epoch(num_workers), _augmented_epoch(num_workers))
