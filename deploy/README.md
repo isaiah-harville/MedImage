@@ -4,7 +4,7 @@ A website where people pick a scan type and see what a published model makes of 
 its class probabilities and an attribution map of the pixels that drove the top prediction.
 Every page says plainly that these are research models, not medical devices.
 
-It runs at `diagnostics.harville.dev`. Anyone can try the demo images,
+It runs at `diagnostics.harville.dev` and `diagnostics.harville.ai`. Anyone can try the demo images,
 which are license-cleared test images from each published run's `examples/`, or upload a
 PNG or JPEG of at most 10 MB, or, for a 3D model, a `.npy` or NIfTI volume of at most 10 MB.
 
@@ -28,7 +28,7 @@ logged; uploaded content never is.
   request body is not. Today the API runs with access logs off, the frontend logs nothing
   per request, and Traefik writes no access logs. Pod logs go to Loki and are kept for 14
   days.
-- **Cloudflare** proxies all traffic to `diagnostics.harville.dev`, uploads included, and
+- **Cloudflare** proxies all traffic to both hosts, uploads included, and
   sees each request and the client's IP address. The privacy page says so and links
   Cloudflare's privacy policy.
 - **Rate limiting** holds client IP addresses in Traefik's memory only.

@@ -40,9 +40,13 @@ spec:
           env:
             - name: API_URL
               value: http://opendiagnostics-serve:8080
-            # SvelteKit rejects form posts whose Origin does not match.
-            - name: ORIGIN
-              value: https://diagnostics.harville.dev
+            # The site answers on diagnostics.harville.dev and diagnostics.harville.ai, so
+            # its origin comes from each request as Traefik forwards it. SvelteKit rejects
+            # form posts whose Origin does not match.
+            - name: PROTOCOL_HEADER
+              value: x-forwarded-proto
+            - name: HOST_HEADER
+              value: host
             - name: ALLOW_UPLOADS
               value: "true"
             # Uploads are capped at 10 MB by the app; leave room for the form encoding.
