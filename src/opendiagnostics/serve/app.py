@@ -3,7 +3,8 @@
 One ``LitAPI`` at ``POST /predict`` runs every model, in a LitServe worker process that loads
 them once. The API process answers the model listing and demo images from each run's files.
 
-Uploads arrive as base64 inside a JSON body, which LitServe's size limit caps before it is
+Uploads (a PNG or JPEG image, or for a 3D model a ``.npy`` or NIfTI volume) arrive as base64
+inside a JSON body, which LitServe's size limit caps before it is
 all read. They are decoded in memory, handed to the worker over an in-memory queue, and never
 written to disk, stored, or logged. Every response carries ``Cache-Control: no-store``.
 """
@@ -19,6 +20,7 @@ from pathlib import Path
 from typing import Any, Self
 
 import litserve as ls
+import numpy as np
 from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse
 from PIL import Image, UnidentifiedImageError
@@ -30,10 +32,12 @@ from opendiagnostics.serve.models import (
     Listing,
     NotServableError,
     ServedModel,
+    Upload,
     load_listing,
     load_models,
     predict,
 )
+from opendiagnostics.serve.volumes import VolumeError, read_volume
 
 log = logging.getLogger("opendiagnostics.serve")
 
@@ -91,14 +95,21 @@ def _decode(data: bytes) -> Image.Image:
     return image
 
 
-def _upload(encoded: str) -> Image.Image:
+def _volume(data: bytes) -> np.ndarray:
+    try:
+        return read_volume(data)
+    except VolumeError as error:
+        raise HTTPException(422, str(error)) from error
+
+
+def _upload(encoded: str, dims: int) -> Upload:
     try:
         data = base64.b64decode(encoded, validate=True)
     except (binascii.Error, ValueError) as error:
         raise HTTPException(422, "image must be base64") from error
     if len(data) > MAX_UPLOAD_BYTES:
         raise HTTPException(413, "files may be at most 10 MB")
-    return _decode(data)
+    return _volume(data) if dims == 3 else _decode(data)
 
 
 class ClassifierAPI(ls.LitAPI):
@@ -114,22 +125,22 @@ class ClassifierAPI(ls.LitAPI):
 
     def decode_request(
         self, request: PredictRequest, **kwargs: Any
-    ) -> tuple[ServedModel, Image.Image, str | None]:
+    ) -> tuple[ServedModel, Upload, str | None]:
         model = self.models.get(request.model)
         if model is None:
             raise HTTPException(404, f"no model {request.model!r}")
         if request.image is not None:
-            return model, _upload(request.image), None
+            return model, _upload(request.image, model.info.spatial_dims), None
         demo = model.demos.get(request.sample_id or "")
         if demo is None:
             raise HTTPException(404, f"no demo image {request.sample_id!r} for {model.id}")
+        if demo.volume is not None:
+            return model, np.load(demo.volume, allow_pickle=False)[0], demo.truth
         with Image.open(demo.path) as image:
             image.load()
             return model, image.copy(), demo.truth
 
-    def predict(
-        self, x: tuple[ServedModel, Image.Image, str | None], **kwargs: Any
-    ) -> dict[str, Any]:
+    def predict(self, x: tuple[ServedModel, Upload, str | None], **kwargs: Any) -> dict[str, Any]:
         model, image, truth = x
         return predict(model, image, truth, self.attribution_steps)
 

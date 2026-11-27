@@ -31,7 +31,11 @@ def fit_smoke(name: str, out: Path, *overrides: str) -> Path:
 @pytest.fixture(scope="session")
 def finished_run(tmp_path_factory: pytest.TempPathFactory) -> Path:
     """A smoke classification run, marked as made on a clean tree."""
-    run_dir = fit_smoke("classification", tmp_path_factory.mktemp("runs"))
+    return clean_run(fit_smoke("classification", tmp_path_factory.mktemp("runs")))
+
+
+def clean_run(run_dir: Path) -> Path:
+    """Mark a run as made on a clean tree, so it can be published."""
     record = json.loads((run_dir / "run.json").read_text())
     record["git"] = {"commit": "0" * 40, "branch": "main", "dirty": False}
     (run_dir / "run.json").write_text(json.dumps(record))
@@ -63,12 +67,18 @@ class MemoryBucket:
         return io.BytesIO(self.objects[key])
 
 
-def smoke_project(finished_run: Path, models: Path, **publish: Any) -> Path:
+def smoke_project(
+    finished_run: Path,
+    models: Path,
+    config: str = "classification",
+    name: str = "smoke-project",
+    **publish: Any,
+) -> Path:
     from opendiagnostics.publish import publish_run
 
-    project = models / "smoke-project"
+    project = models / name
     project.mkdir(parents=True)
-    shutil.copyfile(ROOT / "configs/smoke/classification.yaml", project / "config.yaml")
+    shutil.copyfile(ROOT / f"configs/smoke/{config}.yaml", project / "config.yaml")
     publish_run(finished_run, project, **publish)
     return project
 

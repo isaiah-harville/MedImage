@@ -9,3 +9,5 @@
 ::: opendiagnostics.serve.catalog
 
 ::: opendiagnostics.serve.weights
+
+::: opendiagnostics.serve.volumes

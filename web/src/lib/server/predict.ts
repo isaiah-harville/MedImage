@@ -1,5 +1,5 @@
 import { error, fail } from '@sveltejs/kit';
-import { checkUpload } from '#lib/upload.ts';
+import { checkUpload, type UploadKind } from '#lib/upload.ts';
 import { type ApiClient, ApiError } from './api.ts';
 
 type Deps = { api: ApiClient; modelId: string; request: Request };
@@ -28,7 +28,8 @@ export async function predictUpload({
   api,
   modelId,
   request,
-}: Deps & { allowUploads: boolean }) {
+  kind,
+}: Deps & { allowUploads: boolean; kind: UploadKind }) {
   if (!allowUploads) error(404, 'Uploads are not available on this site.');
   const form = await request.formData();
   if (form.get('consent') !== 'yes') {
@@ -41,10 +42,10 @@ export async function predictUpload({
   if (!(file instanceof File)) {
     return fail(400, {
       source: 'upload',
-      message: 'Choose a PNG or JPEG image to upload.',
+      message: 'Choose a file to upload.',
     } satisfies PredictFailure);
   }
-  const check = checkUpload(file);
+  const check = checkUpload(file, kind);
   if (!check.ok) {
     return fail(check.status, {
       source: 'upload',
@@ -58,7 +59,7 @@ export async function predictUpload({
       prediction: await api.predictUpload(modelId, file),
     };
   } catch (cause) {
-    return failure('upload', cause);
+    return failure('upload', cause, kind);
   }
 }
 
@@ -66,12 +67,19 @@ export const CONSENT_REQUIRED =
   'Confirm that the image has no identifiers, that you have the right to share it, and that the result is not medical advice.';
 
 const UPLOAD_ERRORS = {
-  413: 'The image is too large. The limit is 10 MB and 4096 x 4096 pixels.',
-  415: 'Only PNG and JPEG images are accepted.',
-  422: 'The file could not be read as an image. Check that it opens in an image viewer.',
+  image: {
+    413: 'The image is too large. The limit is 10 MB and 4096 x 4096 pixels.',
+    415: 'Only PNG and JPEG images are accepted.',
+    422: 'The file could not be read as an image. Check that it opens in an image viewer.',
+  },
+  volume: {
+    413: 'The volume is too large. The limit is 10 MB.',
+    415: 'Only .npy arrays and NIfTI (.nii, .nii.gz) volumes are accepted.',
+    422: 'The file could not be read as a 3D volume. Upload a .npy array or a NIfTI (.nii, .nii.gz) file.',
+  },
 } as const;
 
-function failure(source: PredictFailure['source'], cause: unknown) {
+function failure(source: PredictFailure['source'], cause: unknown, kind: UploadKind = 'image') {
   if (!(cause instanceof ApiError)) throw cause;
   switch (cause.status) {
     case 404:
@@ -82,7 +90,7 @@ function failure(source: PredictFailure['source'], cause: unknown) {
     case 422:
       return fail(cause.status, {
         source,
-        message: UPLOAD_ERRORS[cause.status],
+        message: UPLOAD_ERRORS[kind][cause.status],
       } satisfies PredictFailure);
   }
   console.error(`${cause.name}: ${cause.message}`);

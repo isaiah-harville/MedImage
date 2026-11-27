@@ -33,6 +33,7 @@ describe('upload action', () => {
       allowUploads: false,
       api,
       modelId: 'pneumoniamnist-convnext',
+      kind: 'image',
       request: uploadRequest(png()),
     }).catch((e: unknown) => e);
 
@@ -47,6 +48,7 @@ describe('upload action', () => {
       allowUploads: true,
       api,
       modelId: 'pneumoniamnist-convnext',
+      kind: 'image',
       request: uploadRequest(png(), { consent: false }),
     });
 
@@ -71,6 +73,7 @@ describe('upload action', () => {
       allowUploads: true,
       api,
       modelId: 'pneumoniamnist-convnext',
+      kind: 'image',
       request: uploadRequest(png()),
     });
 
@@ -86,6 +89,7 @@ describe('upload action', () => {
       allowUploads: true,
       api,
       modelId: 'pneumoniamnist-convnext',
+      kind: 'image',
       request: uploadRequest(gif),
     });
 
@@ -100,6 +104,7 @@ describe('upload action', () => {
       allowUploads: true,
       api,
       modelId: 'pneumoniamnist-convnext',
+      kind: 'image',
       request: uploadRequest(png()),
     });
 

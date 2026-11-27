@@ -6,6 +6,7 @@ import ResultView from '#lib/components/ResultView.svelte';
 import ScanUpload, { type QueuedScan } from '#lib/components/ScanUpload.svelte';
 import WeightsDownload from '#lib/components/WeightsDownload.svelte';
 import type { Prediction } from '#lib/contract.ts';
+import { uploadKind } from '#lib/upload.ts';
 import type { SubmitFunction } from '$app/forms';
 import { deserialize } from '$app/forms';
 import type { ActionData, PageData } from './$types';
@@ -152,7 +153,13 @@ const selected = $derived(results.find((r) => r.sampleId !== null)?.sampleId ?? 
   <div class="min-w-0 space-y-6">
     {#if data.allowUploads}
       <section aria-labelledby="upload-heading">
-        <ScanUpload scanType={data.model.scanType} {busy} {queue} onrun={runScans} />
+        <ScanUpload
+          scanType={data.model.scanType}
+          kind={uploadKind(data.model.inputDims)}
+          {busy}
+          {queue}
+          onrun={runScans}
+        />
       </section>
     {/if}
 

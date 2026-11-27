@@ -3,6 +3,7 @@ import type { Prediction } from '#lib/contract.ts';
 import { formatLabel, formatLatency, verdict } from '#lib/format.ts';
 import ImagePanel from './ImagePanel.svelte';
 import ProbabilityBars from './ProbabilityBars.svelte';
+import SliceViewer from './SliceViewer.svelte';
 import VerdictBadge from './VerdictBadge.svelte';
 
 let { id, prediction, sourceLabel }: { id: string; prediction: Prediction; sourceLabel: string } =
@@ -22,18 +23,28 @@ const predictedText = $derived(
     <p class="font-mono text-[11px] text-[var(--color-viewer-foreground)]">
       {sourceLabel} · {formatLatency(prediction.latencyMs)}
     </p>
-    <div class="mt-3 grid grid-cols-2 gap-3">
-      <ImagePanel
-        src={prediction.inputPng}
-        alt="The scan as the model saw it, resized to 224 by 224 pixels."
-        caption="Input"
-      />
-      <ImagePanel
-        src={prediction.attributionPng}
-        alt="The same scan with an attribution map overlaid. Brighter regions influenced the top prediction more."
-        caption="Attribution"
-      />
-    </div>
+    {#if prediction.slices}
+      <div class="mt-3">
+        <SliceViewer
+          input={prediction.slices.input}
+          attribution={prediction.slices.attribution}
+          label={sourceLabel}
+        />
+      </div>
+    {:else}
+      <div class="mt-3 grid grid-cols-2 gap-3">
+        <ImagePanel
+          src={prediction.inputPng}
+          alt="The scan as the model saw it, resized to the model's input size."
+          caption="Input"
+        />
+        <ImagePanel
+          src={prediction.attributionPng}
+          alt="The same scan with an attribution map overlaid. Brighter regions influenced the top prediction more."
+          caption="Attribution"
+        />
+      </div>
+    {/if}
   </div>
 
   <div class="mt-4 rounded-[var(--radius-xl)] bg-card p-5 shadow-[var(--elevation-control)]">
@@ -56,7 +67,7 @@ const predictedText = $derived(
       </p>
     {/if}
     <p class="mt-3 border-t border-border pt-3 text-[12px] text-foreground-muted">
-      The attribution map shows the pixels that most influenced the top prediction, by Integrated
+      The attribution map shows the pixels or voxels that most influenced the top prediction, by Integrated
       Gradients. It is not evidence that the model uses clinically relevant features.
       {prediction.disclaimer}
     </p>

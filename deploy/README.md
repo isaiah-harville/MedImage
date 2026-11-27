@@ -6,7 +6,7 @@ Every page says plainly that these are research models, not medical devices.
 
 It runs at `diagnostics.harville.dev`. Anyone can try the demo images,
 which are license-cleared test images from each published run's `examples/`, or upload a
-PNG or JPEG of at most 10 MB.
+PNG or JPEG of at most 10 MB, or, for a 3D model, a `.npy` or NIfTI volume of at most 10 MB.
 
 ## Data handling
 

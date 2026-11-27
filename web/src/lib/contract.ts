@@ -15,7 +15,11 @@ export const modelSummarySchema = z
     question: z.string(),
     label_mode: labelMode,
     classes: z.array(z.string()).min(1),
-    input: z.object({ channels: z.number().int().positive(), size: z.number().int().positive() }),
+    input: z.object({
+      channels: z.number().int().positive(),
+      size: z.number().int().positive(),
+      dims: z.union([z.literal(2), z.literal(3)]),
+    }),
     dataset: z.string(),
     license: z.string(),
     citation: z.string(),
@@ -39,6 +43,7 @@ export const modelSummarySchema = z
     labelMode: m.label_mode,
     classes: m.classes,
     inputSize: m.input.size,
+    inputDims: m.input.dims,
     dataset: m.dataset,
     license: m.license,
     citation: m.citation,
@@ -67,6 +72,10 @@ export const predictionSchema = z
     threshold: z.number().nullable(),
     input_png: pngDataUrl,
     attribution_png: pngDataUrl,
+    slices: z
+      .object({ input: z.array(pngDataUrl).min(1), attribution: z.array(pngDataUrl).min(1) })
+      .refine((s) => s.input.length === s.attribution.length, 'slice counts must match')
+      .nullable(),
     truth: z.string().nullable(),
     disclaimer: z.string(),
     latency_ms: z.number().nonnegative(),
@@ -81,6 +90,7 @@ export const predictionSchema = z
     threshold: p.threshold,
     inputPng: p.input_png,
     attributionPng: p.attribution_png,
+    slices: p.slices,
     truth: p.truth,
     disclaimer: p.disclaimer,
     latencyMs: p.latency_ms,

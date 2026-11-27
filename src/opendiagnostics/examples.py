@@ -148,19 +148,20 @@ def _heat(rgb: torch.Tensor, attribution: torch.Tensor) -> torch.Tensor:
     return (rgb.float() * (1 - alpha) + color * alpha).round().clamp(0, 255).to(torch.uint8)
 
 
-def _attribution(
-    module: ImageClassifier, image: torch.Tensor, label: int, size: tuple[int, int], steps: int
+def saliency(
+    module: ImageClassifier, image: torch.Tensor, label: int, size: tuple[int, ...], steps: int
 ) -> torch.Tensor:
+    """Integrated Gradients for output ``label``, summed over channels, scaled to ``[0, 1]``
+    by its 99th percentile, and resized to the spatial ``size``: ``(H, W)`` or ``(D, H, W)``."""
     inputs = image[None].to(module.device).requires_grad_()
     maps = IntegratedGradients(module).attribute(
         inputs, target=label, n_steps=steps, internal_batch_size=8
     )
-    saliency = maps[0].detach().abs().sum(0).float()
-    if saliency.ndim == 3:
-        saliency = saliency[saliency.shape[0] // 2]
-    top = torch.quantile(saliency.flatten(), 0.99).clamp_min(1e-12)
-    saliency = (saliency / top).clamp(0, 1)
-    return F.interpolate(saliency[None, None], size=size, mode="bilinear")[0, 0].cpu()
+    heat = maps[0].detach().abs().sum(0).float()
+    top = torch.quantile(heat.flatten(), 0.99).clamp_min(1e-12)
+    heat = (heat / top).clamp(0, 1)
+    mode = "trilinear" if heat.ndim == 3 else "bilinear"
+    return F.interpolate(heat[None, None], size=size, mode=mode)[0, 0].cpu()
 
 
 def explain(
@@ -172,10 +173,30 @@ def explain(
 ) -> tuple[torch.Tensor, torch.Tensor]:
     """The input as ``uint8 (3, H, W)`` and the same image with an Integrated Gradients map
     for output ``label`` blended over it. ``raw`` is the image in ``[0, 1]`` before the
-    model's transforms; ``model_input`` is what the network sees."""
+    model's transforms; ``model_input`` is what the network sees. A volume shows its middle
+    slice along the first spatial axis."""
     rgb, _ = _scale(_to_rgb(raw))
-    heat = _attribution(module, model_input, label, (int(rgb.shape[-2]), int(rgb.shape[-1])), steps)
+    if raw.ndim == 4:
+        heat = saliency(module, model_input, label, tuple(raw.shape[1:]), steps)
+        heat = heat[heat.shape[0] // 2][None, None]
+        heat = F.interpolate(heat, size=tuple(rgb.shape[-2:]), mode="bilinear")[0, 0]
+    else:
+        heat = saliency(module, model_input, label, tuple(rgb.shape[-2:]), steps)
     return rgb, _heat(rgb, heat)
+
+
+def explain_volume(
+    module: ImageClassifier,
+    raw: torch.Tensor,
+    model_input: torch.Tensor,
+    label: int,
+    steps: int = 32,
+) -> tuple[list[torch.Tensor], list[torch.Tensor]]:
+    """Every slice of a ``(C, D, H, W)`` volume along its first spatial axis, as ``uint8
+    (3, H, W)``, without and with the Integrated Gradients map blended over it."""
+    heat = saliency(module, model_input, label, tuple(raw.shape[1:]), steps)
+    slices = [_to_rgb(raw[:, depth]) for depth in range(raw.shape[1])]
+    return slices, [_heat(rgb, heat[depth]) for depth, rgb in enumerate(slices)]
 
 
 @torch.no_grad()
@@ -234,7 +255,7 @@ def write_examples(
     position = {sample: i for i, sample in enumerate(source.sample_ids)}
     out = run_dir / EXAMPLES
     out.mkdir(exist_ok=True)
-    for old in out.glob("*.png"):
+    for old in [*out.glob("*.png"), *out.glob("*.npy")]:
         old.unlink()
     if isinstance(module, SegmentationModule):
         from opendiagnostics.segmentation_examples import write_segmentation_examples
@@ -272,9 +293,11 @@ def write_examples(
         names = (f"{n:02d}-input.png", f"{n:02d}-{kind}.png")
         _save(shown, out / names[0])
         _save(overlay, out / names[1])
-        manifest.append(
-            {"id": pick["id"], "input": names[0], "overlay": names[1], "kind": kind} | caption
-        )
+        entry = {"id": pick["id"], "input": names[0], "overlay": names[1], "kind": kind}
+        if raw.ndim == 4:
+            entry["volume"] = f"{n:02d}-volume.npy"
+            np.save(out / entry["volume"], (raw.clamp(0, 1) * 255).round().to(torch.uint8).numpy())
+        manifest.append(entry | caption)
     (out / EXAMPLES_MANIFEST).write_text(json.dumps(manifest, indent=2) + "\n")
     module.cpu()
     return manifest

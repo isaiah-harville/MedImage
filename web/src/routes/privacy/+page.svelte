@@ -28,14 +28,18 @@ import PolicySection from '#lib/components/PolicySection.svelte';
   </PolicySection>
 
   <PolicySection title="What you may upload">
-    <p>We accept only PNG and JPEG images.</p>
+    <p>
+      We accept PNG and JPEG images, and for 3D models NumPy (.npy) and NIfTI (.nii, .nii.gz)
+      volumes.
+    </p>
     <p>
       Do not upload images with names, dates of birth, record numbers, or other identifiers, or
       images you do not have the right to share.
     </p>
     <p>
-      The model reads only pixels. We do not store metadata (EXIF), and the image we send back is
-      re-encoded without metadata.
+      The model reads only pixels or voxels. We do not store metadata (EXIF or NIfTI headers),
+      and the images we send back are re-encoded without metadata. Remove names and dates from a
+      NIfTI header before you upload it.
     </p>
   </PolicySection>
 

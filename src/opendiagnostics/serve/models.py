@@ -2,8 +2,8 @@
 
 Each model is a folder ``<project>/<run-id>/`` that ``weights.sync`` downloaded: the run's
 ``config.yaml``, ``metrics.json``, ``artifacts.yaml`` (the checkpoint's URL and SHA-256), and
-optionally ``examples/`` with its license-cleared example images. Its checkpoint is in the
-cache, named by SHA-256.
+optionally ``examples/`` with its license-cleared example images, and for a 3D classifier the
+example volumes. Its checkpoint is in the cache, named by SHA-256.
 """
 
 from __future__ import annotations
@@ -25,7 +25,7 @@ from PIL import Image
 from opendiagnostics.cli import load_data_module, load_run
 from opendiagnostics.data import MedicalDataModule
 from opendiagnostics.data.base import DatasetInfo, Transform, prepare
-from opendiagnostics.examples import explain
+from opendiagnostics.examples import explain, explain_volume
 from opendiagnostics.modules import ImageClassifier
 from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST, Artifact
 from opendiagnostics.serve.catalog import describe, rank
@@ -43,9 +43,13 @@ DISCLAIMER = (
 
 @dataclass
 class DemoImage:
+    """A test sample the demo can run. ``path`` is its picture (a volume's middle slice), and
+    ``volume`` the ``.npy`` file a 3D model reads."""
+
     sample_id: str
     truth: str
     path: Path
+    volume: Path | None = None
 
 
 @dataclass
@@ -69,7 +73,7 @@ SERVABLE_MODEL = "opendiagnostics.modules.ImageClassifier"
 
 
 class NotServableError(ValueError):
-    """A published run the demo cannot run: not a 2D image classifier."""
+    """A published run the demo cannot run: not an image classifier."""
 
 
 @dataclass(frozen=True)
@@ -86,10 +90,9 @@ def _listing(
     model_id = folder.parent.name
     info = data.info
     model = config["model"]["class_path"]
-    if model != SERVABLE_MODEL or info.spatial_dims != 2:
+    if model != SERVABLE_MODEL:
         raise NotServableError(
-            f"{model_id} is a {info.spatial_dims}D {model.rsplit('.', 1)[-1]}; the demo serves "
-            "2D image classifiers only"
+            f"{model_id} is a {model.rsplit('.', 1)[-1]}; the demo serves image classifiers only"
         )
     metrics = json.loads((folder / "metrics.json").read_text())
     flag = (config["data"].get("init_args") or {}).get("flag")
@@ -99,8 +102,14 @@ def _listing(
     manifest = folder / EXAMPLES / EXAMPLES_MANIFEST
     if manifest.exists():
         for example in json.loads(manifest.read_text()):
+            volume = example.get("volume")
+            if info.spatial_dims == 3 and volume is None:
+                continue
             demos[example["id"]] = DemoImage(
-                example["id"], example["truth"], folder / EXAMPLES / example["input"]
+                example["id"],
+                example["truth"],
+                folder / EXAMPLES / example["input"],
+                folder / EXAMPLES / volume if volume else None,
             )
     description = {
         "id": model_id,
@@ -110,7 +119,11 @@ def _listing(
         "question": scan.question,
         "label_mode": info.label_mode,
         "classes": list(info.class_names),
-        "input": {"channels": info.in_channels, "size": _input_size(config)},
+        "input": {
+            "channels": info.in_channels,
+            "size": _input_size(config),
+            "dims": info.spatial_dims,
+        },
         "dataset": f"{flag} (MedMNIST v2)" if flag else type(data).__name__,
         "license": info.license,
         "citation": info.citation,
@@ -147,7 +160,7 @@ def load_model(folder: Path, cache: Path) -> ServedModel:
         raise FileNotFoundError(f"{model_id}: {checkpoint} is missing; sync the cache first")
     config = yaml.safe_load((folder / "config.yaml").read_text())
     if config["model"]["class_path"] != SERVABLE_MODEL:
-        raise NotServableError(f"{model_id}: the demo serves 2D image classifiers only")
+        raise NotServableError(f"{model_id}: the demo serves image classifiers only")
     cli = load_run(folder, with_data=False)
     module = cli.model
     if not isinstance(module, ImageClassifier):
@@ -182,26 +195,52 @@ def load_models(folders: list[Path], cache: Path) -> dict[str, ServedModel]:
     return {m.id: m for m in sorted(models, key=lambda m: rank(m.id))}
 
 
+Upload = Image.Image | np.ndarray
+
+
+def _image_input(model: ServedModel, image: Image.Image) -> torch.Tensor:
+    pixels = np.array(
+        image.convert("L" if model.info.in_channels == 1 else "RGB").resize(
+            (model.size, model.size), Image.Resampling.BILINEAR
+        )
+    )
+    raw, _ = prepare(pixels, 0, None, model.info.label_mode)
+    return raw
+
+
+def volume_input(volume: np.ndarray, size: int) -> torch.Tensor:
+    """A ``(D, H, W)`` volume as the ``(1, size, size, size)`` tensor in ``[0, 1]`` the 3D
+    models train on. ``uint8`` volumes, like the demo's, are divided by 255; any other range
+    is stretched from its minimum to its maximum."""
+    voxels = torch.from_numpy(np.ascontiguousarray(volume)).float()
+    if volume.dtype == np.uint8:
+        voxels = voxels / 255
+    else:
+        low, high = voxels.min(), voxels.max()
+        voxels = (voxels - low) / (high - low).clamp_min(1e-12)
+    if tuple(voxels.shape) != (size, size, size):
+        voxels = torch.nn.functional.interpolate(
+            voxels[None, None], size=(size, size, size), mode="trilinear"
+        )[0, 0]
+    return voxels[None].clamp(0, 1)
+
+
 def _png(image: torch.Tensor) -> str:
     buffer = io.BytesIO()
     Image.fromarray(image.permute(1, 2, 0).numpy()).save(buffer, format="PNG")
     return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
 
 
-def predict(
-    model: ServedModel, image: Image.Image, truth: str | None, steps: int
-) -> dict[str, Any]:
-    """Run the model on one image and explain its top prediction."""
+def predict(model: ServedModel, upload: Upload, truth: str | None, steps: int) -> dict[str, Any]:
+    """Run the model on one image or volume and explain its top prediction."""
     started = time.perf_counter()
     mode = model.info.label_mode
     names = list(model.info.class_names)
-    pixels = np.array(
-        image.convert("L" if model.info.in_channels == 1 else "RGB").resize(
-            (model.size, model.size), Image.Resampling.BILINEAR
-        )
-    )
-    raw, _ = prepare(pixels, 0, None, mode)
-    model_input, _ = prepare(pixels, 0, model.transform, mode)
+    if isinstance(upload, np.ndarray):
+        raw = volume_input(upload, model.size)
+    else:
+        raw = _image_input(model, upload)
+    model_input = raw if model.transform is None else model.transform(raw)
     with torch.no_grad():
         probs = model.module.probabilities(model_input[None])[0].tolist()
     if mode == "binary":
@@ -217,7 +256,14 @@ def predict(
         scores = probs
         predicted = [n for n, p in zip(names, probs, strict=True) if p >= 0.5]
         threshold, label = 0.5, int(np.argmax(probs))
-    shown, overlay = explain(model.module, raw, model_input, label, steps)
+    slices = None
+    if raw.ndim == 4:
+        inputs, overlays = explain_volume(model.module, raw, model_input, label, steps)
+        middle = len(inputs) // 2
+        shown, overlay = inputs[middle], overlays[middle]
+        slices = {"input": [_png(s) for s in inputs], "attribution": [_png(s) for s in overlays]}
+    else:
+        shown, overlay = explain(model.module, raw, model_input, label, steps)
     ranked = sorted(zip(names, scores, strict=True), key=lambda pair: -pair[1])
     return {
         "model": model.id,
@@ -227,6 +273,7 @@ def predict(
         "threshold": threshold,
         "input_png": _png(shown),
         "attribution_png": _png(overlay),
+        "slices": slices,
         "truth": truth,
         "disclaimer": DISCLAIMER,
         "latency_ms": round((time.perf_counter() - started) * 1000),

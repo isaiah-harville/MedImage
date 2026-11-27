@@ -9,11 +9,21 @@ function seedOf(sampleId: string): number {
   return [...sampleId].reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
 }
 
-function prediction(truth: string | null, seed: number) {
+function prediction(model: string, truth: string | null, seed: number) {
+  const volumetric = modelsJson.find((m) => m.id === model)?.input.dims === 3;
+  const slice = (depth: number, heat: boolean) =>
+    dataUrl(syntheticPng({ size: 64, seed: seed + depth, heat }));
+  const depths = [...Array(volumetric ? 64 : 0).keys()];
   return predictionJson({
     truth,
     inputPng: dataUrl(syntheticPng({ size: 224, seed, heat: false })),
     attributionPng: dataUrl(syntheticPng({ size: 224, seed, heat: true })),
+    slices: volumetric
+      ? {
+          input: depths.map((d) => slice(d, false)),
+          attribution: depths.map((d) => slice(d, true)),
+        }
+      : null,
   });
 }
 
@@ -32,10 +42,10 @@ const server = createServer((req, res) => {
     req.on('end', () => {
       const body = JSON.parse(Buffer.concat(chunks).toString());
       if (!modelsJson.some((m) => m.id === body.model)) return json(404, { detail: 'no model' });
-      if (body.image) return json(200, prediction(null, 1));
+      if (body.image) return json(200, prediction(body.model, null, 1));
       const demo = demosJson(body.model).find((d) => d.sample_id === body.sample_id);
       if (!demo) return json(404, { detail: 'no demo image' });
-      setTimeout(() => json(200, prediction(demo.truth, seedOf(demo.sample_id))), 300);
+      setTimeout(() => json(200, prediction(body.model, demo.truth, seedOf(demo.sample_id))), 300);
     });
     return;
   }

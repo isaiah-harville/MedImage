@@ -1,6 +1,6 @@
 <script lang="ts">
 import { Button } from '@sivir-ui/svelte/components/button';
-import { ACCEPTED_UPLOAD_TYPES, checkUpload } from '#lib/upload.ts';
+import { checkUpload, UPLOAD_FORMATS, type UploadKind } from '#lib/upload.ts';
 
 export type QueuedScan = {
   id: number;
@@ -11,11 +11,13 @@ export type QueuedScan = {
 
 let {
   scanType,
+  kind,
   busy,
   queue,
   onrun,
 }: {
   scanType: string;
+  kind: UploadKind;
   busy: boolean;
   queue: QueuedScan[];
   onrun: (files: File[]) => void;
@@ -29,7 +31,7 @@ let input = $state<HTMLInputElement>();
 
 const problems = $derived(
   files.flatMap((file) => {
-    const check = checkUpload(file);
+    const check = checkUpload(file, kind);
     return check.ok ? [] : [`${file.name}: ${check.message}`];
   }),
 );
@@ -64,7 +66,7 @@ const STATUS: Record<QueuedScan['status'], string> = {
 >
   <h2 id="upload-heading" class="text-[14px] font-semibold">Run your scans</h2>
   <p class="mt-0.5 text-[12px] text-foreground-muted">
-    {scanType} images as PNG or JPEG, up to {MAX_FILES} at a time and 10 MB each. They run one
+    {scanType}: {UPLOAD_FORMATS[kind].label}, up to {MAX_FILES} at a time and 10 MB each. They run one
     after another, in server memory only, and are never stored.
     <a href="/privacy" class="text-primary underline-offset-4 hover:underline">How we handle images</a>
   </p>
@@ -92,7 +94,11 @@ const STATUS: Record<QueuedScan['status'], string> = {
         : `${files.length} ${files.length === 1 ? 'scan' : 'scans'} selected`}
     </span>
     <span class="mt-1 text-[12px] text-foreground-muted">
-      {files.length === 0 ? 'No names, dates, or record numbers in the pixels.' : files.map((f) => f.name).join(', ')}
+      {files.length > 0
+        ? files.map((f) => f.name).join(', ')
+        : kind === 'volume'
+          ? 'Remove names and dates from NIfTI headers first.'
+          : 'No names, dates, or record numbers in the pixels.'}
     </span>
     <input
       bind:this={input}
@@ -101,7 +107,7 @@ const STATUS: Record<QueuedScan['status'], string> = {
       type="file"
       multiple
       required
-      accept={ACCEPTED_UPLOAD_TYPES.join(',')}
+      accept={UPLOAD_FORMATS[kind].accept}
       aria-describedby="scan-errors"
       onchange={(event) => choose(event.currentTarget.files)}
       class="sr-only"

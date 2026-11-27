@@ -1,24 +1,38 @@
 export const MAX_UPLOAD_BYTES = 10 * 1024 * 1024;
-export const ACCEPTED_UPLOAD_TYPES = ['image/png', 'image/jpeg'] as const;
+
+export type UploadKind = 'image' | 'volume';
+
+export const UPLOAD_FORMATS: Record<UploadKind, { accept: string; label: string }> = {
+  image: { accept: 'image/png,image/jpeg', label: 'PNG or JPEG images' },
+  volume: { accept: '.npy,.nii,.gz', label: '3D volumes as .npy or NIfTI (.nii, .nii.gz)' },
+};
+
+const IMAGE_TYPES = new Set(['image/png', 'image/jpeg']);
+const VOLUME_NAME = /\.(npy|nii)(\.gz)?$/i;
 
 export type UploadCheck = { ok: true } | { ok: false; status: 400 | 413 | 415; message: string };
 
-export function checkUpload(file: { size: number; type: string }): UploadCheck {
+export function uploadKind(dims: 2 | 3): UploadKind {
+  return dims === 3 ? 'volume' : 'image';
+}
+
+export function checkUpload(
+  file: { size: number; type: string; name: string },
+  kind: UploadKind,
+): UploadCheck {
+  const formats = UPLOAD_FORMATS[kind].label;
   if (file.size === 0) {
-    return { ok: false, status: 400, message: 'Choose a PNG or JPEG image to upload.' };
+    return { ok: false, status: 400, message: `Choose a file to upload: ${formats}.` };
   }
-  if (!ACCEPTED_UPLOAD_TYPES.some((type) => type === file.type)) {
-    return {
-      ok: false,
-      status: 415,
-      message: 'Only PNG and JPEG images are accepted. Export the image as PNG or JPEG and retry.',
-    };
+  const accepted = kind === 'volume' ? VOLUME_NAME.test(file.name) : IMAGE_TYPES.has(file.type);
+  if (!accepted) {
+    return { ok: false, status: 415, message: `This model reads ${formats}.` };
   }
   if (file.size > MAX_UPLOAD_BYTES) {
     return {
       ok: false,
       status: 413,
-      message: `The image is ${formatMegabytes(file.size)}. The limit is 10 MB.`,
+      message: `The file is ${formatMegabytes(file.size)}. The limit is 10 MB.`,
     };
   }
   return { ok: true };
