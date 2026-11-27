@@ -42,5 +42,7 @@ project and run from these files.
    [docs/weights.md](../docs/weights.md#publish). Pass `--no-checkpoint` to publish
    without the weights.
 
-The `*-convnext` projects cover the twelve MedMNIST 2D subsets at 224 px. None has a
-published run yet.
+The `*mnist-convnext` projects cover the twelve MedMNIST 2D subsets at 224 px.
+`nih-chestxray14-convnext`, `kermany-oct-convnext` and `kermany-cxr-convnext` train on the
+full-resolution source images at 448 px; download each dataset first with the script named
+at the top of its config. None has a published run yet.

@@ -1,0 +1,40 @@
+benchmark: NIH ChestX-ray14, official test list (test_list.txt, 25,596 images)
+protocol: >-
+  Mean AUROC over the 14 findings on NIH's official test list, training only on
+  train_val_list.txt. The sources carve validation out of train_val_list.txt their own way, and
+  so do we (fold 0 of 8 patient-grouped folds). All sources report single values without
+  intervals, so a claim to beat one needs its value outside our 95% interval. EVA-X and the
+  Xiao et al. MAE models are pre-trained on chest X-ray collections that include the
+  ChestX-ray14 training images (not its test images), and both work at 224 px. EVA-X states its
+  split as "75k/11k/25k", which matches the official list sizes but is not named as official.
+  Not listed: Foundation Ark (MICCAI 2023, PMC11095392) reports 83.05 on ChestX-ray14 in Table 2,
+  but the text does not name the metric; CheXNet used its own split.
+baselines:
+  - method: "EVA-X-B, ViT-B pre-trained on 520k chest X-rays (self-reported)"
+    metrics: {auroc: 0.835}
+    source: Yao et al., arXiv 2405.05237v1 (2024), ChestX-ray14 results text and Figure 3(b)
+    url: https://arxiv.org/html/2405.05237v1
+  - method: "EVA-X-S, ViT-S pre-trained on 520k chest X-rays (self-reported)"
+    metrics: {auroc: 0.833}
+    source: Yao et al., arXiv 2405.05237v1 (2024), ChestX-ray14 results text and Figure 3(b)
+    url: https://arxiv.org/html/2405.05237v1
+  - method: "MAE ViT-B/16, pre-trained on 0.5M X-rays"
+    metrics: {auroc: 0.830}
+    source: Xiao et al., WACV 2023, arXiv 2210.12843, Table 6
+    url: https://arxiv.org/html/2210.12843
+  - method: "EVA-X-S, reproduced independently"
+    metrics: {auroc: 0.828}
+    source: Seelaboyina and Khan, arXiv 2611.13014v1 (2026), abstract
+    url: https://arxiv.org/abs/2611.13014
+  - method: "MAE ViT-S/16, pre-trained on 0.3M X-rays"
+    metrics: {auroc: 0.823}
+    source: Xiao et al., WACV 2023, arXiv 2210.12843, Table 6
+    url: https://arxiv.org/html/2210.12843
+  - method: "Ensemble of five ImageNet-pretrained backbones, EVA-X-S recipe"
+    metrics: {auroc: 0.817}
+    source: Seelaboyina and Khan, arXiv 2611.13014v1 (2026), abstract
+    url: https://arxiv.org/abs/2611.13014
+  - method: "ResNet-38-large-meta"
+    metrics: {auroc: 0.806}
+    source: Baltruschat et al., Scientific Reports (2019), Table 6
+    url: https://pmc.ncbi.nlm.nih.gov/articles/PMC6476887/

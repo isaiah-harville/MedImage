@@ -1,0 +1,102 @@
+# NIH ChestX-ray14, 14 findings, at 448 px. Download the data first:
+#   uv run python scripts/datasets/nih_chestxray14.py data/nih_chestxray14
+#   uv run opendiagnostics fit -c models/nih-chestxray14-convnext/config.yaml
+name: nih-chestxray14-convnext
+notes: >-
+  ConvNeXt-S at 448 px on the official NIH test list. Validation is fold 0 of 8 patient-grouped
+  folds of the official train_val list. Batches of 16, four accumulated per step (64).
+seed_everything: 0
+trainer:
+  accelerator: auto
+  precision: bf16-mixed
+  deterministic: warn
+  max_epochs: 10
+  accumulate_grad_batches: 4
+  log_every_n_steps: 50
+  callbacks:
+  - class_path: lightning.pytorch.callbacks.EMAWeightAveraging
+    init_args:
+      decay: 0.99915
+  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+model:
+  class_path: opendiagnostics.modules.ImageClassifier
+  init_args:
+    network:
+      class_path: timm.create_model
+      init_args:
+        model_name: convnext_small.fb_in22k_ft_in1k
+        pretrained: true
+      dict_kwargs:
+        num_classes: 14
+        in_chans: 1
+        drop_path_rate: 0.2
+    tta: false
+data:
+  class_path: opendiagnostics.data.CSVImageDataModule
+  init_args:
+    manifest: data/nih_chestxray14/manifest.csv
+    split_column: split
+    class_names: [Atelectasis, Cardiomegaly, Effusion, Infiltration, Mass, Nodule, Pneumonia,
+      Pneumothorax, Consolidation, Edema, Emphysema, Fibrosis, Pleural_Thickening, Hernia]
+    label_separator: "|"
+    image_mode: L
+    in_channels: 1
+    license: "no restrictions, with attribution (NIH Clinical Center)"
+    citation: >-
+      Wang X, Peng Y, Lu L, Lu Z, Bagheri M, Summers RM. ChestX-ray8: Hospital-scale Chest
+      X-ray Database and Benchmarks on Weakly-Supervised Classification and Localization of
+      Common Thorax Diseases. IEEE CVPR 2017, pp. 3462-3471. Data:
+      https://nihcc.app.box.com/v/ChestXray-NIHCC, courtesy of the NIH Clinical Center.
+    split: kfold
+    folds: 8
+    fold: 0
+    stratify: false
+    batch_size: 16
+    eval_batch_size: 64
+    num_workers: 8
+    train_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: torchvision.transforms.v2.RandomResizedCrop
+          init_args:
+            size: [448, 448]
+            scale: [0.7, 1.0]
+            antialias: true
+        - class_path: torchvision.transforms.v2.RandomAffine
+          init_args:
+            degrees: 10
+            translate: [0.05, 0.05]
+        - class_path: torchvision.transforms.v2.Normalize
+          init_args:
+            mean: [0.449]
+            std: [0.226]
+    eval_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: torchvision.transforms.v2.Resize
+          init_args:
+            size: [448, 448]
+            antialias: true
+        - class_path: torchvision.transforms.v2.Normalize
+          init_args:
+            mean: [0.449]
+            std: [0.226]
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 0.0001
+    weight_decay: 0.05
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CosineAnnealingLR
+  init_args:
+    T_max: 10
+    eta_min: 1.0e-06
+checkpoint:
+  monitor: val/auroc
+  mode: max
+eval:
+  bootstrap_samples: 1000
