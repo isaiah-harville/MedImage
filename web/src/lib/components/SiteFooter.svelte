@@ -4,37 +4,32 @@ import type { DatasetCredit } from '#lib/format.ts';
 let { credits }: { credits: DatasetCredit[] } = $props();
 </script>
 
-<footer class="mt-16 border-t border-line bg-surface text-sm text-fg-secondary">
-  <div class="mx-auto grid max-w-6xl gap-8 px-4 py-10 sm:px-6 md:grid-cols-[2fr_1fr]">
+<footer class="mt-24 border-t border-border bg-card text-[13px] text-foreground-muted">
+  <div class="mx-auto grid max-w-6xl gap-10 px-5 py-12 md:grid-cols-[2fr_1fr]">
     <section aria-labelledby="footer-datasets">
-      <h2 id="footer-datasets" class="font-semibold text-fg">Datasets</h2>
+      <h2 id="footer-datasets" class="font-semibold text-foreground">Datasets</h2>
       {#if credits.length === 0}
-        <p class="mt-2">Dataset credits appear here once the model service responds.</p>
+        <p class="mt-3">Dataset credits appear here once the model service responds.</p>
       {:else}
-        <ul class="mt-2 space-y-3">
+        <ul class="mt-3 grid gap-x-8 gap-y-3 sm:grid-cols-2">
           {#each credits as credit (credit.dataset)}
             <li>
-              <span class="font-medium text-fg">{credit.dataset}</span>, {credit.license}.
-              <span class="block">{credit.citation}</span>
+              <span class="font-medium text-foreground">{credit.dataset}</span>
+              <span class="ml-1">{credit.license}</span>
+              <span class="mt-0.5 block line-clamp-2">{credit.citation}</span>
             </li>
           {/each}
         </ul>
       {/if}
     </section>
-    <section aria-labelledby="footer-project" class="space-y-2">
-      <h2 id="footer-project" class="font-semibold text-fg">Research use only</h2>
-      <p>Not a medical device. Not for diagnosis or treatment.</p>
-      <ul class="space-y-1">
+    <section aria-labelledby="footer-project" class="space-y-3">
+      <h2 id="footer-project" class="font-semibold text-foreground">OpenDiagnostics</h2>
+      <p>Open research models. Not a medical device, and not for diagnosis or treatment.</p>
+      <ul class="space-y-1.5">
+        <li><a class="text-foreground underline-offset-4 hover:underline" href="/privacy">Privacy</a></li>
         <li>
-          <a
-            class="font-medium text-accent underline underline-offset-2 hover:text-accent-hover"
-            href="/privacy">Privacy</a
-          >
-        </li>
-        <li>
-          <a
-            class="font-medium text-accent underline underline-offset-2 hover:text-accent-hover"
-            href="https://github.com/isaiah-harville/opendiagnostics">Source code on GitHub</a
+          <a class="text-foreground underline-offset-4 hover:underline" href="https://github.com/isaiah-harville/opendiagnostics"
+            >Source code and published runs</a
           >
         </li>
       </ul>

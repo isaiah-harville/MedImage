@@ -4,6 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="referrer" content="no-referrer" />
+    <script>
+      document.documentElement.classList.toggle('dark', matchMedia('(prefers-color-scheme: dark)').matches);
+    </script>
     <link rel="icon" href="%sveltekit.assets%/favicon.svg" type="image/svg+xml" />
     %sveltekit.head%
   </head>

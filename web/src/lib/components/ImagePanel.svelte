@@ -8,7 +8,7 @@ let { src, alt, caption }: { src: string; alt: string; caption: string } = $prop
     {alt}
     width="224"
     height="224"
-    class="aspect-square w-full rounded-xl bg-muted object-contain [image-rendering:pixelated]"
+    class="aspect-square w-full rounded-[var(--radius-lg)] bg-secondary object-contain shadow-[var(--elevation-1)] [image-rendering:pixelated]"
   />
-  <figcaption class="mt-2 text-sm text-fg-secondary">{caption}</figcaption>
+  <figcaption class="mt-2 text-[12px] text-foreground-muted">{caption}</figcaption>
 </figure>

@@ -28,7 +28,17 @@ image proxy. The browser never sees `API_URL`. The contract between the two is
   Every response has `Referrer-Policy: no-referrer`.
 - Results travel only in the form action's response body, never in a URL, and the server keeps no
   copy.
-- No cookies, analytics, trackers, third-party scripts, or web fonts.
+- No cookies, analytics, trackers, or third-party scripts. The two fonts (Inter and
+  JetBrains Mono) come with Sivir UI and are served from this site, not a font host.
+
+## Design
+
+Components and theme come from [Sivir UI](https://github.com/aidan-neel/sivir-ui)
+(`@sivir-ui/svelte`), imported per component (`@sivir-ui/svelte/components/<name>`) so the
+build skips the parts the site does not use. `src/app.css` imports its theme, and an inline
+script in `src/app.html` sets the `dark` class from the system setting before first paint.
+Sivir declares a peer dependency on SvelteKit 2 but uses no SvelteKit API, so
+`package.json` overrides that peer to the SvelteKit 3 this app runs.
 
 ## Configuration
 

@@ -22,6 +22,7 @@
     "mock-api": "node tests/mock-api.ts"
   },
   "dependencies": {
+    "@sivir-ui/svelte": "0.4.5",
     "zod": "4.6.7"
   },
   "devDependencies": {
@@ -37,5 +38,10 @@
     "typescript": "6.0.3",
     "vite": "8.4.0",
     "vitest": "5.1.2"
+  },
+  "overrides": {
+    "@sivir-ui/svelte": {
+      "@sveltejs/kit": "$@sveltejs/kit"
+    }
   }
 }

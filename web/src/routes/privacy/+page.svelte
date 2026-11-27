@@ -9,7 +9,7 @@ import PolicySection from '#lib/components/PolicySection.svelte';
 
 <article class="max-w-2xl">
   <h1 class="text-3xl font-semibold tracking-tight">Privacy</h1>
-  <p class="mt-2 text-sm text-fg-secondary">Last updated <time datetime="2026-11-27">2026-11-27</time></p>
+  <p class="mt-2 text-sm text-foreground-muted">Last updated <time datetime="2026-11-27">2026-11-27</time></p>
   <p class="mt-4 text-lg">
     This site runs research models on medical images. Here is what happens to an image you upload
     and what we keep.
@@ -61,7 +61,7 @@ import PolicySection from '#lib/components/PolicySection.svelte';
       All traffic to this site, including uploads, passes through Cloudflare on its way to our
       servers. Cloudflare sees each request, including your IP address, and handles it under the
       <a
-        class="font-medium text-accent underline underline-offset-2 hover:text-accent-hover"
+        class="font-medium text-primary underline underline-offset-2 hover:opacity-80"
         href="https://www.cloudflare.com/privacypolicy/">Cloudflare privacy policy</a
       >.
     </p>
@@ -92,7 +92,7 @@ import PolicySection from '#lib/components/PolicySection.svelte';
     <p>
       Open an issue at
       <a
-        class="font-medium text-accent underline underline-offset-2 hover:text-accent-hover"
+        class="font-medium text-primary underline underline-offset-2 hover:opacity-80"
         href="https://github.com/isaiah-harville/opendiagnostics/issues"
         >github.com/isaiah-harville/opendiagnostics/issues</a
       >.
