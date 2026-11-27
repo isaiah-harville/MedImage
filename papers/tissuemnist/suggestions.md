@@ -1,0 +1,68 @@
+# Suggestions
+
+What the paper needs before it can defend its claim, from the gap review after the literature review. Blocking items come first.
+
+Costs use the measured run: 8 epochs took 99 minutes on one RTX 4070 Ti (`run.json` started and finished), about 12.4 minutes per epoch of 2,586 steps including validation.
+
+## S1: Two more seeds of the same configuration
+
+- **Priority:** blocking
+- **Run:** the committed config unchanged except the seed, from a clean tree, on the same RTX 4070 Ti:
+  `uv run opendiagnostics fit -c models/tissuemnist-convnext/config.yaml --seed_everything=1` and the same with `--seed_everything=2`; then `uv run opendiagnostics publish runs/tissuemnist-convnext/<run-id> models/tissuemnist-convnext` for each. Report the 3-seed mean and SD of test AUROC and accuracy next to each run's bootstrap interval, and add both to `paper_numbers.py`. Keep the EMA bug as is for these runs, so the three seeds share one protocol (see S6).
+- **Why:** every published comparison row is a mean of 3 runs (`wu2025rethinking` Table 6, `doerrich2025medmnistplus` Table S12, `arman2026cytoecanet` Table 5), and ours is one draw. The literature review moved the best published AUROC from 0.9535 to 0.9585 (`wu2025rethinking`, ViT-B/16), so our point lead is 0.0045 AUROC, not 0.0095, and our lower bound clears it by 0.0033. Published seed SDs on this dataset run from 0.0004 to 0.0025 AUROC (`doerrich2025medmnistplus`, `arman2026cytoecanet`). With one seed we cannot tell a recipe that beats 0.9585 on average from a lucky draw. A reviewer would reject "exceeds the best published TissueMNIST results" on this evidence.
+- **Would change:** a 3-seed mean AUROC above 0.9585 by more than about two pooled seed SDs supports the comparison claim as a recipe-level result. A mean at or below 0.9585 reduces the paper to "one run", and the accuracy comparison (lead 0.0180, lower-bound margin 0.0147) would carry it instead.
+- **Without it:** "One training run of ConvNeXt-Small (ImageNet-22k) reached a TissueMNIST test AUROC of 0.9630 (95% interval over test images 0.9618 to 0.9641) and accuracy 0.7772 (0.7739 to 0.7811); both intervals lie above the published 3-run means (best 0.9585 and 0.7592, Wu and Papież). Variation across training runs was not measured, so the result does not show that the recipe beats those methods on average."
+- **Cost:** 2 runs x 99 min = about 3.3 GPU-hours, plus 2 publishes.
+- **Status:** open
+
+## S2: Paired comparison against a reproduced baseline
+
+- **Priority:** strengthens
+- **Run:** reproduce the strongest published baseline in this pipeline so `opendiagnostics compare` gives a paired test on the same 47,280 test images. Either (a) Wu and Papież's ViT-B/16 (`vit_base_patch16_224`), end to end at native 224 px, AdamW, encoder lr 1e-5, classifier lr 1e-3 decayed by 0.9 every 200 iterations, 15,000 iterations, 3 seeds; or (b) MedMNIST+'s DenseNet-121 (`densenet121.ra_in1k`) at 224 px, AdamW lr 1e-4, weight decay 0.01, cosine over 100 epochs, early stopping after 5 epochs without lower val loss, no augmentation, fp32, 3 seeds. Then `uv run opendiagnostics compare <baseline>/predictions_test.csv models/tissuemnist-convnext/runs/<run>/predictions_test.csv`.
+- **Why:** no baseline publishes predictions, so the paper can only set intervals against published means (AGENTS.md invariant 3 allows this, but a paired test is stronger). Also checks that our pipeline reproduces the published numbers.
+- **Would change:** a reproduced baseline well below its published value would point to a pipeline difference; a paired CI on the AUROC difference that excludes 0 replaces the interval-versus-mean argument.
+- **Cost:** (a) 15,000 iterations at an unstated batch size; at batch 64 about 6 epochs, roughly 1.5 to 2 GPU-hours per seed, 5 to 6 h for 3. (b) early stopping typically ends in 15 to 30 epochs; at about 10 to 12 min per epoch, 3 to 6 h per seed, 9 to 18 h for 3.
+- **Status:** open
+
+## S3: Rescore without test-time flip averaging
+
+- **Priority:** strengthens
+- **Run:** copy the run directory with its checkpoint (198 MB, from the URL in `artifacts.yaml`), set `model.init_args.tta: false` in the copy's `config.yaml`, and run `uv run opendiagnostics evaluate <copy>`. No training.
+- **Why:** the method section names flip averaging as one of the differences from every baseline; this is the only one that costs no training to measure. `medeiros2026tta` reports that mixed test-time augmentation hurt accuracy on three other MedMNIST sets (it did not test TissueMNIST).
+- **Would change:** a large drop would credit part of the gap to flip averaging, which baselines could adopt for free.
+- **Cost:** inference on 70,920 images: about 10 minutes on the GPU, 1 to 2 h on CPU. Plus the 224 px archive download.
+- **Status:** open
+
+## S4: Ablations of pretraining, augmentation, regularization, and network
+
+- **Priority:** strengthens
+- **Run:** one arm per change, each with 3 seeds, everything else as in the committed config: (a) `model_name: convnext_small.fb_in1k` (ImageNet-1k only); (b) no `RandomResizedCrop` and no flips in `train_transforms`; (c) `label_smoothing: 0`, `drop_path_rate: 0`, `weight_decay: 0.01`; (d) `densenet121.ra_in1k` with our recipe. Add the arms to `scripts/medmnist_recipes.py` or as separate model projects.
+- **Why:** contribution 2 lists these as hypotheses; the paper cannot credit any of them without a run that removes it. `kolesnikov2020bit` shows the pretraining effect on natural images, with the caveat that small models gain little.
+- **Would change:** names which difference carries the gap, which turns the setup comparison from a list of hypotheses into a finding.
+- **Cost:** 4 arms x 3 seeds x 99 min = about 20 GPU-hours (arm d may be shorter or longer depending on DenseNet's speed).
+- **Status:** open
+
+## S5: A specimen-level split
+
+- **Priority:** strengthens
+- **Run:** a data module for BBBC051 (`broad2021bbbc051`, CC BY 3.0, no account) that keeps the 3 donor specimens apart: leave one specimen out, 3 folds, same recipe and 2D maximum projection resized to 224.
+- **Why:** the cell-level split puts cells from all 3 donors in train and test, so the result says nothing about a new donor; `woloshuk2021kidney` measured 58.3% balanced accuracy on an unseen specimen against 80.26% within specimens. A reviewer will ask why the paper did not test this when the source data allows it.
+- **Would change:** a large drop belongs in the Limitations as a measured number instead of a caveat.
+- **Cost:** about a day to write and test the data module, then 3 folds x about 70 to 100 min.
+- **Status:** open
+
+## S6: Save the EMA weights
+
+- **Priority:** optional
+- **Run:** fix the pipeline so the checkpoint holds the EMA weights that selection used (Lightning skips callback save hooks when `save_weights_only` is true), then retrain one seed.
+- **Why:** logged EMA validation AUROC at the selected epoch is 0.0021 above the saved raw weights' (`\emaMinusRawAuroc`), so the reported test numbers likely understate the recipe. Not needed for the claim, which only gets stronger.
+- **Cost:** the fix plus 99 min per seed. Do it after S1, so the three seeds share one protocol.
+- **Status:** open
+
+## S7: Bring `baselines.yaml` up to date
+
+- **Priority:** strengthens (reproducibility)
+- **Run:** add rows for `wu2025rethinking` (ViT-B/16 and EfficientNet-B4, native 224, App. C Table 6), `arman2026cytoecanet` (DenseNet-121 from scratch and CytoECA-Net, native 64, Table 5), and `yang2025medkan` (MedKAN-B); fix the MedMNIST v2 URLs from `/tables/3` (Table 2) to `/tables/4` (Table 3); mark Google AutoML Vision's input size as not stated. This file is outside `papers/`, so this run did not change it.
+- **Why:** `paper_numbers.py` takes the best published values from this file; as it stands it reports 0.9535 as the best, which the literature review shows is wrong.
+- **Cost:** minutes.
+- **Status:** open

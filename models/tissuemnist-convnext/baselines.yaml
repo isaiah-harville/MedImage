@@ -11,6 +11,18 @@ protocol: >-
   95% interval. MedViTV2's Table 5 misquotes several MedMNIST v2 rows, so treat its own numbers
   with care.
 baselines:
+  - method: "ViT-B/16, end-to-end fine-tuned, native 224 (MedMNIST+), mean of 3 runs"
+    metrics: {auroc: 0.9585, accuracy: 0.7592}
+    source: Wu and Papiez, arXiv 2501.14685v1 (2025), Appendix C Table 6
+    url: https://arxiv.org/abs/2501.14685
+  - method: "DenseNet-121 from scratch, native 64 (MedMNIST+), mean of 3 seeds"
+    metrics: {auroc: 0.9572, accuracy: 0.7547}
+    source: Arman et al., Scientific Reports (2026), doi:10.1038/s41598-026-55088-6, Table 5
+    url: https://doi.org/10.1038/s41598-026-55088-6
+  - method: "MedKAN-B (224, resized)"
+    metrics: {auroc: 0.957, accuracy: 0.740}
+    source: Yang et al., MedKAN, arXiv 2502.18416, Table 2
+    url: https://arxiv.org/abs/2502.18416
   - method: "DenseNet-121, end-to-end, native 128 zero-padded to 224 (MedMNIST+), mean of 3 seeds"
     metrics: {auroc: 0.9535, accuracy: 0.7425}
     source: Doerrich et al., arXiv 2404.15786v3 (2025), Supplementary Table S12

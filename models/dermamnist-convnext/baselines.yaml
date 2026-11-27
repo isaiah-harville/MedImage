@@ -11,6 +11,23 @@ protocol: >-
   95% interval. MedViTV2's Table 5 misquotes several MedMNIST v2 rows, so treat its own numbers
   with care.
 baselines:
+  - method: "DINOv2 ViT-B/14, end-to-end fine-tuned, native 224, mean of 3 runs"
+    metrics: {auroc: 0.9892, accuracy: 0.9202}
+    source: Wu and Papiez, arXiv 2501.14685v1 (2025), Table 1
+    url: https://arxiv.org/abs/2501.14685
+  - method: "CLIP ViT-B/16, end-to-end fine-tuned, native 224, mean of 3 runs"
+    metrics: {auroc: 0.9831}
+    source: Wu and Papiez, arXiv 2501.14685v1 (2025), Table 1
+    url: https://arxiv.org/abs/2501.14685
+  - method: "Soft-voting ensemble of four ImageNet-pretrained networks, native 224, one seed"
+    metrics: {auroc: 0.9877, accuracy: 0.9092}
+    source: Sanap, Neural Computing and Applications (2026), doi:10.1007/s00521-026-12521-1, Table 6
+    url: https://doi.org/10.1007/s00521-026-12521-1
+    notes: Read from the author's revision on Zenodo; the published version is paywalled.
+  - method: "ConvNeXt-Base, fine-tuned without augmentation, native 224, one seed"
+    metrics: {auroc: 0.9820, accuracy: 0.8948}
+    source: Sanap, Neural Computing and Applications (2026), doi:10.1007/s00521-026-12521-1, Table 6
+    url: https://doi.org/10.1007/s00521-026-12521-1
   - method: "DINO ViT-B/16, linear probe, native 224 (MedMNIST+), mean of 3 seeds"
     metrics: {auroc: 0.9683, accuracy: 0.8442}
     source: Doerrich et al., arXiv 2404.15786v3 (2025), Supplementary Table S4

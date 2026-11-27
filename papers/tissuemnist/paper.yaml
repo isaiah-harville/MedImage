@@ -1,7 +1,7 @@
 title: "ImageNet-22k Pretraining, Augmentation, and Regularization: Where a ConvNeXt Recipe Departs from the MedMNIST+ Setup on TissueMNIST"
 description: >-
   On TissueMNIST, one run of a ConvNeXt-Small pretrained on ImageNet-22k reached a test
-  AUROC of 0.9630 (95% CI 0.9618 to 0.9641), above the best published 0.9535. The paper
+  AUROC of 0.9630 (95% CI 0.9618 to 0.9641), above the best published 0.9585. The paper
   uses MedMNIST+'s own results to rule out input size as the cause and lists the remaining
   differences as hypotheses to test.
 project: tissuemnist-convnext

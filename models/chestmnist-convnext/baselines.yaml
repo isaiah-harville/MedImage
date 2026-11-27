@@ -11,6 +11,14 @@ protocol: >-
   95% interval. MedViTV2's Table 5 misquotes several MedMNIST v2 rows, so treat its own numbers
   with care.
 baselines:
+  - method: "BioFuse: frozen foundation-model embeddings with XGBoost, native 224, mean of 3 runs"
+    metrics: {auroc: 0.835, accuracy: 0.949}
+    source: Hossain et al., PLOS One (2026), doi:10.1371/journal.pone.0320989, Table 3
+    url: https://doi.org/10.1371/journal.pone.0320989
+  - method: "DINOv2 ViT-B/14, end-to-end fine-tuned, native 224, mean of 3 runs"
+    metrics: {auroc: 0.8322, accuracy: 0.9487}
+    source: Wu and Papiez, arXiv 2501.14685v1 (2025), Appendix C
+    url: https://arxiv.org/abs/2501.14685
   - method: "MedViTV2-L (224, resized)"
     metrics: {auroc: 0.823, accuracy: 0.967}
     source: Manzari et al., arXiv 2502.13693v3 (2025), Table 5
