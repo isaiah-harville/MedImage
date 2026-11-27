@@ -1,0 +1,204 @@
+{
+  "checkpoint_epoch": 84,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.7756497401039585,
+      "lower": 0.7056780701133383,
+      "upper": 0.8440017127747487,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.6171348600455624,
+      "lower": 0.5337016149774624,
+      "upper": 0.7408697135782061,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.5631067961165048,
+      "lower": 0.46601941747572817,
+      "upper": 0.6507281553398057,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.5063492059707642,
+      "lower": 0.41674738749861717,
+      "upper": 0.5956848278641701,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/buckle rib fracture": {
+      "value": 0.7814207650273224,
+      "lower": 0.6902922928213625,
+      "upper": 0.8693798449612403,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/buckle rib fracture": {
+      "value": 0.7053967036747407,
+      "lower": 0.5626260859564345,
+      "upper": 0.8482918809812011,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/nondisplaced rib fracture": {
+      "value": 0.7,
+      "lower": 0.5901417648176293,
+      "upper": 0.7971158699257336,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/nondisplaced rib fracture": {
+      "value": 0.5826506793689094,
+      "lower": 0.4373041732407149,
+      "upper": 0.7415128328942739,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/displaced rib fracture": {
+      "value": 0.8455284552845529,
+      "lower": 0.7389133511628238,
+      "upper": 0.9372610294117646,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/displaced rib fracture": {
+      "value": 0.5633571970930371,
+      "lower": 0.3504082335258063,
+      "upper": 0.7913750212151178,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 103,
+    "n_patients": 103
+  },
+  "test": {
+    "auroc": {
+      "value": 0.7808422146172692,
+      "lower": 0.7353282432406224,
+      "upper": 0.8229802595977868,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.6682455024859374,
+      "lower": 0.6067999328847992,
+      "upper": 0.7371961357540162,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.5291666666666667,
+      "lower": 0.4665625000000001,
+      "upper": 0.5958333333333333,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.4949863851070404,
+      "lower": 0.4345919102430344,
+      "upper": 0.5549385979771614,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/buckle rib fracture": {
+      "value": 0.7584444444444445,
+      "lower": 0.6930490382902372,
+      "upper": 0.8153293783956536,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/buckle rib fracture": {
+      "value": 0.6838353818128307,
+      "lower": 0.5897376062964651,
+      "upper": 0.7762285184685721,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/nondisplaced rib fracture": {
+      "value": 0.6648755656108597,
+      "lower": 0.5975920964968837,
+      "upper": 0.729509636532921,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/nondisplaced rib fracture": {
+      "value": 0.6038739414336718,
+      "lower": 0.5083913855282847,
+      "upper": 0.7011502924940187,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/displaced rib fracture": {
+      "value": 0.9192066337965038,
+      "lower": 0.8759018918718188,
+      "upper": 0.9550716310633791,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/displaced rib fracture": {
+      "value": 0.7170271842113095,
+      "lower": 0.5747948910816222,
+      "upper": 0.8407512310924754,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 240,
+    "n_patients": 240
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 84
+  }
+}

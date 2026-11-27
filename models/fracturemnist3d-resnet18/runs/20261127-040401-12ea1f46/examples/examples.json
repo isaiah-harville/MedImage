@@ -1,0 +1,82 @@
+[
+  {
+    "id": "test-228",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "buckle rib fracture",
+    "prediction": "buckle rib fracture",
+    "confidence": 0.9469139575958252,
+    "correct": true
+  },
+  {
+    "id": "test-204",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "nondisplaced rib fracture",
+    "prediction": "nondisplaced rib fracture",
+    "confidence": 0.9205422401428223,
+    "correct": true
+  },
+  {
+    "id": "test-8",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "displaced rib fracture",
+    "prediction": "displaced rib fracture",
+    "confidence": 0.6951913833618164,
+    "correct": true
+  },
+  {
+    "id": "test-155",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "buckle rib fracture",
+    "prediction": "nondisplaced rib fracture",
+    "confidence": 0.8207969665527344,
+    "correct": false
+  },
+  {
+    "id": "test-138",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "nondisplaced rib fracture",
+    "prediction": "buckle rib fracture",
+    "confidence": 0.8702854514122009,
+    "correct": false
+  },
+  {
+    "id": "test-102",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "displaced rib fracture",
+    "prediction": "nondisplaced rib fracture",
+    "confidence": 0.7750440835952759,
+    "correct": false
+  },
+  {
+    "id": "test-3",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "buckle rib fracture",
+    "prediction": "buckle rib fracture",
+    "confidence": 0.9398662447929382,
+    "correct": true
+  },
+  {
+    "id": "test-80",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "nondisplaced rib fracture",
+    "prediction": "nondisplaced rib fracture",
+    "confidence": 0.8892682194709778,
+    "correct": true
+  }
+]

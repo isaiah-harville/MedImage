@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 132728773
+  sha256: 136816516dad39513a20b4339b84cfe972faa1e5c6856d9c170308edc855fe2b
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/vesselmnist3d-resnet18/20261127-033405-12ea1f46/checkpoint.ckpt

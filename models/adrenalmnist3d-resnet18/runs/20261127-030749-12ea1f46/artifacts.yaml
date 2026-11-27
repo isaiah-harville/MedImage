@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 132728773
+  sha256: 06bbbd5da92f2a328c1d3b4b82d61c9ab9e56a8c4e4c1a7981d028dd2fc0d2aa
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/adrenalmnist3d-resnet18/20261127-030749-12ea1f46/checkpoint.ckpt
