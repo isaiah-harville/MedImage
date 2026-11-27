@@ -31,6 +31,17 @@ model:
         drop_path_rate: 0.2
     tta: true
     label_smoothing: 0.1
+    # Inverse class frequency over the 25,331 ISIC 2019 training images, so the loss
+    # targets balanced accuracy, the metric the challenge ranked.
+    class_weight:
+    - 0.7
+    - 0.246
+    - 0.953
+    - 3.652
+    - 1.207
+    - 13.248
+    - 12.515
+    - 5.042
 data:
   class_path: opendiagnostics.data.CSVImageDataModule
   init_args:
