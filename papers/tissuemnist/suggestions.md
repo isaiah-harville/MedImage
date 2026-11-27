@@ -13,7 +13,7 @@ Costs use the measured run: 8 epochs took 99 minutes on one RTX 4070 Ti (`run.js
 - **Would change:** a 3-seed mean AUROC above 0.9585 by more than about two pooled seed SDs supports the comparison claim as a recipe-level result. A mean at or below 0.9585 reduces the paper to "one run", and the accuracy comparison (lead 0.0180, lower-bound margin 0.0147) would carry it instead.
 - **Without it:** "One training run of ConvNeXt-Small (ImageNet-22k) reached a TissueMNIST test AUROC of 0.9630 (95% interval over test images 0.9618 to 0.9641) and accuracy 0.7772 (0.7739 to 0.7811); both intervals lie above the published 3-run means (best 0.9585 and 0.7592, Wu and Papież). Variation across training runs was not measured, so the result does not show that the recipe beats those methods on average."
 - **Cost:** 2 runs x 99 min = about 3.3 GPU-hours, plus 2 publishes.
-- **Status:** open
+- **Status:** done (2026-11-27). Seeds 1 and 2 trained on the RTX 4070 Ti and were published at 405f713 (`20261127-113245-f5bc0be9`, `20261127-125653-a35c5dae`). `paper_numbers.py` recomputes all three runs and checks them against `metrics.json`. Test AUROC 0.9630, 0.9643, 0.9640 (mean 0.9637, SD 0.0007); accuracy 0.7772, 0.7853, 0.7844 (mean 0.7823, SD 0.0044). The mean is 0.0052 AUROC above 0.9585, 5.7 pooled SDs, so the comparison claim now stands as a 3-seed recipe-level result (`claim.md`). Every seed's interval lies above both published means.
 
 ## S2: Paired comparison against a reproduced baseline
 
@@ -26,11 +26,13 @@ Costs use the measured run: 8 epochs took 99 minutes on one RTX 4070 Ti (`run.js
 
 ## S3: Rescore without test-time flip averaging
 
-- **Priority:** strengthens
-- **Run:** copy the run directory with its checkpoint (198 MB, from the URL in `artifacts.yaml`), set `model.init_args.tta: false` in the copy's `config.yaml`, and run `uv run opendiagnostics evaluate <copy>`. No training.
+- **Priority:** strengthens (both reviewers in stage 7 asked for it; the abstract's numbers include flip averaging, which no baseline uses)
+- **Run:** on the training machine, where all three checkpoints are, for each seed copy the local run folder, turn flip averaging off in the copy, and rescore it. No training. In bash from the repository root:
+  `for r in 20261126-200655-ab39eb97 20261127-113245-f5bc0be9 20261127-125653-a35c5dae; do mkdir -p runs/tissuemnist-convnext-notta && cp -r runs/tissuemnist-convnext/$r runs/tissuemnist-convnext-notta/$r && sed -i 's/^    tta: true$/    tta: false/' runs/tissuemnist-convnext-notta/$r/config.yaml && uv run opendiagnostics evaluate runs/tissuemnist-convnext-notta/$r; done`
+  Then copy the three `metrics.json` and `predictions_*.csv` files somewhere the paper script can read them (they are not runs to publish).
 - **Why:** the method section names flip averaging as one of the differences from every baseline; this is the only one that costs no training to measure. `medeiros2026tta` reports that mixed test-time augmentation hurt accuracy on three other MedMNIST sets (it did not test TissueMNIST).
-- **Would change:** a large drop would credit part of the gap to flip averaging, which baselines could adopt for free.
-- **Cost:** inference on 70,920 images: about 10 minutes on the GPU, 1 to 2 h on CPU. Plus the 224 px archive download.
+- **Would change:** if the no-flip mean still clears 0.9585 and 0.7592, the claim no longer depends on flip averaging; a large drop credits part of the gap to it, which baselines could adopt for free.
+- **Cost:** inference on 70,920 images per seed, about 10 minutes each on the GPU.
 - **Status:** open
 
 ## S4: Ablations of pretraining, augmentation, regularization, and network
@@ -55,14 +57,22 @@ Costs use the measured run: 8 epochs took 99 minutes on one RTX 4070 Ti (`run.js
 
 - **Priority:** optional
 - **Run:** fix the pipeline so the checkpoint holds the EMA weights that selection used (Lightning skips callback save hooks when `save_weights_only` is true), then retrain one seed.
-- **Why:** logged EMA validation AUROC at the selected epoch is 0.0021 above the saved raw weights' (`\emaMinusRawAuroc`), so the reported test numbers likely understate the recipe. Not needed for the claim, which only gets stronger.
+- **Why:** logged EMA validation AUROC at the selected epoch is above the saved raw weights' by 0.0021, 0.0003, and 0.0009 in seeds 0, 1, 2 (mean 0.0011, `\emaMinusRawAurocMean`), so the reported test numbers likely understate the recipe. Not needed for the claim, which only gets stronger.
 - **Cost:** the fix plus 99 min per seed. Do it after S1, so the three seeds share one protocol.
 - **Status:** open
 
 ## S7: Bring `baselines.yaml` up to date
 
 - **Priority:** strengthens (reproducibility)
-- **Run:** add rows for `wu2025rethinking` (ViT-B/16 and EfficientNet-B4, native 224, App. C Table 6), `arman2026cytoecanet` (DenseNet-121 from scratch and CytoECA-Net, native 64, Table 5), and `yang2025medkan` (MedKAN-B); fix the MedMNIST v2 URLs from `/tables/3` (Table 2) to `/tables/4` (Table 3); mark Google AutoML Vision's input size as not stated. This file is outside `papers/`, so this run did not change it.
+- **Run:** add rows for `wu2025rethinking` (ViT-B/16 and EfficientNet-B4, native 224, App. C Table 6), `arman2026cytoecanet` (DenseNet-121 from scratch and CytoECA-Net, native 64, Table 5), and `yang2025medkan` (MedKAN-B); fix the MedMNIST v2 URLs from `/tables/3` (Table 2) to `/tables/4` (Table 3); mark Google AutoML Vision's input size as not stated. 
 - **Why:** `paper_numbers.py` takes the best published values from this file; as it stands it reports 0.9535 as the best, which the literature review shows is wrong.
 - **Cost:** minutes.
+- **Status:** done (2026-11-27). Added `auroc_sd` and `accuracy_sd` where the source gives them, the Wu and Papież EfficientNet-B4 row and Arman et al.'s CytoECA-Net row, pointed the MedMNIST v2 URLs at `/tables/4`, and marked AutoML Vision's input as not stated. The Wu ViT-B/16, Arman DenseNet-121, and MedKAN-B rows were already in. `paper_numbers.py` takes the best row (Wu ViT-B/16) and the native-224 DenseNet-121 row from the file.
+
+## S8: Upload the seed-1 and seed-2 checkpoints
+
+- **Priority:** optional (reproducibility)
+- **Run:** upload both checkpoints to the public weights bucket the way seed 0's was (see `docs/weights.md`), so `artifacts.yaml` gets a URL. This uploads to a public bucket, so it needs the user's go-ahead.
+- **Why:** the paper releases every seed's predictions but only seed 0's weights.
 - **Status:** open
+

@@ -2,16 +2,28 @@
 % submission, move Claude from the author block to the Acknowledgment, which already
 % describes Claude's part in the work.
 \documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+\usepackage[T1]{fontenc}
 \usepackage{cite}
+\usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
-\usepackage{amsmath}
 \usepackage{array}
 \usepackage{url}
+\usepackage[hidelinks]{hyperref}
+
+\newif\ifanycitation
+\let\citeAnyKey\cite
+\renewcommand{\cite}{\global\anycitationtrue\citeAnyKey}
+\let\nociteAnyKey\nocite
+\renewcommand{\nocite}{\global\anycitationtrue\nociteAnyKey}
+
+\input{generated/numbers}
+\input{generated/subsets}
 
 \begin{document}
 
-\title{ImageNet-22k Pretraining, Augmentation, and Regularization: Where a ConvNeXt Recipe Departs from the MedMNIST+ Setup on TissueMNIST}
+\title{Three Seeds of a ConvNeXt-Small Recipe Score Above the Best Published TissueMNIST Results}
 
 \author{
 \IEEEauthorblockN{Isaiah R. Harville}
@@ -24,131 +36,168 @@
 \maketitle
 
 \begin{abstract}
-MedMNIST+ trained ten pretrained networks on TissueMNIST, a set of 236,386 kidney-cortex
-cell images in eight classes, with one shared setup: ImageNet-1k or self-supervised weights,
-no data augmentation, plain cross-entropy, and early stopping on validation loss. Its best
-TissueMNIST AUROC is 0.9535, a three-seed mean for DenseNet-121 trained end to end on
-128-pixel images zero-padded to 224. We fine-tuned ConvNeXt-Small on the 224-pixel images
-and the official split with a recipe that differs in six ways: supervised ImageNet-22k
-pretraining, random resized crops and flips, label smoothing with stochastic depth and
-stronger weight decay, a fixed 8-epoch cosine schedule with selection on validation
-AUROC, an exponential moving average of the weights used only to select the epoch, and
-flip averaging at test time. One run reached a test AUROC of 0.9630, with a 95\%
-bootstrap interval of [0.9618, 0.9641] that lies above every published TissueMNIST value
-we could source. Accuracy was 0.7772 against 0.7425 for the same baseline, so about one
-test cell in five is still misclassified. Our input images are those of the MedMNIST+ 224-pixel runs, whose best AUROC is 0.9525,
-so input size does not explain the gap. We ran no ablations, so we state each other
-difference as a hypothesis with the run that would test it. The result is one seed, and
-the bootstrap resamples images because TissueMNIST has no specimen identifiers.
+TissueMNIST is an eight-class set of 236,386 kidney-cortex cell images. The best
+published values we found are 3-run means from an end-to-end ViT-B/16 at 224 pixels, with
+AUROC \baseBestAuroc{} and accuracy \baseBestAcc{}. We fine-tuned ConvNeXt-Small,
+pretrained on ImageNet-22k, on the 224-pixel images of the official split with one fixed
+recipe, and trained it with three seeds. The mean test AUROC was \testAurocMean{} (SD
+\testAurocSD{}) and the mean accuracy \testAccMean{} (SD \testAccSD{}). The lowest of the
+three seeds is \gainMinSeedAuroc{} AUROC above the published mean. A two-sided Welch test
+of our three runs against the published mean and SD gives $p=\welchPAuroc{}$ for AUROC
+and $p=\welchPAcc{}$ for accuracy. A sourced, item-by-item comparison with the MedMNIST+
+setup shows that our inputs are the same 224-pixel images that MedMNIST+ and Wu and
+Papie\.{z} used, so input size does not explain the gap. Pretraining, augmentation, regularization, schedule, and
+test-time flips all differ at once, and we ran no ablation, so we name each as a
+hypothesis with the run that would test it. Distal convoluted tubule cells have the lowest
+recall, and the two glomerular classes are confused mainly with each other. Against our lists of published results, the same
+recipe clears the best value on \subsetsAbove{} of \subsetsTotal{} MedMNIST 2D
+subsets, and we chose TissueMNIST for this paper after seeing its first test result. We
+release the configuration, every seed's per-image predictions, and the seed-0 weights.
 \end{abstract}
 
 \begin{IEEEkeywords}
-TissueMNIST, MedMNIST+, kidney histology, cell classification, ConvNeXt, transfer
-learning, data augmentation, bootstrap confidence intervals
+TissueMNIST, MedMNIST+, kidney cell classification, ConvNeXt, transfer learning,
+training seeds, bootstrap confidence intervals
 \end{IEEEkeywords}
 
 \section{Introduction}
 
-MedMNIST+~\cite{doerrich2025medmnistplus} extended the MedMNIST v2
-benchmark~\cite{yang2023medmnistv2} to images of 64, 128, and 224 pixels. It trained ten
-networks on each 2D dataset at each size, in three training schemes and with three
-seeds, under one fixed training setup. That design is good for comparing architectures.
-It also means the benchmark says little about how much a different training recipe can
-add to a given network.
+TissueMNIST is a 2D dataset in MedMNIST v2~\cite{yang2023medmnistv2}. It holds cells from
+three human kidney-cortex specimens in eight classes. The MedMNIST team released its
+images at 64, 128, and 224 pixels as MedMNIST+~\cite{yang2024medmnistplusnotes}, and
+Doerrich et al.~\cite{doerrich2025medmnistplus} trained ten networks on them under one
+fixed setup. Wu and Papie\.{z}~\cite{wu2025rethinking} fine-tuned twelve pretrained
+networks under another fixed setup. The highest published TissueMNIST values we found are
+theirs, an end-to-end ViT-B/16 at 224 pixels with a mean AUROC of \baseBestAuroc{} and a
+mean accuracy of \baseBestAcc{} over three runs. These benchmarks hold the recipe fixed so
+that networks can be compared. On ImageNet, the training procedure alone moves a ResNet-50
+from 75.3\% to 80.4\% top-1~\cite{wightman2021resnet}, so a fixed-recipe benchmark says
+little about how far a different recipe can move one network. None of the TissueMNIST
+benchmarks publishes per-image predictions.
 
-TissueMNIST is the largest 2D MedMNIST dataset and among the hardest by accuracy. No
-published method we found exceeds 0.75 accuracy on its eight classes, and the MedMNIST+
-end-to-end AUROCs span 0.8644 to 0.9535~\cite{doerrich2025medmnistplus}. It is also
-unusual in how its larger images are made: every TissueMNIST size is resized from the same
-$32\times32$ projection, so the 224-pixel images hold no more detail than that
-projection.
-
-We report one model, ConvNeXt-Small~\cite{liu2022convnext} pretrained on ImageNet-22k,
-fine-tuned end to end on the 224-pixel images with the recipe that our pipeline applies to
-every MedMNIST 2D dataset. Its test AUROC interval lies above the published values. The
-paper's purpose is to set out exactly what our recipe does differently from MedMNIST+,
-since those differences are the candidate explanations. We take the MedMNIST+ setup from
-its Method section and, where the paper is silent, from its public training code. We did
-not ablate any difference, so we present each attribution as a hypothesis together with
-the run that would test it.
+We trained ConvNeXt-Small~\cite{liu2022convnext} with the recipe our pipeline applies to
+every MedMNIST 2D dataset, three times with different seeds. Our claim is narrow. On the
+official TissueMNIST test split, the three seeds' mean test AUROC and accuracy lie above
+the best published 3-run means, and so does each seed's 95\% interval over test images.
+The claim is about one recipe against other groups' recipes. It is not evidence that
+ConvNeXt is a better architecture than ViT or DenseNet. The paper makes three
+contributions:
+\begin{itemize}
+\item TissueMNIST test results for three seeds, each with a bootstrap interval, released
+with per-image validation and test predictions so that later work can run a paired test
+against them (Section~\ref{sec:results}).
+\item A comparison, item by item and with a source for each item, of our training setup
+with the MedMNIST+ setup from its paper and its code. It shows that our 224-pixel inputs
+equal the MedMNIST+ 224-pixel inputs, and it lists the other differences as hypotheses,
+each with the run that would test it (Sections~\ref{sec:method} and~\ref{sec:discussion}).
+\item A per-class error analysis. In every seed, distal convoluted tubule cells have the
+lowest AUROC and recall, and podocytes and glomerular endothelial cells are confused
+mainly with each other (Section~\ref{sec:perclass}).
+\end{itemize}
 
 \section{Related Work}
 
-MedMNIST v2~\cite{yang2023medmnistv2} reported
-ResNet-18 and ResNet-50 and three AutoML systems on 28-pixel images, with the ResNets
-also run on the 28-pixel images upsampled to 224. Each value is a mean over at least three
-trials. MedMNIST+~\cite{doerrich2025medmnistplus} evaluated VGG16, AlexNet, ResNet-18,
-DenseNet-121~\cite{huang2017densenet}, and EfficientNet-B4 with ImageNet-1k weights, and
-ViT-B/16 with ImageNet-1k, CLIP, DINO, EVA-02, and SAM weights. Each was trained end to
-end, as a linear probe on frozen features, and as an 11-nearest-neighbor classifier on
-frozen features. MedViT~\cite{manzari2023medvit} and MedViTV2~\cite{manzari2026medvitv2}
-are hybrid convolution and transformer networks that report TissueMNIST results on images
-resized to 224 pixels, without seeds or intervals. BBBC051, the source of TissueMNIST, is in the Broad Bioimage Benchmark
-Collection~\cite{ljosa2012bbbc}. Woloshuk et al.~\cite{woloshuk2021kidney} classified its
-cells from 3D stacks, so their numbers are not comparable.
+\emph{Benchmarks with fixed recipes.} MedMNIST v2~\cite{yang2023medmnistv2} reported
+ResNet-18 and ResNet-50 on 28-pixel images and on those images enlarged to 224, and three
+AutoML systems. Each value is a mean of at least three trials. Doerrich et
+al.~\cite{doerrich2025medmnistplus} trained VGG16, AlexNet, ResNet-18, DenseNet-121, and
+EfficientNet-B4 with ImageNet-1k weights, and ViT-B/16 with five kinds of pretrained
+weights, at 28, 64, 128, and 224 pixels, with three seeds. DenseNet-121~\cite{huang2017densenet}
+gave their best TissueMNIST AUROC, 0.9535, at 128 pixels. Wu and
+Papie\.{z}~\cite{wu2025rethinking} fine-tuned twelve pretrained networks end to end and
+as linear probes at 224 pixels. On TissueMNIST the best linear probe reached 0.6278
+accuracy against \baseBestAcc{} end to end, and ViT-B/16 gave the highest end-to-end
+AUROC. These works compare networks under one recipe. We compare one network under a
+different recipe with their published results.
+
+\emph{New networks for TissueMNIST.} CytoECA-Net~\cite{arman2026cytoecanet} is a small
+convolutional network with channel attention, trained on the 64-pixel images. Its paper
+also reports a DenseNet-121 trained from scratch at 64 pixels with a mean AUROC of
+\baseSecondAuroc{}, the second-highest published value, and an ImageNet-pretrained
+ConvNeXt-Tiny at 0.9519. MedViT~\cite{manzari2023medvit},
+MedViTV2~\cite{manzari2026medvitv2}, MedKAN~\cite{yang2025medkan}, and Complex
+Mixer~\cite{zheng2023complexmixer} report TissueMNIST values on images enlarged from 28
+pixels or of unstated source size. MedViT also lists ConvNeXt-T and ConvNeXt-B at 72.6\%
+and 69.1\% accuracy on 28-pixel images enlarged to 224~\cite{manzari2023medvit}.
+MedLiT~\cite{lee2026medlit} reports bootstrap intervals over test images, from one run.
+Other results on the official split are lower, among them BSDA~\cite{zhu2024bsda},
+BSDA-Mamba~\cite{wang2025bsdamamba}, MedFuse~\cite{ren2026medfuse},
+MedFuseNet~\cite{mohammed2026medfusenet}, a Fisher-vector head~\cite{lyra2026fishervector},
+CoMViT~\cite{safdar2025comvit}, FAD-ViT~\cite{safdar2026fadvit},
+MedNNS~\cite{mecharbat2025mednns}, and adapters on a frozen DINOv3
+encoder~\cite{doerrich2026mopet}. MambaMIC~\cite{zou2025mambamic} uses a 6:2:2 split,
+GradAttn~\cite{ghoshal2026gradattn} does not say whether its 70/10/20 split is the
+official one, and PNW~\cite{deng2026pnw} reports training-set accuracy only, so we do not
+compare with them. Table~\ref{tab:main} lists every TissueMNIST result whose split,
+metric, and source we could check.
+
+\emph{The source data.} TissueMNIST comes from BBBC051~\cite{broad2021bbbc051}, part of
+the Broad Bioimage Benchmark Collection~\cite{ljosa2012bbbc}. Woloshuk et
+al.~\cite{woloshuk2021kidney} built it and classified its nuclei with a 3D network and
+with a 2D network on maximum projections, on their own split. Their numbers are not
+comparable to ours. They also tested a network trained on two specimens on the third,
+and its balanced accuracy was 58.3\%, which shows the donor shift that the TissueMNIST
+split does not test.
+
+\emph{Comparing training runs.} Benchmark results vary with data sampling, weight
+initialization, data order, and augmentation~\cite{bouthillier2021variance}. Bouthillier
+et al.\ recommend judging an improvement by the probability that one procedure beats the
+other over paired runs, which needs about 29 runs per side at their recommended
+thresholds~\cite{bouthillier2021variance}. Over 100 seeds of one ImageNet recipe, a
+ResNet-50's top-1 had an SD of 0.10 points~\cite{wightman2021resnet}.
 
 \section{Data}
 \label{sec:data}
 
 \subsection{From BBBC051 to TissueMNIST}
 
-The \texttt{medmnist} package describes TissueMNIST as 236,386 cells ``segmented from 3
-reference tissue specimens'' in BBBC051~\cite{yang2023medmnistv2}. Each source image is a
-$32\times32\times7$ gray-scale stack. MedMNIST takes the maximum over the seven slices and
-resizes the $32\times32$ projection to $28\times28$. The official split, made ``with a
-ratio of 7:1:2'', has 165,466 training, 23,640 validation, and 47,280 test images. The
-eight classes are collecting duct and connecting tubule (CD/CNT), distal convoluted tubule
-(DCT), glomerular endothelial cells (GEC), interstitial endothelial cells (IEC),
-leukocytes, podocytes, proximal tubule segments (PT), and thick ascending limb (TAL). The
-test split is imbalanced: CD/CNT has 15,165 images and GEC has 1,677.
+TissueMNIST holds 236,386 cells segmented from 3 reference tissue specimens in
+BBBC051~\cite{yang2023medmnistv2}. Each source image is a $32\times32\times7$ gray-scale
+stack. MedMNIST takes the maximum over the seven slices and resizes the projection. The
+official split has 165,466 training, \valN{} validation, and \testN{} test
+images~\cite{yang2023medmnistv2}. The eight classes are collecting duct and connecting
+tubule (CD/CNT), distal convoluted tubule (DCT), glomerular endothelial cells (GEC),
+interstitial endothelial cells (IEC), leukocytes, podocytes, proximal tubule segments
+(PT), and thick ascending limb (TAL). The test split is imbalanced. CD/CNT has
+\countCDCNT{} test images, and GEC has \countGEC{}.
 
-The archives carry no patient or specimen identifiers. Our pipeline therefore treats each
-image as its own patient and could not check the split for leakage. With all cells drawn
-from three specimens and the split made at the cell level, test cells almost certainly
-share a specimen with training cells. The benchmark measures generalization to new cells
-from the same tissue, not to new donors.
+The archives carry no patient or specimen identifiers. Our pipeline treats each image as
+its own patient and could not check the split for leakage. All cells come from three
+specimens and the split is at the cell level, so test cells share specimens with
+training cells. The benchmark measures generalization to new cells from the same tissue,
+not to new donors.
 
-\subsection{How the 224-pixel inputs are made}
+\subsection{The 224-pixel inputs}
 \label{sec:pixels}
 
-The MedMNIST+ notes in the MedMNIST
-repository\footnote{\url{https://github.com/MedMNIST/MedMNIST/blob/main/on_medmnist_plus.md}} state that, after the maximum projection, ``for size
-224x224, 128x128, and 64x64, we resize the source images into the target size''. The
-notes do not name the interpolation method. The eight test images that our run publishes
-vary smoothly between source pixels: from 31\% to 55\% of horizontally adjacent pixel
-pairs are equal, where a nearest-neighbor enlargement by a factor of 7 would make at
-least 6 in 7 (86\%) equal. The resize therefore interpolates. A 224-pixel TissueMNIST
-image is a $32\times32$ projection enlarged seven times. It is not a higher-resolution
-view of the cell.
+For the larger MedMNIST+ sizes, the maximum projection gives a $32\times32$ image, which is
+resized to 64, 128, or 224 pixels~\cite{yang2024medmnistplusnotes}. A 224-pixel TissueMNIST
+image is therefore a $32\times32$ projection enlarged seven times, not a sharper view of
+the cell. MedMNIST+ keeps the MedMNIST splits and sample order and changes only the image
+size~\cite{yang2024medmnistplusnotes}.
 
-The MedMNIST+ training code loads the subset at the chosen size with
-\texttt{as\_rgb=True}, which repeats the gray channel three times, normalizes it with the
-network's default mean and standard deviation, and then pads it with zeros to
-$224\times224$. For the best baseline, DenseNet-121 at 128 pixels, this places the
-$128\times128$ image in the center with a 48-pixel border on each side. Because the
-padding comes after normalization, the border equals the ImageNet channel means in pixel
-terms rather than black. At 224 pixels nothing is padded. The authors chose padding over
-interpolation citing Hashemi~\cite{hashemi2019padding}, whose comparison they summarize as showing no
-effect on accuracy and shorter training.
-
-Our data module downloads the official \texttt{tissuemnist\_224.npz} archive, checks its
-MD5 (\texttt{b077128c\ldots}) against the \texttt{medmnist} package metadata, and serves
-the arrays as stored. At evaluation the only resize is a \texttt{Resize(224)}, which
-torchvision returns unchanged for a 224-pixel image. Our inputs are therefore the same
-images as those of the MedMNIST+ 224-pixel runs, and differ from the 128-pixel baseline
-only in the enlargement factor and in its border.
+The MedMNIST+ code loads a subset at the chosen size with three repeated channels,
+normalizes it with the network's default mean and standard deviation, and then pads it
+with zeros to $224\times224$~\cite{doerrich2025medmnistpluscode}. At 128 pixels this
+centers the image with a 48-pixel border. At 224 pixels nothing is padded. The authors
+chose padding over interpolation citing Hashemi~\cite{hashemi2019padding}, who found no
+effect on accuracy. Our data module downloads the official \texttt{tissuemnist\_224.npz}
+archive, checks its MD5 (\texttt{b077128c\ldots}) against the \texttt{medmnist} package,
+and serves the arrays as stored. At evaluation the only resize is to 224 pixels, which
+leaves a 224-pixel image unchanged. Our inputs are therefore the images of the MedMNIST+
+224-pixel runs. Wu and Papie\.{z} describe the four MedMNIST+ sizes and use the 224-pixel
+images~\cite{wu2025rethinking}.
 
 \section{Method}
 \label{sec:method}
 
 \begin{table*}[t]
-\caption{Training setup of MedMNIST+~\cite{doerrich2025medmnistplus} for its end-to-end
-TissueMNIST runs and of our run. P: stated in the MedMNIST+ Method section. C: read
-from its public repository at commit \texttt{b67b772} where the paper is silent
-(\texttt{train.py}, \texttt{evaluate.py}, \texttt{config.yaml}, \texttt{utils.py}).
-N: MedMNIST+ notes in the MedMNIST repository. S: Supplementary Table~S12. Our values come from
-the run's resolved \texttt{config.yaml} and \texttt{scripts/medmnist\_recipes.py}. Rows marked
-$\ast$ differ.}
+\caption{How does our training setup differ from the MedMNIST+ setup? P: stated in the
+MedMNIST+ Method section~\cite{doerrich2025medmnistplus}. C: read from its public code at
+commit \texttt{b67b772}~\cite{doerrich2025medmnistpluscode} where the paper is silent. N:
+MedMNIST+ notes~\cite{yang2024medmnistplusnotes}. S: its Supplementary Table~S12. T: timm
+defaults~\cite{wightman2024timm103}. Our values come from the runs' resolved
+\texttt{config.yaml}. Rows marked $\ast$ are recipe differences.}
 \label{tab:setup}
 \centering
 \footnotesize
@@ -157,310 +206,376 @@ $\ast$ differ.}
 \toprule
 Item & MedMNIST+ & Ours \\
 \midrule
-Network$^\ast$ & DenseNet-121 for the best result, among ten networks (P, S) & ConvNeXt-Small, 49,457,768 parameters \\
-Pretraining$^\ast$ & ImageNet-1k (P); timm default tag, which timm 1.0.31 resolves to \texttt{ra\_in1k} (C) & ImageNet-22k, then ImageNet-1k (\texttt{convnext\_small.fb\_in22k\_ft\_in1k}) \\
+Network$^\ast$ & DenseNet-121 for the best result, among ten networks (P, S) & ConvNeXt-Small, \parameters{} parameters \\
+Pretraining$^\ast$ & ImageNet-1k (P); untagged timm name, which resolves to \texttt{densenet121.ra\_in1k} (C, T) & ImageNet-22k, then ImageNet-1k (\texttt{convnext\_small.fb\_in22k\_ft\_in1k}) \\
 Scheme & end to end, also linear probe and $k$-NN (P) & end to end \\
-Input image & 128 px resized from $32\times32$, zero-padded to 224 (P, N, C); or 224 px resized from $32\times32$ & 224 px resized from $32\times32$, as released (N) \\
+Input image & 128 px resized from $32\times32$, zero-padded to 224; or 224 px (P, N, C) & 224 px resized from $32\times32$, as released (N) \\
 Gray input$^\ast$ & repeated to 3 channels, network's default mean and std (C) & 1 channel, stem filters summed, mean 0.449, std 0.226 \\
-Augmentation$^\ast$ & none stated (P); none in code (C) & random resized crop, area 0.7--1.0, aspect 3:4--4:3; horizontal and vertical flips \\
-Optimizer$^\ast$ & AdamW, lr $10^{-4}$, batch 64 (P); default weight decay, 0.01 in timm 1.0.31 (C) & AdamW, lr $10^{-4}$, batch 64, weight decay 0.05 \\
-Schedule$^\ast$ & cosine, one cycle (P) over 100 epochs to 0, per epoch (C) & cosine over 8 epochs to $10^{-6}$, per epoch \\
-Epochs and stopping$^\ast$ & up to 100, early stopping on validation (P); stop after 5 epochs without lower validation loss (C) & fixed 8 epochs, 20,688 steps \\
+Augmentation$^\ast$ & none stated (P); none in code (C) & random resized crop, area 0.7--1.0, bilinear; horizontal and vertical flips \\
+Optimizer$^\ast$ & AdamW, lr $10^{-4}$, batch 64 (P); weight decay 0.01 (C, T) & AdamW, lr $10^{-4}$, batch 64, weight decay 0.05 \\
+Schedule$^\ast$ & cosine, one cycle (P), over 100 epochs to 0, per epoch (C, T) & cosine over 8 epochs toward $10^{-6}$, per epoch; $4.8\times10^{-6}$ in epoch 8 \\
+Stopping$^\ast$ & up to 100 epochs; stop after 5 without lower validation loss (P, C) & fixed 8 epochs \\
 Selection$^\ast$ & lowest validation loss (C) & highest validation AUROC \\
 Loss$^\ast$ & cross-entropy (P) & cross-entropy, label smoothing 0.1 \\
-Regularization$^\ast$ & none stated & stochastic depth 0.2 \\
-Weight averaging$^\ast$ & none & EMA, decay 0.99952; used for validation, not saved \\
-Test-time augmentation$^\ast$ & none in code (C) & mean softmax of image and horizontal mirror \\
-Precision$^\ast$ & fp32, no autocast in code (C) & bf16 mixed \\
-Seeds$^\ast$ & 3, mean reported (P) & 1 \\
-AUROC, accuracy & macro one-vs-rest; argmax, through the \texttt{medmnist} evaluator (C) & macro one-vs-rest; argmax \\
+Regularization$^\ast$ & none stated (P) & stochastic depth 0.2 \\
+Weight averaging$^\ast$ & none stated (P) & EMA, decay 0.99952; used for validation, not saved \\
+Test-time augmentation$^\ast$ & none (C) & mean softmax of image and horizontal mirror \\
+Precision$^\ast$ & fp32 (C) & bf16 mixed \\
+Seeds & 3, mean reported (P) & 3, each reported, and their mean \\
+AUROC, accuracy & macro one-vs-rest; argmax, by the \texttt{medmnist} evaluator (C) & the same, checked against the evaluator \\
 Hardware & one NVIDIA RTX A5000 (P) & one NVIDIA GeForce RTX 4070 Ti \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-Table~\ref{tab:setup} sets the two setups side by side. The repository of MedMNIST+ does
-not pin its library versions, so where a default depends on the version we give the value
-in the version we checked. The two setups share the optimizer family, learning rate, batch
-size, schedule shape, and, at 224 pixels, the input images. Most other items differ.
+Table~\ref{tab:setup} sets the two setups side by side. The MedMNIST+ code does not pin
+its library versions~\cite{doerrich2025medmnistpluscode}, so where a default depends on
+the version we give the timm default, which is the same from timm 0.9.16 to
+1.0.15~\cite{wightman2024timm103}. The two setups share the optimizer family, learning
+rate, batch size, schedule shape, and, at 224 pixels, the input images. Most other items
+differ.
+
+Wu and Papie\.{z}, whose ViT-B/16 is the best published result, use a third setup. They
+train every model for 15,000 iterations with AdamW. The classifier's learning rate starts
+at $10^{-3}$ and falls by a factor of 0.9 every 200 iterations, and the encoder's learning
+rate is constant and picked from three values. Their tables report the best end-to-end
+result, and the paper does not say which split picked the learning
+rate~\cite{wu2025rethinking}. If it was the test split, the published value is
+optimistic. They state no batch size, no augmentation, and no validation-based selection
+rule~\cite{wu2025rethinking}, so we cannot tabulate their setup item by item. The setup
+comparison in Table~\ref{tab:setup} therefore explains the gap to MedMNIST+ more directly
+than the gap to Wu and Papie\.{z}.
 
 \subsection{Network}
 
-The network is timm's~\cite{wightman2019timm}
-\texttt{convnext\_small.fb\_in22k\_ft\_in1k}: ConvNeXt-Small~\cite{liu2022convnext}
-pretrained on ImageNet-22k and then fine-tuned on ImageNet-1k~\cite{deng2009imagenet},
-with a new eight-way head. timm adapts the pretrained stem to one input channel by summing
-its RGB filters. Our gray mean and standard deviation, 0.449 and 0.226, are the averages of
-the ImageNet channel values. Summed filters on one normalized channel are therefore close
-to the MedMNIST+ approach of repeating the channel and normalizing each copy, and we do not
-expect this difference to matter. We set the stochastic depth~\cite{huang2016stochastic}
-rate to 0.2.
+We use the timm~\cite{wightman2019timm} model
+\path{convnext_small.fb_in22k_ft_in1k}. It is ConvNeXt-Small pretrained on
+ImageNet-22k and then fine-tuned on ImageNet-1k by the ConvNeXt
+authors~\cite{liu2022convnext}, with a new eight-way head. timm adapts the pretrained stem
+to one input channel by summing its filters over the three input
+channels~\cite{timm1031adapt}. Our gray mean and standard deviation, 0.449 and 0.226, are
+the averages of the ImageNet channel values, so the summed filters on one normalized
+channel are close to the MedMNIST+ approach of repeating the channel. We set the
+stochastic depth~\cite{huang2016stochastic} rate to 0.2.
 
 \subsection{Training}
 
-We trained all layers for 8 epochs with batch size 64, which is 2,586 steps per epoch. The
-optimizer is AdamW~\cite{loshchilov2019adamw} with learning rate $10^{-4}$ and weight
-decay 0.05. A cosine schedule~\cite{loshchilov2017sgdr}, stepped once per epoch, lowered
-the rate from $10^{-4}$ in the first epoch to $4.8\times10^{-6}$ in the eighth. The loss is
-cross-entropy with label smoothing~\cite{szegedy2016inception} of 0.1. Training used bf16
-mixed precision. Training augmentation is a random resized crop back to 224 pixels,
-covering 70\% to 100\% of the image area with aspect ratios from 3:4 to 4:3, followed by
-independent horizontal and vertical flips with probability 0.5 each. Cells have no
-preferred orientation, so the recipe keeps flips for this dataset. At evaluation the model
-averages the softmax probabilities of each image and its horizontal mirror.
+We trained all layers for \epochs{} epochs with batch size 64, which is 2,586 steps per
+epoch. The optimizer is AdamW~\cite{loshchilov2019adamw} with learning rate $10^{-4}$ and
+weight decay 0.05. The learning rate follows a cosine curve~\cite{loshchilov2017sgdr}
+without restarts, stepped once per epoch, from $10^{-4}$ in the first epoch to
+$4.8\times10^{-6}$ in the eighth. The loss is cross-entropy with label
+smoothing~\cite{szegedy2016inception} of 0.1. Training used bf16 mixed precision.
+Augmentation is a random resized crop back to 224 pixels with bilinear, antialiased
+resampling, covering 70\% to 100\% of the image area with aspect ratios from 3:4 to 4:3,
+then independent horizontal and vertical flips with probability 0.5 each, then the gray
+normalization. At evaluation the model averages the softmax probabilities of each image
+and its horizontal mirror. The optimizer, the weight decay of 0.05, label smoothing of
+0.1, stochastic depth, and the weight average follow the ConvNeXt ImageNet
+recipe~\cite{liu2022convnext}.
 
-We kept an exponential moving average (EMA) of the weights with decay 0.99952. The recipe generator sets the
-decay to $1-10/S$ for $S=20{,}688$ total steps, a horizon of about 2,100 steps or 0.8
-epochs. Lightning's \texttt{EMAWeightAveraging} callback swaps the averaged weights in for
-each validation pass, so the per-epoch validation AUROC, and hence the epoch selection, used
-the EMA weights. The callback writes the averaged weights into a checkpoint only from its
-save hook. Lightning~2.6.6 skips callback save hooks when
-\texttt{save\_weights\_only} is true, which is our pipeline's setting. The saved checkpoint,
-and so every test number in this paper, holds the raw weights at the end of the selected
-epoch. EMA influenced only which epoch was kept.
+We kept an exponential moving average (EMA) of the weights~\cite{polyak1992averaging}
+with decay 0.99952, set to $1-10/S$ for $S=20{,}688$ total steps, in place of the 0.9999
+of the ConvNeXt recipe~\cite{liu2022convnext}. Lightning's \texttt{EMAWeightAveraging}
+callback swaps the averaged weights in for each validation pass, so the per-epoch
+validation AUROC, and with it the epoch selection, used the EMA weights. The callback
+writes the averaged weights only from its checkpoint save hook, and Lightning~2.6.6 skips
+that hook when the checkpoint holds weights only~\cite{lightning266checkpoint}, as ours
+does. The saved checkpoint, and every test number in this paper, therefore holds the raw
+weights at the end of the selected epoch.
 
 The recipe comes from \path{scripts/medmnist_recipes.py}, which writes one configuration
-for all twelve MedMNIST 2D datasets. They differ only in epoch count and in whether flips
-are used. No hyperparameter search on TissueMNIST is recorded.
+for each of the twelve MedMNIST 2D datasets. They differ in epoch count, in whether flips
+and flip averaging or a small affine jitter are used, in the EMA decay, which follows
+from the step count, and in label smoothing, which applies to multiclass tasks only. No hyperparameter search on TissueMNIST took place. The three
+runs differ only in \texttt{seed\_everything} (0, 1, and 2), which sets the head's
+initialization, the data order, the augmentation draws, and stochastic depth.
 
 \section{Evaluation Protocol}
+\label{sec:protocol}
 
-AUROC is the macro average of the eight one-vs-rest AUROCs, the definition the
-\texttt{medmnist} evaluator and the MedMNIST+ code use. Accuracy is the share of test
-images whose most probable class is the true class. The MedMNIST+ paper describes its
-accuracy as taken at ``a fixed operating point of 0.5'', but its code passes softmax
-outputs to the \texttt{medmnist} evaluator, which takes the argmax for multiclass tasks. The
-two accuracies are therefore comparable. We also report balanced accuracy and macro
-average precision (AUPRC). AUROC and AUPRC come from scikit-learn~\cite{pedregosa2011sklearn}
-in float64.
+AUROC is the mean of the eight one-vs-rest AUROCs, as in the \texttt{medmnist}
+evaluator~\cite{medmnist2024evaluator}. Accuracy is the share of test images whose most
+probable class is the true class, which is what the evaluator computes for multiclass
+tasks. The MedMNIST+ code passes softmax outputs to the same evaluator, so its numbers are
+comparable with ours~\cite{doerrich2025medmnistpluscode}. We also report balanced
+accuracy, the mean of per-class recall, and the mean of the per-class average precisions
+(AUPRC). AUROC and AUPRC come from scikit-learn~\cite{pedregosa2011sklearn} in float64. For
+every run, the analysis script recomputes AUROC and accuracy with the evaluator's
+\texttt{getAUC} and \texttt{getACC} and checks that they agree to $10^{-9}$.
 
-Each interval is a 95\% percentile bootstrap with 1,000 replicates and seed 0. The
-pipeline resamples whole patients when identifiers exist, following the clustered
-bootstrap~\cite{field2007bootstrap}. With none, \texttt{evaluation.py} sets the unit to
-single images, and \texttt{metrics.json} records ``sample (no patient IDs)''. Cells of one
-specimen share staining and tissue properties, so these intervals cover test sampling
-among images and are likely narrower than an interval over specimens. They do not cover
-variation between training runs.
+Each interval is a 95\% percentile bootstrap~\cite{efron1979bootstrap,efron1986bootstrap}
+with \bootReplicates{} replicates, seeded with the run's seed. The pipeline resamples
+whole patients when identifiers exist~\cite{field2007bootstrap}. TissueMNIST has none, so
+the bootstrap resamples single images. These intervals cover test sampling only.
+Seed-to-seed variation is the SD over our three runs. A published mean also carries
+test-sampling error on the same test images, so setting one run's interval against a
+published mean describes the gap but is not a test.
 
-The checkpoint was the epoch with the highest validation AUROC among eight end-of-epoch
+To test the gap, we compare our three runs with a published 3-run mean by Welch's
+two-sample $t$-test from summary statistics, two-sided. It sets our mean and sample SD
+($n=3$) against the published mean and SD ($n=3$). The test conditions on the fixed test set. It
+asks whether the two recipes' expected scores over training seeds differ on these test
+images, and with three runs a side it assumes the seed outcomes are close to normal,
+which three runs cannot check. The sources do not say whether their SD divides by $n$ or
+$n-1$. We assume $n-1$ and also report $p$ for $n$, which raises the published SD by a
+factor of $\sqrt{3/2}$. A rank-based comparison of the kind Bouthillier et
+al.~\cite{bouthillier2021variance} recommend is not possible here, since the published
+runs are not available and three runs a side are far fewer than it needs.
+
+Each checkpoint is the epoch with the highest validation AUROC among eight end-of-epoch
 evaluations. No threshold or calibration step applies to this multiclass task. The test
-split was scored once, after selection.
-
-The run trained at commit \texttt{ab39eb9}. Its \texttt{metrics.json} and predictions were
-then regenerated from the saved checkpoint, with the same selection, at commit
-\texttt{e9f733f}. Between the two, the pipeline switched its AUROC and AUPRC from
-torchmetrics in float32 to scikit-learn in float64. All numbers below come from the
-rescored files, except the per-epoch curves, which were logged during training.
+split was scored after selection, and no setting was chosen from test results. Seed~0
+trained at commit \texttt{\commitSeedZero}, the commit at which the other eleven MedMNIST
+2D subsets also trained. Its metrics and predictions were regenerated from the saved checkpoint, with
+the same selection, at commit \texttt{\commitRescore}, after the pipeline moved AUROC from
+torchmetrics in float32 to scikit-learn in float64. Its logged per-epoch validation
+AUROC, and so its epoch selection, used torchmetrics. Seeds~1 and~2 trained later, at
+commits \texttt{\commitSeedOne} and \texttt{\commitSeedTwo}. The code between these
+commits adds options that are off by default and changes the AUROC library. The analysis
+script checks that the three resolved configurations agree apart from the seed and those
+defaults, and that every library version matches.
 
 \section{Results}
 \label{sec:results}
 
-\begin{table*}[t]
-\caption{TissueMNIST test results on the official split. Our row gives 95\% percentile
-bootstrap intervals over test images. Baseline values are copied from the cited tables,
-which publish no intervals or predictions. ``Runs'' is the number of seeds or trials
-averaged (n.s.: not stated). An arrow marks a resize. ``32'' is the $32\times32$ maximum
-projection.}
-\label{tab:main}
-\centering
-\footnotesize
-\setlength{\tabcolsep}{4pt}
-\begin{tabular}{@{}llllll@{}}
-\toprule
-Method & Network input & Runs & AUROC & Accuracy & Source \\
-\midrule
-ConvNeXt-S, end to end (ours) & 32 $\rightarrow$ 224 & 1 & \textbf{0.9630} [0.9618, 0.9641] & \textbf{0.7772} [0.7739, 0.7811] & this work \\
-DenseNet-121, end to end & 32 $\rightarrow$ 128, padded to 224 & 3 & 0.9535 & 0.7425 & \cite{doerrich2025medmnistplus}, Table~S12 \\
-DenseNet-121, end to end & 32 $\rightarrow$ 224 & 3 & 0.9525 & 0.7408 & \cite{doerrich2025medmnistplus}, Table~S12 \\
-MedViT-S & resized to 224 & n.s. & 0.952 & 0.731 & \cite{manzari2023medvit}, Table~3 \\
-MedViTV2-L & resized to 224 & n.s. & 0.943 & 0.716 & \cite{manzari2026medvitv2}, Table~5 \\
-AutoKeras & 28 & $\geq 3$ & 0.941 & 0.703 & \cite{yang2023medmnistv2}, Table~3 \\
-ResNet-18 & 28 $\rightarrow$ 224 & $\geq 3$ & 0.933 & 0.681 & \cite{yang2023medmnistv2}, Table~3 \\
-ResNet-50 & 28 $\rightarrow$ 224 & $\geq 3$ & 0.932 & 0.680 & \cite{yang2023medmnistv2}, Table~3 \\
-ResNet-50 & 28 & $\geq 3$ & 0.931 & 0.680 & \cite{yang2023medmnistv2}, Table~3 \\
-ResNet-18 & 28 & $\geq 3$ & 0.930 & 0.676 & \cite{yang2023medmnistv2}, Table~3 \\
-Google AutoML Vision & 28 & $\geq 3$ & 0.924 & 0.673 & \cite{yang2023medmnistv2}, Table~3 \\
-auto-sklearn & 28 & $\geq 3$ & 0.828 & 0.532 & \cite{yang2023medmnistv2}, Table~3 \\
-\bottomrule
-\end{tabular}
-\end{table*}
+\input{generated/tables/results}
 
 \subsection{Comparison with published results}
 
-Table~\ref{tab:main} places our run against every baseline in the project's
-\texttt{baselines.yaml}, each checked against its source table. Our test AUROC is 0.9630
-[0.9618, 0.9641]. The highest published value, 0.9535 for MedMNIST+ DenseNet-121 at 128
-pixels, is 0.0083 below our lower bound. The MedMNIST+ DenseNet-121 run on the same
-224-pixel images as ours scored 0.9525. MedMNIST+ reports standard deviations of 0.0007
-and 0.0004 across seeds for those two rows. Our accuracy is 0.7772 [0.7739, 0.7811]
-against 0.7425 and 0.7408. Both baselines lie below our intervals for both metrics. No baseline publishes per-image predictions, so we could not run a paired test.
+Table~\ref{tab:main} places our three runs against every TissueMNIST result in the
+project's \texttt{baselines.yaml}, each checked against its source table, and
+Fig.~\ref{fig:comparison} shows the ones published as 3-run means. The three test AUROCs
+are \testAurocSeedZero{}, \testAurocSeedOne{}, and \testAurocSeedTwo{}, with a mean of
+\testAurocMean{} and an SD of \testAurocSD{}. The mean is \gainMeanAuroc{} above the best
+published mean, \baseBestAuroc{} (SD \baseBestAurocSD{}). The lowest of the three seeds is
+\gainMinSeedAuroc{} above it, about \gainMinSeedInSDAuroc{} published SDs. Welch's test
+gives $t=\welchTAuroc{}$ with \welchDfAuroc{} degrees of freedom and $p=\welchPAuroc{}$,
+or $p=\welchPByNAuroc{}$ if the published SD divides by $n$. In units of the pooled SD of
+the two sets of runs (\pooledSDAuroc{}), the gap is \gainPooledSDAuroc{}.
 
-Accuracy stays low in absolute terms. About 22\% of test cells are misclassified, and
-balanced accuracy, the mean of per-class recall, is 0.7093 [0.7041, 0.7150]. Macro AUPRC is
-0.7882 [0.7826, 0.7941]. On validation the saved checkpoint scores AUROC 0.9620 [0.9600,
-0.9639] and accuracy 0.7810 [0.7754, 0.7864], close to its test scores.
+Accuracy leads by more in absolute terms. The three accuracies are \testAccSeedZero{},
+\testAccSeedOne{}, and \testAccSeedTwo{}, with a mean of \testAccMean{} (SD
+\testAccSD{}), against \baseBestAcc{} (SD \baseBestAccSD{}). The lowest seed is
+\gainMinSeedAcc{} above the published mean. Welch's test gives $t=\welchTAcc{}$ with
+\welchDfAcc{} degrees of freedom and $p=\welchPAcc{}$, or $p=\welchPByNAcc{}$ if the
+published SD divides by $n$.
 
-\subsection{Per-class results}
-
-Fig.~\ref{fig:perclass} gives the one-vs-rest AUROC of each class. Seven classes lie
-between 0.9598 (TAL) and 0.9776 (GEC). DCT is the exception at 0.9297 [0.9243, 0.9351],
-with a recall of 0.412. At the argmax decision, 30\% of DCT cells are predicted as CD/CNT and 14\% as TAL, both tubule segments that adjoin
-the distal convoluted tubule. The second large confusion is between the two glomerular
-classes: 24\% of podocytes are predicted as glomerular endothelial cells, and 14\% of
-glomerular endothelial cells as podocytes. GEC and podocytes have one-vs-rest AUROCs above
-0.97 but recalls of 0.722 and 0.589. The model separates these cells well from the other
-six classes and poorly from each other.
+Against the MedMNIST+ DenseNet-121 trained on the same 224-pixel images, the mean AUROC
+gain is \gainNativeAurocMean{}. No baseline publishes per-image predictions, so we could
+not run a paired test against any of them.
 
 \begin{figure}[t]
 \centering
-\includegraphics[width=\columnwidth]{figures/per_class_auroc.pdf}
-\caption{One-vs-rest test AUROC per class, sorted, with 95\% bootstrap intervals over
-test images. The dashed line is the macro mean.}
-\label{fig:perclass}
+\includegraphics[width=\columnwidth]{figures/comparison.pdf}
+\caption{Where do our three seeds sit against the published 3-run results? Filled
+circles: each seed with its 95\% bootstrap interval over test images. Filled diamond: our
+mean $\pm$ SD over seeds. Open squares: published means $\pm$ SD over three runs; [Wu]:
+\cite{wu2025rethinking}, [Arman]: \cite{arman2026cytoecanet}, [M+]:
+\cite{doerrich2025medmnistplus}. The two kinds of bars measure different things, test
+sampling for one run and spread over runs. The dashed line is the best published mean.}
+\label{fig:comparison}
 \end{figure}
 
+Accuracy stays low in absolute terms. About \testErrorPct\% of test cells are
+misclassified. Mean balanced accuracy is \testBalAccMean{} and mean macro AUPRC is
+\testAuprcMean{}. On validation the saved checkpoints score a mean AUROC of
+\valAurocMean{} and a mean accuracy of \valAccMean{}, close to their test scores.
+
+\subsection{Seed variation and test-sampling variation}
+
+A run's bootstrap standard error, its mean interval half-width divided by 1.96, is
+\testAurocBootSE{} in AUROC and \testAccBootSE{} in accuracy. The SD over seeds is about
+the same in AUROC, \testAurocSD{}, and more than twice as large in accuracy,
+\testAccSD{}. For accuracy, one run's interval understates how much a retrained model
+would differ. Seed~0 scored lowest on both metrics. Published
+seed SDs for the 3-run rows of Table~\ref{tab:main} run from 0.0002 to 0.0025 in AUROC, so
+our seed SD is within the range other recipes show.
+
+\subsection{Per-class results}
+\label{sec:perclass}
+
+\input{generated/tables/perclass}
+
+Table~\ref{tab:perclass} gives each class's one-vs-rest AUROC and recall. DCT is the
+hardest class, with a mean AUROC of \aurocDCTMean{} and a mean recall of
+\recallDCTMean{}. At the argmax decision, \confDCTasCDCNT\% of DCT cells are predicted as
+CD/CNT and \confDCTasTAL\% as TAL. The second large confusion is between the two glomerular classes. Of the
+podocytes, \confPodoasGEC\% are predicted as glomerular endothelial cells, and of the
+glomerular endothelial cells, \confGECasPodo\% are predicted as podocytes. Both classes
+have one-vs-rest AUROCs of 0.97 or more but recalls of \recallPodoMean{} and
+\recallGECMean{}. The model separates these cells well from the other six classes and
+poorly from each other. DCT has the lowest AUROC and GEC the highest in all three seeds.
+Because CD/CNT and PT are the largest classes, they still hold the most errors. Cells of
+those two classes are \errShareCDCNTPTMin\% to \errShareCDCNTPTMax\% of the misclassified
+test cells across seeds, and DCT, GEC, and podocytes together are \errShareDCTGlomMin\% to
+\errShareDCTGlomMax\%.
 
 \subsection{Training dynamics}
 \label{sec:dynamics}
 
-Fig.~\ref{fig:curves} shows the per-epoch history. The logged validation AUROC, computed
-on the EMA weights, rose from 0.9253 after the first epoch to 0.9641 after the seventh and
-was 0.9638 after the eighth, so selection kept the seventh epoch. Training loss fell every
-epoch, from 1.226 to 0.871. Rescoring the saved raw weights of the seventh epoch gives a
-validation AUROC of 0.9620 and accuracy of 0.7810, against 0.9641 and 0.7869 logged for
-the EMA weights. Most of that 0.0021 gap in AUROC is the difference between the averaged
-and the raw weights, since the change of metric library moves AUROC by at most about
-$10^{-4}$ according to the pipeline's notes. The EMA weights may therefore have scored
-higher on test than the numbers we report, but they were not saved, and we cannot check.
-Validation AUROC stayed within 0.0007 over the last three epochs, so the 8-epoch budget
-ended near a plateau.
+Fig.~\ref{fig:curves} shows the per-epoch history. Training loss fell every epoch, from a
+mean of \trainLossFirst{} to \trainLossLast{}. In every seed the validation AUROC of the
+EMA weights peaked at epoch \selectedEpoch{} and fell slightly at epoch 8, so all three
+runs kept epoch \selectedEpoch{}. Over the last three epochs the validation AUROC moved by
+at most \lastThreeSpreadMax{} in any seed. The curve flattened as the learning rate
+reached its floor, which a cosine schedule produces at any budget, so whether more epochs
+would help is untested. Rescored on validation, the saved raw weights of the selected
+epoch score a mean of \emaMinusRawAurocMean{} below the EMA weights. The EMA weights may
+therefore score higher on test than the numbers we report, but they were not saved, so we
+cannot check.
 
-\begin{figure*}[t]
+\begin{figure}[t]
 \centering
-\includegraphics[width=\textwidth]{figures/training_curves.pdf}
-\caption{Training loss and validation metrics per epoch, as logged during training. The
-validation curves used the EMA weights. Open squares mark the saved raw weights of the
-selected epoch, rescored on validation. The dashed line marks the selected epoch.}
+\includegraphics[width=\columnwidth]{figures/training_curves.pdf}
+\caption{Did training converge? Left, training loss per epoch. Right, validation AUROC
+per epoch from epoch 3, computed on the EMA weights as logged. Open markers, shifted
+right for legibility, are the saved raw weights of the selected epoch, rescored on
+validation. Line style and marker shape mark the seed.}
 \label{fig:curves}
-\end{figure*}
+\end{figure}
+
+\subsection{How TissueMNIST was chosen}
+\label{sec:selection}
+
+\input{generated/tables/subsets}
+
+The recipe was run once on each of the twelve MedMNIST 2D subsets, all at the same
+commit. Table~\ref{tab:subsets} sets each first run against the best published value in
+that project's list. Our point AUROC is above it on \subsetsPointAbove{} subsets, and our
+whole interval is above it on \subsetsAbove{}, ChestMNIST and TissueMNIST. We chose
+TissueMNIST for this paper after seeing its first test result, and then trained seeds 1
+and 2. The $p$-values above make no allowance for that choice. The choice rested on seed 0
+alone, and seeds 1 and 2, trained after it, each clear the best published AUROC on their
+own, with lower bounds of \testAurocLoSeedOne{} and \testAurocLoSeedTwo{}. Only three of the
+twelve lists of published results had a literature review, so the count of subsets
+where the recipe leads may be too high. A reader should take the result as specific to
+TissueMNIST, not as evidence that the recipe beats published MedMNIST results in
+general.
 
 \section{Discussion}
-
-\subsection{Which differences plausibly matter}
+\label{sec:discussion}
 
 Every item marked in Table~\ref{tab:setup} changed at once, so no single one can be
-credited with the gain of 0.0095 in point AUROC over the 128-pixel baseline. Some can be
-set aside with evidence already in hand. For the others we give our reading and the run
-that would test it. Each run below should use three seeds, so that its mean can be set
-against the MedMNIST+ means.
+credited with the gap. For each we give the evidence in hand and the run that would test
+it, which should use three seeds.
 
-\emph{Input size and framing.} This is the least likely explanation. Our input images are
-the same as those of the MedMNIST+ 224-pixel runs, and their DenseNet-121 on those images
-scored 0.9525, below the 0.9535 it scored at 128 pixels with padding. MedMNIST+ does show
-that scale matters on this dataset: its DenseNet-121 rose from 0.9247 at 28 pixels to
-0.9535 at 128, although every size comes from the same $32\times32$
-projection~\cite{doerrich2025medmnistplus}. The gain from enlarging the cell appears to stop
-by 128 pixels. The gray-channel handling is nearly the same function at initialization
-(Section~\ref{sec:method}). No run is needed to set these aside.
+\emph{Input size and framing.} Our inputs are the images of the MedMNIST+ 224-pixel runs,
+and their DenseNet-121 on those images scored \baseNativeAuroc{}, below the 0.9535 it
+scored at 128 pixels with padding~\cite{doerrich2025medmnistplus}. Input size does not
+explain the gap, and no run is needed to set it aside. The gray-channel handling is close
+to the same function at initialization, but its effect during training is untested.
 
-\emph{Test-time flip averaging.} This is the cheapest to measure. Rescoring the released
-checkpoint without the mirrored view needs no training.
+\emph{Test-time flip averaging.} No baseline uses it, and rescoring the checkpoints
+without the mirrored view needs no training. Mixed test-time augmentation lowered
+accuracy in 11 of 12 model and dataset pairs on three other MedMNIST sets at 28
+pixels~\cite{medeiros2026tta}, but it was not tested on TissueMNIST.
 
 \emph{Pretraining and architecture.} Our backbone saw ImageNet-22k labels before
-ImageNet-1k, and larger pretraining sets have improved transfer to small target
-datasets~\cite{kolesnikov2020bit}. ConvNeXt-Small is also a newer and larger network than
-DenseNet-121. Among the MedMNIST+ end-to-end networks at 224 pixels, AUROC spans only
-0.9220 to 0.9525~\cite{doerrich2025medmnistplus}, so architecture alone has moved this
-benchmark by a few thousandths at the top. Two runs would separate pretraining from
-architecture: our recipe with \texttt{convnext\_small.fb\_in1k}, and our recipe with
-DenseNet-121 and ImageNet-1k weights.
+ImageNet-1k. In BiT, pretraining a ResNet-152x4 on ImageNet-21k instead of ImageNet-1k improved
+fine-tuned accuracy on every downstream set tested~\cite{kolesnikov2020bit}.
+ConvNeXt-Small, with 50M parameters~\cite{liu2022convnext}, is also a newer design than
+DenseNet-121. Among the MedMNIST+ end-to-end networks at 224 pixels, AUROC spans 0.9220 to
+0.9525~\cite{doerrich2025medmnistplus}, and the best end-to-end network of Wu and
+Papie\.{z}, a ViT-B/16, reached \baseBestAuroc{}~\cite{wu2025rethinking}. ConvNeXt under
+other recipes has scored lower on TissueMNIST. An ImageNet-pretrained ConvNeXt-Tiny
+reached 0.9519 AUROC at 64 pixels~\cite{arman2026cytoecanet}, and ConvNeXt-T and
+ConvNeXt-B reached 72.6\% and 69.1\% accuracy on enlarged 28-pixel
+images~\cite{manzari2023medvit}. Those runs differ from ours in input and model size as
+well as recipe, but they suggest the architecture alone does not carry the result. Two
+runs would separate pretraining from architecture. One is our recipe with
+\texttt{convnext\_small.fb\_in1k}, and the other is our recipe with DenseNet-121.
 
-\emph{Augmentation.} MedMNIST+ trains without augmentation. With 165,466 training images
-this dataset is large, so overfitting is less of a concern than on small MedMNIST
-datasets, but each image is a blurred, low-detail cell, and crops and flips change both its
-position and orientation. In our view augmentation and pretraining are the two most likely
-contributors. The test is our recipe with the crop and flips removed.
-
-\emph{Regularization.} Label smoothing, stochastic depth of 0.2, and weight decay of 0.05
-all act against overfitting, and their effects overlap with those of augmentation. One run
-per component, each removed in turn, would measure them.
+\emph{Augmentation and regularization.} MedMNIST+ trains without augmentation, and Wu and
+Papie\.{z} state none. Random crops and flips change the position and orientation of each
+cell, and label smoothing, stochastic depth, and weight decay of 0.05 act against
+overfitting. Their effects overlap. The tests are our recipe with the crop and flips
+removed, and with the three regularizers removed.
 
 \emph{Schedule and stopping.} MedMNIST+ sets its cosine schedule over 100 epochs and stops
 after five epochs without a lower validation loss. If training stops in the first 20
-epochs, the learning rate is still above 90\% of its initial value, so the network is never
-trained at a low rate. Our schedule reaches $4.8\times10^{-6}$ in its last epoch. Selection
-also differs: lowest validation loss against highest validation AUROC, which can pick
-different epochs. The test is our network under the MedMNIST+ schedule and stopping rule.
+epochs, the learning rate is still above 90\% of its initial value. Our schedule reaches
+$4.8\times10^{-6}$ in its last epoch. The test is our network under the MedMNIST+ schedule
+and stopping rule.
 
-\emph{Weight averaging and precision.} EMA changed which epoch we kept and nothing else,
-since the saved weights are raw. Validation AUROC stayed within 0.0007 over the last three
-epochs, so the selection had little room to matter. We have no reason to expect bf16
-to raise accuracy over fp32.
+\emph{Weight averaging and precision.} EMA could only have affected which epoch we kept,
+since the saved weights are raw. We did not test precision.
 
-The most informative single experiment would reproduce the MedMNIST+ DenseNet-121 setup
-in our pipeline, so that a paired test on the same test images measures the whole gap.
+The most informative single experiment would reproduce a published baseline in our
+pipeline, so that a paired test on the same test images measures the whole gap.
 
-\subsection{Limitations}
+\section{Limitations}
+\label{sec:limits}
 
-We trained one seed, while the baselines are means of three. Our bootstrap interval
-covers test sampling, not run-to-run variation. The MedMNIST+ seed standard deviations for
-DenseNet-121 are small next to our margin of 0.0083, but we cannot assume ConvNeXt varies
-as little until we train more seeds. The interval resamples images. Cells from one specimen
-are correlated, so it is likely too narrow, and with three specimens a specimen-level
-interval would not be informative either. The split is made at the cell level across three
-specimens, so the result says nothing about new donors, staining, or microscopes. All selection used validation data only, and the test split was scored once. How the
-8-epoch budget was chosen is not recorded.
-The reported numbers come from the raw weights, and the EMA weights that guided selection
-were not saved. 
-Accuracy below 0.78 and a DCT recall of 0.412 mean the model would mislabel many cells.
+We chose TissueMNIST from twelve subsets after seeing its first result
+(Section~\ref{sec:selection}). Three seeds give a rough estimate of run-to-run variation,
+and the Welch test with three runs a side has few degrees of freedom and rests on
+normality. The published SDs come from three runs each and their divisor is not stated.
+The bootstrap resamples images. Cells from one specimen are correlated, so the intervals
+are likely too narrow, and with three specimens a specimen-level interval would not be
+informative either. The split is at the cell level across three specimens, so the result
+says nothing about new donors, staining, or microscopes. We ran no ablation, so the paper
+does not show which part of the recipe causes the gap, and test-time flip averaging, which
+no baseline uses, is part of every number we report. The baselines publish no
+predictions, so no paired test was possible. The reported numbers come from raw weights,
+and the EMA weights that guided selection were not saved. GPU training ran with
+\texttt{deterministic: warn}, so a rerun may differ slightly. How the 8-epoch budget was
+chosen is not recorded, beyond the fact that it was fixed before TissueMNIST was first
+scored. Accuracy near 0.78 and a DCT recall below 0.5 mean the model mislabels many cells.
 This is a research model trained on a benchmark. It is not a medical device and has not
 been evaluated for any clinical or laboratory use.
 
 \section{Reproducibility and Licensing}
 \label{sec:repro}
 
-The run trained from a clean tree at commit
-\texttt{ab39eb9758be4bb65d091fad1d98b521edfbf837} with the command
-\path{uv run opendiagnostics fit -c models/tissuemnist-convnext/config.yaml}
-on one NVIDIA GeForce RTX 4070 Ti under Windows 11, with Python 3.12.16, PyTorch
-2.15.0~\cite{paszke2019pytorch} (CUDA 13.2), Lightning 2.6.6~\cite{falcon2020lightning},
-timm 1.0.31, and \texttt{medmnist} 3.0.2. The run record spans 98 minutes. Seeds were 0,
-and Lightning ran with \texttt{deterministic: warn} because several CUDA backward passes
-lack deterministic kernels, so a GPU rerun may differ slightly. Metrics and predictions were rescored from the saved checkpoint, also from a clean tree,
-at commit \texttt{e9f733fd5507fabc0a1f6bbd223937069d23e7a2}. The resolved
-configuration, run record, per-epoch history, split membership, metrics, and per-image
-validation and test predictions are in
-\path{models/tissuemnist-convnext/runs/20261126-200655-ab39eb97} of
-\url{https://github.com/isaiah-harville/opendiagnostics}. The 198~MB checkpoint, SHA-256
-\texttt{ebb44652\ldots b64adef}, is at
-\url{https://diagnostics.harville.dev/opendiagnostics-weights/tissuemnist-convnext/20261126-200655-ab39eb97/checkpoint.ckpt}.
-The figures are drawn from the committed run files by
-\path{papers/tissuemnist/make_figures.py} with matplotlib~\cite{hunter2007matplotlib},
-which also recomputes the test AUROC and accuracy from the predictions.
+The code is at \url{https://github.com/isaiah-harville/opendiagnostics}. Each run trained
+from a clean tree at the commit in its \path{run.json} with this command, adding
+\texttt{-{}-seed\_everything=1} or \texttt{=2} for seeds 1 and 2.
+\begin{flushleft}\footnotesize\ttfamily
+uv run opendiagnostics fit -c\\
+\quad models/tissuemnist-convnext/config.yaml
+\end{flushleft} Training used one
+NVIDIA GeForce RTX 4070 Ti under Windows 11, Python 3.12.16, PyTorch
+2.15.0~\cite{paszke2019pytorch} with CUDA 13.2, Lightning 2.6.6~\cite{falcon2020lightning},
+timm 1.0.31, and \texttt{medmnist} 3.0.2. The runs took \runMinutesSeedZero{},
+\runMinutesSeedOne{}, and \runMinutesSeedTwo{} minutes. The run folders under
+\path{models/tissuemnist-convnext/runs/} hold each run's resolved configuration, run
+record, per-epoch history, split membership, metrics, and per-image validation and test
+predictions. The seed-0 checkpoint is public at the URL in its \path{artifacts.yaml}. The
+seed-1 and seed-2 checkpoints are recorded there by SHA-256 but not yet uploaded. Every
+number, table, and figure in this paper comes from the scripts in
+\path{papers/tissuemnist/}, which recompute the numbers from the committed predictions and
+fail on any disagreement with the runs' \path{metrics.json}. The figures use
+matplotlib~\cite{hunter2007matplotlib}.
 
 BBBC051 images and ground truth are licensed under Creative Commons Attribution 3.0
-Unported. MedMNIST declares CC BY 4.0 for TissueMNIST. Both permit redistribution with
-attribution, so we publish the weights, the predictions, and eight example test images.
+Unported~\cite{broad2021bbbc051}. MedMNIST releases its data under a Creative Commons
+license~\cite{yang2023medmnistv2}, and the \texttt{medmnist} package records CC BY 4.0 for
+TissueMNIST. Both licenses permit redistribution with attribution, so we publish the
+seed-0 weights, every seed's predictions, and a few example test images.
 
 \section{Conclusion}
 
-A ConvNeXt-Small fine-tuned with ImageNet-22k pretraining, augmentation, regularization,
-a short cosine schedule, and flip averaging reached a TissueMNIST test AUROC whose interval
-lies above the published values. The comparison with MedMNIST+ rules out input size as the
-cause, because the images are the same. It leaves pretraining, architecture, augmentation,
-regularization, and the schedule as candidates. The next steps are two more seeds, the
-rescoring without flip averaging, the ablations named above, and a reproduction of the
-DenseNet-121 baseline in our pipeline for a paired test.
+Over three seeds, a ConvNeXt-Small fine-tuned with ImageNet-22k pretraining, augmentation,
+regularization, a short cosine schedule, and flip averaging reached a mean TissueMNIST test
+AUROC of \testAurocMean{} and accuracy of \testAccMean{}, above the best published 3-run
+means of \baseBestAuroc{} and \baseBestAcc{}. The result compares recipes, not
+architectures. The comparison with MedMNIST+ rules out input size as the cause, because
+the images are the same. The next runs are the rescoring without flip averaging, the
+ablations named in Section~\ref{sec:discussion}, a reproduction of a published baseline
+for a paired test, and a split that holds out a specimen.
 
 \section*{Acknowledgment}
 
 Claude, an AI model developed by Anthropic, took part in this work. It helped design and
-run the experiments, analyzed the results, generated the figures, and drafted and revised
-the text. Isaiah R. Harville reviewed the work and is responsible for its content. We
-thank the creators of BBBC051 and of MedMNIST for releasing their data under open
-licenses.
+run the experiments, wrote the analysis scripts, reviewed the literature, generated the
+figures and tables, and drafted and revised the text. Isaiah R. Harville directed the
+work, reviewed it, and is responsible for its content. We thank the creators of BBBC051
+and of MedMNIST for releasing their data under open licenses.
 
+\ifanycitation
 \bibliographystyle{IEEEtran}
-\bibliography{refs}
+\bibliography{references,manual}
+\fi
 
 \end{document}

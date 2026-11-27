@@ -1,10 +1,10 @@
-"""Draw the paper's figures from the committed TissueMNIST run files.
+"""Draw the paper's figures from the committed TissueMNIST run files and baselines.yaml.
 
-    uv run python papers/tissuemnist/make_figures.py
+    uv run --with matplotlib python -I papers/tissuemnist/make_figures.py
 
-Writes training_curves.pdf and per_class_auroc.pdf to papers/tissuemnist/figures/, and
-prints the test numbers it recomputed (AUROC, accuracy, per-class recall and the main
-confusions) so they can be checked against metrics.json and the text.
+Writes comparison.pdf and training_curves.pdf to papers/tissuemnist/figures/. The values
+come from each run's metrics.json and metrics.csv, which analysis/paper_numbers.py checks
+against the committed predictions.
 """
 
 from __future__ import annotations
@@ -17,162 +17,177 @@ import matplotlib
 
 matplotlib.use("pdf")
 import matplotlib.pyplot as plt
-import numpy as np
-from sklearn.metrics import accuracy_score, confusion_matrix, roc_auc_score
+import yaml
 
 ROOT = Path(__file__).resolve().parents[2]
-RUN = ROOT / "models/tissuemnist-convnext/runs/20261126-200655-ab39eb97"
+PROJECT = ROOT / "models/tissuemnist-convnext"
+RUNS = ["20261126-200655-ab39eb97", "20261127-113245-f5bc0be9", "20261127-125653-a35c5dae"]
 OUT = Path(__file__).resolve().parent / "figures"
-
-SERIES = "#2a78d6"
-TEXT = "#0b0b0b"
-MUTED = "#52514e"
-GRID = "#dcdbd6"
-SHORT = {
-    "Collecting Duct, Connecting Tubule": "CD/CNT",
-    "Distal Convoluted Tubule": "DCT",
-    "Glomerular endothelial cells": "GEC",
-    "Interstitial endothelial cells": "IEC",
-    "Leukocytes": "Leuk.",
-    "Podocytes": "Podo.",
-    "Proximal Tubule Segments": "PT",
-    "Thick Ascending Limb": "TAL",
-}
+PUBLISHED = [
+    ("ViT-B/16, end-to-end", "ViT-B/16 [Wu]"),
+    ("EfficientNet-B4, end", "EffNet-B4 [Wu]"),
+    ("DenseNet-121 from", "DenseNet-121 [Arman]"),
+    ("CytoECA-Net", "CytoECA-Net [Arman]"),
+    ("DenseNet-121, end-to-end, native 128", "DenseNet-121 128 [M+]"),
+    ("DenseNet-121, end-to-end, native 224", "DenseNet-121 224 [M+]"),
+]
+OURS = "#0072b2"
+THEIRS = "#d55e00"
+STYLES = [("-", "o"), ("--", "s"), (":", "^")]
 
 plt.rcParams.update(
     {
         "font.size": 8,
-        "axes.edgecolor": MUTED,
-        "axes.labelcolor": TEXT,
-        "xtick.color": MUTED,
-        "ytick.color": MUTED,
         "axes.spines.top": False,
         "axes.spines.right": False,
         "axes.grid": True,
-        "grid.color": GRID,
+        "grid.color": "#dddddd",
         "grid.linewidth": 0.5,
         "pdf.fonttype": 42,
+        "legend.frameon": False,
     }
 )
 
 
-def history() -> dict[str, dict[int, float]]:
-    """Per-epoch training loss and validation metrics from Lightning's CSVLogger file."""
-    columns = ("train/loss", "val/auroc", "val/accuracy")
-    out: dict[str, dict[int, float]] = {c: {} for c in columns}
-    with (RUN / "metrics.csv").open(newline="") as handle:
-        for row in csv.DictReader(handle):
-            if not row["epoch"]:
-                continue
-            for column in columns:
-                if row[column]:
-                    out[column][int(row["epoch"])] = float(row[column])
+def runs() -> list[dict]:
+    out = []
+    for run_id in RUNS:
+        path = PROJECT / "runs" / run_id
+        history: dict[int, dict[str, float]] = {}
+        with (path / "metrics.csv").open(newline="") as handle:
+            for row in csv.DictReader(handle):
+                if row["epoch"]:
+                    values = history.setdefault(int(row["epoch"]), {})
+                    for key in ("train/loss", "val/auroc"):
+                        if row[key]:
+                            values[key] = float(row[key])
+        out.append(
+            {
+                "seed": json.loads((path / "run.json").read_text())["seed"],
+                "metrics": json.loads((path / "metrics.json").read_text()),
+                "history": history,
+            }
+        )
     return out
 
 
-def predictions() -> tuple[list[str], np.ndarray, np.ndarray]:
-    path = RUN / "predictions_test.csv"
-    with path.open(newline="") as handle:
-        header = next(csv.reader(handle))
-    names = [h.removeprefix("prob/") for h in header[3:]]
-    data = np.loadtxt(path, delimiter=",", skiprows=1, usecols=range(2, len(header)))
-    return names, data[:, 0].astype(np.int64), data[:, 1:]
-
-
-def training_curves(selected: int, saved: dict[str, float]) -> None:
-    """Logged validation used the EMA weights; ``saved`` holds the selected checkpoint's raw
-    weights rescored on validation, drawn as open squares at the selected epoch."""
-    curves = history()
-    panels = [
-        ("train/loss", "Training loss"),
-        ("val/auroc", "Validation AUROC"),
-        ("val/accuracy", "Validation accuracy"),
-    ]
-    fig, axes = plt.subplots(1, 3, figsize=(7.0, 1.9), constrained_layout=True)
-    for ax, (column, label) in zip(axes, panels, strict=True):
-        epochs = sorted(curves[column])
-        values = [curves[column][e] for e in epochs]
-        shown = [e + 1 for e in epochs]
-        ax.plot(shown, values, color=SERIES, linewidth=1.5, marker="o", markersize=3.5)
-        ax.axvline(selected + 1, color=MUTED, linewidth=0.8, linestyle="--")
-        ax.set_xlabel("Epoch")
-        ax.set_title(label, fontsize=8, color=TEXT, loc="left")
-        ax.set_xticks(shown)
-        if column in saved:
-            ax.plot(
-                selected + 1,
-                saved[column],
-                marker="s",
-                markersize=4.5,
-                markerfacecolor="white",
-                markeredgecolor=TEXT,
-                linestyle="none",
+def comparison(scored: list[dict]) -> None:
+    baselines = yaml.safe_load((PROJECT / "baselines.yaml").read_text())["baselines"]
+    rows = []
+    for prefix, label in PUBLISHED:
+        row = next(b for b in baselines if b["method"].startswith(prefix))
+        rows.append((label, row["metrics"]))
+    fig, axes = plt.subplots(1, 2, figsize=(3.5, 2.5), sharey=True)
+    for ax, key, title in (
+        (axes[0], "auroc", "Test AUROC"),
+        (axes[1], "accuracy", "Test accuracy"),
+    ):
+        labels = []
+        y = 0
+        for run in scored:
+            estimate = run["metrics"]["test"][key]
+            ax.errorbar(
+                estimate["value"],
+                y,
+                xerr=[
+                    [estimate["value"] - estimate["lower"]],
+                    [estimate["upper"] - estimate["value"]],
+                ],
+                fmt="o",
+                color=OURS,
+                ms=3.5,
+                capsize=2,
+                lw=0.9,
             )
-    axes[1].annotate(
-        "selected",
-        xy=(selected + 1, curves["val/auroc"][selected]),
-        xytext=(-38, -22),
-        textcoords="offset points",
-        color=MUTED,
-        fontsize=7,
-        arrowprops={"arrowstyle": "-", "color": MUTED, "linewidth": 0.6},
-    )
-    fig.savefig(OUT / "training_curves.pdf")
+            labels.append(f"ConvNeXt-S seed {run['seed']}")
+            y += 1
+        values = [run["metrics"]["test"][key]["value"] for run in scored]
+        mean = sum(values) / len(values)
+        sd = (sum((v - mean) ** 2 for v in values) / (len(values) - 1)) ** 0.5
+        ax.errorbar(mean, y, xerr=sd, fmt="D", color=OURS, ms=3.5, capsize=2, lw=0.9)
+        labels.append("ConvNeXt-S mean")
+        y += 1
+        for label, metrics in rows:
+            ax.errorbar(
+                metrics[key],
+                y,
+                xerr=metrics.get(f"{key}_sd", 0),
+                fmt="s",
+                color=THEIRS,
+                mfc="white",
+                ms=3.5,
+                capsize=2,
+                lw=0.9,
+            )
+            labels.append(label)
+            y += 1
+        ax.axvline(rows[0][1][key], color=THEIRS, lw=0.6, ls="--")
+        ax.set_title(title, fontsize=8)
+        ax.tick_params(axis="x", labelsize=7)
+        ax.set_yticks(range(len(labels)), labels)
+        ax.grid(axis="y", visible=False)
+    axes[0].invert_yaxis()
+    axes[0].set_xlim(0.951, 0.966)
+    axes[1].set_xlim(0.735, 0.79)
+    fig.tight_layout(pad=0.3, w_pad=0.6)
+    fig.savefig(OUT / "comparison.pdf")
     plt.close(fig)
 
 
-def per_class_auroc(names: list[str], target: np.ndarray, prob: np.ndarray, test: dict) -> None:
-    values = np.array([roc_auc_score(target == k, prob[:, k]) for k in range(len(names))])
-    lower = np.array([test[f"auroc/{n}"]["lower"] for n in names])
-    upper = np.array([test[f"auroc/{n}"]["upper"] for n in names])
-    counts = np.bincount(target, minlength=len(names))
-    order = np.argsort(values)
-    fig, ax = plt.subplots(figsize=(3.5, 2.3), constrained_layout=True)
-    rows = np.arange(len(names))
-    ax.errorbar(
-        values[order],
-        rows,
-        xerr=[values[order] - lower[order], upper[order] - values[order]],
-        fmt="o",
-        color=SERIES,
-        markersize=4,
-        elinewidth=1.2,
-        capsize=0,
-    )
-    macro = float(values.mean())
-    ax.axvline(macro, color=MUTED, linewidth=0.8, linestyle="--")
-    ax.text(macro, len(names) - 0.4, f" macro {macro:.4f}", color=MUTED, fontsize=7, va="bottom")
-    ax.set_yticks(rows, [f"{SHORT[names[i]]} (n={counts[i]:,})" for i in order])
-    ax.set_xlabel("One-vs-rest test AUROC")
-    ax.set_ylim(-0.6, len(names) - 0.1)
-    ax.grid(axis="y", visible=False)
-    fig.savefig(OUT / "per_class_auroc.pdf")
+def curves(scored: list[dict]) -> None:
+    fig, axes = plt.subplots(1, 2, figsize=(3.5, 1.7))
+    for run, (line, marker) in zip(scored, STYLES, strict=True):
+        epochs = sorted(run["history"])
+        x = [e + 1 for e in epochs]
+        label = f"seed {run['seed']}"
+        axes[0].plot(
+            x,
+            [run["history"][e]["train/loss"] for e in epochs],
+            line,
+            marker=marker,
+            ms=2.5,
+            lw=0.9,
+            color=OURS,
+            label=label,
+        )
+        axes[1].plot(
+            x,
+            [run["history"][e]["val/auroc"] for e in epochs],
+            line,
+            marker=marker,
+            ms=2.5,
+            lw=0.9,
+            color=OURS,
+            label=label,
+        )
+        selected = run["metrics"]["selection"]["best_epoch"]
+        axes[1].plot(
+            selected + 1.15,
+            run["metrics"]["val"]["auroc"]["value"],
+            marker,
+            ms=3.5,
+            mfc="white",
+            color=THEIRS,
+        )
+    axes[0].set_ylabel("Training loss")
+    axes[1].set_ylabel("Validation AUROC")
+    axes[1].set_xlim(2.7, 8.3)
+    axes[1].set_ylim(0.955, 0.966)
+    for ax in axes:
+        ax.set_xlabel("Epoch")
+        ax.set_xticks(range(1, 9))
+    axes[1].set_xticks(range(3, 9))
+    axes[0].legend(fontsize=7, handlelength=2.2)
+    fig.tight_layout(pad=0.3, w_pad=0.8)
+    fig.savefig(OUT / "training_curves.pdf")
     plt.close(fig)
 
 
 def main() -> None:
     OUT.mkdir(exist_ok=True)
-    metrics = json.loads((RUN / "metrics.json").read_text())
-    names, target, prob = predictions()
-    saved = {
-        "val/auroc": metrics["val"]["auroc"]["value"],
-        "val/accuracy": metrics["val"]["accuracy"]["value"],
-    }
-    training_curves(metrics["selection"]["best_epoch"], saved)
-    per_class_auroc(names, target, prob, metrics["test"])
-    macro = roc_auc_score(target, prob, multi_class="ovr", average="macro")
-    accuracy = accuracy_score(target, prob.argmax(1))
-    print(f"test images {len(target)}, macro AUROC {macro:.6f}, accuracy {accuracy:.6f}")
-    matrix = confusion_matrix(target, prob.argmax(1), labels=range(len(names)))
-    share = matrix / matrix.sum(1, keepdims=True)
-    for k, name in enumerate(names):
-        top = np.argsort(share[k])[::-1][:3]
-        others = ", ".join(f"{SHORT[names[j]]} {share[k, j]:.3f}" for j in top if j != k)
-        print(f"{SHORT[name]}: n={matrix[k].sum()}, recall {share[k, k]:.3f}; to {others}")
-    print(
-        f"metrics.json: AUROC {metrics['test']['auroc']['value']:.6f}, "
-        f"accuracy {metrics['test']['accuracy']['value']:.6f}"
-    )
+    scored = runs()
+    comparison(scored)
+    curves(scored)
 
 
 if __name__ == "__main__":

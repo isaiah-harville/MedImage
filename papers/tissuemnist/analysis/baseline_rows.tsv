@@ -1,0 +1,17 @@
+method_prefix	label	input	runs	cite	where
+ViT-B/16, end-to-end	ViT-B/16	32 $\rightarrow$ 224	3	wu2025rethinking	Tab.~6
+EfficientNet-B4, end	EfficientNet-B4	32 $\rightarrow$ 224	3	wu2025rethinking	Tab.~6
+DenseNet-121 from	DenseNet-121, scratch	32 $\rightarrow$ 64	3	arman2026cytoecanet	Tab.~5
+CytoECA-Net	CytoECA-Net	32 $\rightarrow$ 64	3	arman2026cytoecanet	Tab.~5
+MedKAN-B	MedKAN-B	resized to 224	n.s.	yang2025medkan	Tab.~1
+DenseNet-121, end-to-end, native 128	DenseNet-121	32 $\rightarrow$ 128, padded	3	doerrich2025medmnistplus	Tab.~S12
+DenseNet-121, end-to-end, native 224	DenseNet-121	32 $\rightarrow$ 224	3	doerrich2025medmnistplus	Tab.~S12
+MedViT-S	MedViT-S	28 $\rightarrow$ 224	n.s.	manzari2023medvit	arXiv v1 Tab.~3
+MedViTV2-L	MedViTV2-L	28 $\rightarrow$ 224	n.s.	manzari2026medvitv2	arXiv v3 Tab.~5
+AutoKeras	AutoKeras	28	$\geq$3	yang2023medmnistv2	Tab.~3
+ResNet-18 (28 up	ResNet-18	28 $\rightarrow$ 224	$\geq$3	yang2023medmnistv2	Tab.~3
+ResNet-50 (28 up	ResNet-50	28 $\rightarrow$ 224	$\geq$3	yang2023medmnistv2	Tab.~3
+ResNet-50 (28)	ResNet-50	28	$\geq$3	yang2023medmnistv2	Tab.~3
+ResNet-18 (28)	ResNet-18	28	$\geq$3	yang2023medmnistv2	Tab.~3
+Google AutoML	Google AutoML Vision	n.s.	$\geq$3	yang2023medmnistv2	Tab.~3
+auto-sklearn	auto-sklearn	28	$\geq$3	yang2023medmnistv2	Tab.~3

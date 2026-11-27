@@ -1,0 +1,25 @@
+\begin{table}[t]
+\caption{How does the same recipe do on the other MedMNIST 2D subsets? Test AUROC of the first run (seed 0, all at commit ab39eb9) on each subset at 224 pixels, with its 95\% bootstrap interval, against the best published value in that project's \texttt{baselines.yaml}. Only the ChestMNIST, DermaMNIST, and TissueMNIST lists have had a literature review. Our CI: whether our interval lies above or below that value, or contains it.}
+\label{tab:subsets}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llll@{}}
+\toprule
+Subset & Ours [95\% CI] & Published & Our CI \\
+\midrule
+BloodMNIST & 0.9994 [0.9985, 1.0000] & 0.9995 & inside \\
+BreastMNIST & 0.9620 [0.9313, 0.9863] & 0.9530 & inside \\
+ChestMNIST & 0.8416 [0.8369, 0.8461] & 0.8350 & above \\
+DermaMNIST & 0.9865 [0.9809, 0.9909] & 0.9892 & inside \\
+OctMNIST & 0.9957 [0.9923, 0.9986] & 0.9960 & inside \\
+OrganAMNIST & 0.9979 [0.9974, 0.9983] & 0.9991 & below \\
+OrganCMNIST & 0.9944 [0.9927, 0.9959] & 0.9990 & below \\
+OrganSMNIST & 0.9811 [0.9793, 0.9828] & 0.9870 & below \\
+PathMNIST & 0.9894 [0.9869, 0.9917] & 0.9990 & below \\
+PneumoniaMNIST & 0.9979 [0.9958, 0.9993] & 0.9970 & inside \\
+RetinaMNIST & 0.8861 [0.8620, 0.9103] & 0.8782 & inside \\
+TissueMNIST & 0.9630 [0.9618, 0.9641] & 0.9585 & above \\
+\bottomrule
+\end{tabular}
+\end{table}

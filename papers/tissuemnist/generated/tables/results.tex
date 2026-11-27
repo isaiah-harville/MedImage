@@ -1,0 +1,34 @@
+\begin{table*}[t]
+\caption{TissueMNIST test results on the official split of 47,280 images. Our seed rows give 95\% percentile bootstrap intervals over test images; the mean row gives the mean $\pm$ SD over the three seeds. Published rows give the mean, and $\pm$ SD over runs where the source reports it. Runs: seeds or trials averaged (n.s.: not stated). Input: the image the network sees, from the $32\times32$ projection or the 28-pixel MedMNIST image; an arrow marks a resize.}
+\label{tab:main}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}llllll@{}}
+\toprule
+Method & Input & Runs & AUROC & Accuracy & Source \\
+\midrule
+ConvNeXt-S, seed 0 (ours) & 32 $\rightarrow$ 224 & 1 & 0.9630 [0.9618, 0.9641] & 0.7772 [0.7739, 0.7811] & this work \\
+ConvNeXt-S, seed 1 (ours) & 32 $\rightarrow$ 224 & 1 & 0.9643 [0.9630, 0.9655] & 0.7853 [0.7820, 0.7889] & this work \\
+ConvNeXt-S, seed 2 (ours) & 32 $\rightarrow$ 224 & 1 & 0.9640 [0.9628, 0.9652] & 0.7844 [0.7809, 0.7880] & this work \\
+ConvNeXt-S, mean (ours) & 32 $\rightarrow$ 224 & 3 & \textbf{0.9637} $\pm$ 0.0007 & \textbf{0.7823} $\pm$ 0.0044 & this work \\
+\midrule
+ViT-B/16 & 32 $\rightarrow$ 224 & 3 & 0.9585 $\pm$ 0.0011 & 0.7592 $\pm$ 0.0038 & \cite{wu2025rethinking}, Tab.~6 \\
+EfficientNet-B4 & 32 $\rightarrow$ 224 & 3 & 0.9569 $\pm$ 0.0010 & 0.7556 $\pm$ 0.0044 & \cite{wu2025rethinking}, Tab.~6 \\
+DenseNet-121, scratch & 32 $\rightarrow$ 64 & 3 & 0.9572 $\pm$ 0.0025 & 0.7547 $\pm$ 0.0055 & \cite{arman2026cytoecanet}, Tab.~5 \\
+CytoECA-Net & 32 $\rightarrow$ 64 & 3 & 0.9564 $\pm$ 0.0002 & 0.7556 $\pm$ 0.0006 & \cite{arman2026cytoecanet}, Tab.~5 \\
+MedKAN-B & resized to 224 & n.s. & 0.957 & 0.740 & \cite{yang2025medkan}, Tab.~1 \\
+DenseNet-121 & 32 $\rightarrow$ 128, padded & 3 & 0.9535 $\pm$ 0.0007 & 0.7425 $\pm$ 0.0039 & \cite{doerrich2025medmnistplus}, Tab.~S12 \\
+DenseNet-121 & 32 $\rightarrow$ 224 & 3 & 0.9525 $\pm$ 0.0004 & 0.7408 $\pm$ 0.0032 & \cite{doerrich2025medmnistplus}, Tab.~S12 \\
+MedViT-S & 28 $\rightarrow$ 224 & n.s. & 0.952 & 0.731 & \cite{manzari2023medvit}, arXiv v1 Tab.~3 \\
+MedViTV2-L & 28 $\rightarrow$ 224 & n.s. & 0.943 & 0.716 & \cite{manzari2026medvitv2}, arXiv v3 Tab.~5 \\
+AutoKeras & 28 & $\geq$3 & 0.941 & 0.703 & \cite{yang2023medmnistv2}, Tab.~3 \\
+ResNet-18 & 28 $\rightarrow$ 224 & $\geq$3 & 0.933 & 0.681 & \cite{yang2023medmnistv2}, Tab.~3 \\
+ResNet-50 & 28 $\rightarrow$ 224 & $\geq$3 & 0.932 & 0.680 & \cite{yang2023medmnistv2}, Tab.~3 \\
+ResNet-50 & 28 & $\geq$3 & 0.931 & 0.680 & \cite{yang2023medmnistv2}, Tab.~3 \\
+ResNet-18 & 28 & $\geq$3 & 0.930 & 0.676 & \cite{yang2023medmnistv2}, Tab.~3 \\
+Google AutoML Vision & n.s. & $\geq$3 & 0.924 & 0.673 & \cite{yang2023medmnistv2}, Tab.~3 \\
+auto-sklearn & 28 & $\geq$3 & 0.828 & 0.532 & \cite{yang2023medmnistv2}, Tab.~3 \\
+\bottomrule
+\end{tabular}
+\end{table*}

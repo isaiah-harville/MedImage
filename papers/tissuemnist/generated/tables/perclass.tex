@@ -1,0 +1,21 @@
+\begin{table}[t]
+\caption{Which classes does the model confuse? One-vs-rest test AUROC and recall at the argmax decision for each class, as the mean and the range over the three seeds, sorted by AUROC. $n$: test images.}
+\label{tab:perclass}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrllll@{}}
+\toprule
+Class & $n$ & AUROC & range & Recall & range \\
+\midrule
+DCT & 2,233 & 0.9311 & 0.9297--0.9329 & 0.458 & 0.412--0.487 \\
+TAL & 7,031 & 0.9614 & 0.9598--0.9625 & 0.783 & 0.762--0.809 \\
+CD/CNT & 15,165 & 0.9623 & 0.9614--0.9632 & 0.848 & 0.825--0.869 \\
+PT & 11,201 & 0.9632 & 0.9614--0.9647 & 0.828 & 0.817--0.838 \\
+Leukocytes & 3,369 & 0.9656 & 0.9645--0.9663 & 0.713 & 0.705--0.727 \\
+Podocytes & 2,202 & 0.9730 & 0.9725--0.9737 & 0.616 & 0.589--0.653 \\
+IEC & 4,402 & 0.9756 & 0.9756--0.9757 & 0.768 & 0.743--0.783 \\
+GEC & 1,677 & 0.9777 & 0.9776--0.9779 & 0.705 & 0.689--0.722 \\
+\bottomrule
+\end{tabular}
+\end{table}
