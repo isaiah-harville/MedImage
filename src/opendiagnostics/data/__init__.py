@@ -10,6 +10,7 @@ from opendiagnostics.data.base import (
 )
 from opendiagnostics.data.manifest import CSVImageDataModule
 from opendiagnostics.data.medmnist import MedMNISTDataModule
+from opendiagnostics.data.pcam import PCamDataModule
 from opendiagnostics.data.synthetic import (
     SyntheticClassificationDataModule,
     SyntheticDetectionDataModule,
@@ -22,6 +23,7 @@ __all__ = [
     "LeakageError",
     "MedMNISTDataModule",
     "MedicalDataModule",
+    "PCamDataModule",
     "Source",
     "SyntheticClassificationDataModule",
     "SyntheticDetectionDataModule",

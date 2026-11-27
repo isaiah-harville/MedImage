@@ -4,6 +4,8 @@
 
 ::: opendiagnostics.data.medmnist
 
+::: opendiagnostics.data.pcam
+
 ::: opendiagnostics.data.manifest
 
 ::: opendiagnostics.data.synthetic
