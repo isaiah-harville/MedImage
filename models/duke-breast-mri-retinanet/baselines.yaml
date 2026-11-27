@@ -1,0 +1,8 @@
+benchmark: Duke-Breast-Cancer-MRI tumor detection, one radiologist box per patient, pre-contrast and first post-contrast DCE-MRI
+protocol: >-
+  CPM and FROC sensitivities on our patient-level test split (70/15/15 of patients, seed 0)
+  of the patients whose two phases scripts/datasets/duke_breast_mri.py could pick. Each
+  patient has one box, the biopsied or largest biopsied lesion, so detections of other
+  real lesions count as false positives. The collection publishes no detection split, and
+  we found no published detection result on these boxes with a protocol we could match.
+baselines: []

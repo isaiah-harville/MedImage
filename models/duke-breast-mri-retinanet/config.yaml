@@ -1,0 +1,67 @@
+# MONAI 3D RetinaNet on Duke-Breast-Cancer-MRI tumor boxes, from the pre-contrast and first
+# post-contrast DCE phases as two channels, with a random patient-level split.
+#   uv run scripts/datasets/duke_breast_mri.py
+#   uv run opendiagnostics fit -c models/duke-breast-mri-retinanet/config.yaml
+# Tumors span about 5 to 100 mm, so the FPN reaches one level deeper than for lung nodules
+# and the anchors are larger.
+name: duke-breast-mri-retinanet
+notes: ""
+seed_everything: 0
+trainer:
+  accelerator: auto
+  precision: bf16-mixed
+  deterministic: warn
+  max_epochs: 100
+  check_val_every_n_epoch: 5
+  accumulate_grad_batches: 2
+model:
+  class_path: opendiagnostics.modules.VolumeDetector
+  init_args:
+    network:
+      class_path: monai.networks.nets.ResNet
+      init_args:
+        block: bottleneck
+        layers: [3, 4, 6, 3]
+        block_inplanes: [64, 128, 256, 512]
+        spatial_dims: 3
+        n_input_channels: 2
+        conv1_t_stride: [2, 2, 1]
+        conv1_t_size: [7, 7, 7]
+    returned_layers: [1, 2, 3]
+    base_anchor_shapes: [[8, 8, 6], [12, 12, 8], [16, 16, 10]]
+    roi_size: [256, 256, 128]
+    score_thresh: 0.02
+    nms_thresh: 0.22
+    detections_per_image: 100
+data:
+  class_path: opendiagnostics.data.VolumeManifestDataModule
+  init_args:
+    manifest: data/duke-breast-mri/manifest.json
+    split: patient
+    fractions: [0.7, 0.15, 0.15]
+    spacing: [1.0, 1.0, 1.5]
+    patch_size: [160, 160, 64]
+    crops_per_volume: 2
+    positive_fraction: 0.5
+    batch_size: 1
+    num_workers: 6
+    train_transforms:
+      class_path: monai.transforms.Compose
+      init_args:
+        transforms:
+          - class_path: monai.apps.detection.transforms.dictionary.RandFlipBoxd
+            init_args: {image_keys: image, box_keys: boxes, box_ref_image_keys: image, prob: 0.5, spatial_axis: 0}
+          - class_path: monai.apps.detection.transforms.dictionary.RandFlipBoxd
+            init_args: {image_keys: image, box_keys: boxes, box_ref_image_keys: image, prob: 0.5, spatial_axis: 2}
+          - class_path: monai.transforms.RandScaleIntensityd
+            init_args: {keys: image, factors: 0.1, prob: 0.15}
+          - class_path: monai.transforms.RandShiftIntensityd
+            init_args: {keys: image, offsets: 0.1, prob: 0.15}
+optimizer:
+  class_path: torch.optim.SGD
+  init_args: {lr: 0.01, momentum: 0.9, weight_decay: 3.0e-5, nesterov: true}
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CosineAnnealingLR
+  init_args: {T_max: 100}
+checkpoint: {monitor: val/cpm}
+eval: {bootstrap_samples: 2000}

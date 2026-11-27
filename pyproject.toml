@@ -116,3 +116,6 @@ markers = [
     "slow: takes more than a few seconds",
 ]
 filterwarnings = ["error::UserWarning:opendiagnostics.*"]
+
+[tool.ty.environment]
+extra-paths = ["scripts/datasets"]
