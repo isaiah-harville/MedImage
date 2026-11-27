@@ -25,6 +25,7 @@ import argparse
 import inspect
 import json
 import logging
+import numbers
 import sys
 import time
 import warnings
@@ -32,6 +33,7 @@ from pathlib import Path
 from typing import Any
 
 import yaml
+from jsonargparse.typing import register_type
 from lightning.pytorch import Trainer
 from lightning.pytorch.callbacks import ModelCheckpoint
 from lightning.pytorch.cli import LightningArgumentParser, LightningCLI
@@ -47,6 +49,23 @@ log = logging.getLogger("opendiagnostics")
 
 # run.json and splits.json are written before the first metric, so these always fire.
 warnings.filterwarnings("ignore", message=r".*directory .* exists and is not empty")
+
+
+def _number(value: object) -> int | float:
+    if isinstance(value, str):
+        for kind in (int, float):
+            try:
+                return kind(value)
+            except ValueError:
+                pass
+    if isinstance(value, bool) or not isinstance(value, int | float):
+        raise ValueError(f"expected a number, got {value!r}")
+    return value
+
+
+# torchvision annotates arguments such as RandomAffine's `degrees` as numbers.Number, which
+# jsonargparse can parse but not write back, so the saved config.yaml would not load.
+register_type(numbers.Number, serializer=lambda value: value, deserializer=_number)
 
 
 def _version(output_dir: str, name: str, commit: str | None) -> str:

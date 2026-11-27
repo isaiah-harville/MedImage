@@ -74,6 +74,28 @@ def test_evaluate_run_reproduces_test_metrics_and_records_the_rescore(finished_r
     assert after["rescored"]["git"]["commit"]
 
 
+def test_a_run_with_a_number_typed_transform_argument_can_be_evaluated(tmp_path):
+    run_dir = fit_smoke(
+        "classification",
+        tmp_path,
+        "--data.init_args.train_transforms=torchvision.transforms.v2.RandomAffine",
+        "--data.init_args.train_transforms.init_args.degrees=10",
+    )
+    assert "degrees: 10\n" in (run_dir / "config.yaml").read_text()
+    assert evaluate_run(run_dir)["test"] == _metrics(run_dir)["test"]
+
+
+def test_a_number_typed_transform_argument_refuses_text(tmp_path, capsys):
+    with pytest.raises(SystemExit):
+        fit_smoke(
+            "classification",
+            tmp_path,
+            "--data.init_args.train_transforms=torchvision.transforms.v2.RandomAffine",
+            "--data.init_args.train_transforms.init_args.degrees=ten",
+        )
+    assert "expected a number, got 'ten'" in capsys.readouterr().err
+
+
 def test_unknown_config_key_is_an_error(tmp_path, capsys):
     with pytest.raises(SystemExit):
         fit_smoke("classification", tmp_path, "--data.init_args.batch_sise=4")
