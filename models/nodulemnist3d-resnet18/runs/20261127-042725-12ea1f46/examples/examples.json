@@ -1,82 +1,90 @@
 [
   {
-    "id": "test-113",
+    "id": "test-214",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
-    "truth": "benign",
-    "prediction": "benign",
-    "confidence": 0.9979880575556308,
-    "correct": true
-  },
-  {
-    "id": "test-269",
-    "input": "02-input.png",
-    "overlay": "02-attribution.png",
-    "kind": "attribution",
-    "truth": "malignant",
-    "prediction": "malignant",
-    "confidence": 0.9928752183914185,
-    "correct": true
-  },
-  {
-    "id": "test-33",
-    "input": "03-input.png",
-    "overlay": "03-attribution.png",
-    "kind": "attribution",
-    "truth": "benign",
-    "prediction": "malignant",
-    "confidence": 0.8929754495620728,
-    "correct": false
-  },
-  {
-    "id": "test-7",
-    "input": "04-input.png",
-    "overlay": "04-attribution.png",
-    "kind": "attribution",
-    "truth": "malignant",
-    "prediction": "benign",
-    "confidence": 0.9865701710805297,
-    "correct": false
-  },
-  {
-    "id": "test-214",
-    "input": "05-input.png",
-    "overlay": "05-attribution.png",
-    "kind": "attribution",
+    "volume": "01-volume.npy",
     "truth": "benign",
     "prediction": "benign",
     "confidence": 0.99718685913831,
     "correct": true
   },
   {
-    "id": "test-134",
-    "input": "06-input.png",
-    "overlay": "06-attribution.png",
+    "id": "test-147",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
     "kind": "attribution",
+    "volume": "02-volume.npy",
     "truth": "malignant",
     "prediction": "malignant",
-    "confidence": 0.992180347442627,
+    "confidence": 0.638495922088623,
     "correct": true
   },
   {
-    "id": "test-81",
-    "input": "07-input.png",
-    "overlay": "07-attribution.png",
+    "id": "test-298",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
     "kind": "attribution",
+    "volume": "03-volume.npy",
     "truth": "benign",
     "prediction": "malignant",
-    "confidence": 0.8840296268463135,
+    "confidence": 0.6466588973999023,
     "correct": false
   },
   {
-    "id": "test-297",
+    "id": "test-183",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "volume": "04-volume.npy",
+    "truth": "malignant",
+    "prediction": "malignant",
+    "confidence": 0.969412624835968,
+    "correct": true
+  },
+  {
+    "id": "test-304",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "volume": "05-volume.npy",
+    "truth": "benign",
+    "prediction": "malignant",
+    "confidence": 0.2861998379230499,
+    "correct": false
+  },
+  {
+    "id": "test-149",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "volume": "06-volume.npy",
+    "truth": "malignant",
+    "prediction": "malignant",
+    "confidence": 0.3340555727481842,
+    "correct": true
+  },
+  {
+    "id": "test-97",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "volume": "07-volume.npy",
+    "truth": "benign",
+    "prediction": "malignant",
+    "confidence": 0.468544602394104,
+    "correct": false
+  },
+  {
+    "id": "test-75",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
+    "volume": "08-volume.npy",
     "truth": "malignant",
-    "prediction": "benign",
-    "confidence": 0.9809700362384319,
-    "correct": false
+    "prediction": "malignant",
+    "confidence": 0.7174078226089478,
+    "correct": true
   }
 ]

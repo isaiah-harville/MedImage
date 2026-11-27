@@ -1,82 +1,90 @@
 [
   {
-    "id": "test-302",
+    "id": "test-90",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
-    "truth": "vessel",
-    "prediction": "vessel",
-    "confidence": 0.999995589827904,
-    "correct": true
-  },
-  {
-    "id": "test-13",
-    "input": "02-input.png",
-    "overlay": "02-attribution.png",
-    "kind": "attribution",
-    "truth": "aneurysm",
-    "prediction": "aneurysm",
-    "confidence": 0.9983443021774292,
-    "correct": true
-  },
-  {
-    "id": "test-87",
-    "input": "03-input.png",
-    "overlay": "03-attribution.png",
-    "kind": "attribution",
+    "volume": "01-volume.npy",
     "truth": "vessel",
     "prediction": "aneurysm",
-    "confidence": 0.9953553676605225,
+    "confidence": 0.4744570255279541,
     "correct": false
   },
   {
     "id": "test-11",
-    "input": "04-input.png",
-    "overlay": "04-attribution.png",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
     "kind": "attribution",
+    "volume": "02-volume.npy",
     "truth": "aneurysm",
     "prediction": "vessel",
     "confidence": 0.9999103956215549,
     "correct": false
   },
   {
-    "id": "test-322",
+    "id": "test-118",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "volume": "03-volume.npy",
+    "truth": "vessel",
+    "prediction": "vessel",
+    "confidence": 0.9980617412365973,
+    "correct": true
+  },
+  {
+    "id": "test-5",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "volume": "04-volume.npy",
+    "truth": "aneurysm",
+    "prediction": "aneurysm",
+    "confidence": 0.3219929337501526,
+    "correct": true
+  },
+  {
+    "id": "test-298",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
+    "volume": "05-volume.npy",
     "truth": "vessel",
-    "prediction": "vessel",
-    "confidence": 0.9999940419529594,
-    "correct": true
+    "prediction": "aneurysm",
+    "confidence": 0.04894599691033363,
+    "correct": false
   },
   {
-    "id": "test-0",
+    "id": "test-1",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
+    "volume": "06-volume.npy",
     "truth": "aneurysm",
     "prediction": "aneurysm",
-    "confidence": 0.9974048137664795,
+    "confidence": 0.9272096157073975,
     "correct": true
   },
   {
-    "id": "test-319",
+    "id": "test-154",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
+    "volume": "07-volume.npy",
     "truth": "vessel",
-    "prediction": "aneurysm",
-    "confidence": 0.9272096157073975,
-    "correct": false
+    "prediction": "vessel",
+    "confidence": 0.9997467201028485,
+    "correct": true
   },
   {
-    "id": "test-9",
+    "id": "test-10",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
+    "volume": "08-volume.npy",
     "truth": "aneurysm",
-    "prediction": "vessel",
-    "confidence": 0.9986517117358744,
-    "correct": false
+    "prediction": "aneurysm",
+    "confidence": 0.9020140171051025,
+    "correct": true
   }
 ]

@@ -1,82 +1,82 @@
 [
   {
-    "id": "test-45389",
+    "id": "test-29004",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
     "truth": "Collecting Duct, Connecting Tubule",
     "prediction": "Collecting Duct, Connecting Tubule",
-    "confidence": 0.9594122171401978,
+    "confidence": 0.8907605409622192,
     "correct": true
   },
   {
-    "id": "test-25567",
+    "id": "test-31037",
     "input": "02-input.png",
     "overlay": "02-attribution.png",
     "kind": "attribution",
     "truth": "Distal Convoluted Tubule",
-    "prediction": "Distal Convoluted Tubule",
-    "confidence": 0.9564826488494873,
-    "correct": true
+    "prediction": "Thick Ascending Limb",
+    "confidence": 0.7843667268753052,
+    "correct": false
   },
   {
-    "id": "test-39652",
+    "id": "test-6490",
     "input": "03-input.png",
     "overlay": "03-attribution.png",
     "kind": "attribution",
     "truth": "Glomerular endothelial cells",
     "prediction": "Glomerular endothelial cells",
-    "confidence": 0.944859504699707,
+    "confidence": 0.839991569519043,
     "correct": true
   },
   {
-    "id": "test-15745",
+    "id": "test-16065",
     "input": "04-input.png",
     "overlay": "04-attribution.png",
     "kind": "attribution",
     "truth": "Interstitial endothelial cells",
     "prediction": "Interstitial endothelial cells",
-    "confidence": 0.9739351868629456,
+    "confidence": 0.8633761405944824,
     "correct": true
   },
   {
-    "id": "test-36605",
+    "id": "test-40932",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
     "truth": "Leukocytes",
     "prediction": "Leukocytes",
-    "confidence": 0.966529130935669,
+    "confidence": 0.7697818279266357,
     "correct": true
   },
   {
-    "id": "test-28621",
+    "id": "test-20066",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
     "truth": "Podocytes",
-    "prediction": "Podocytes",
-    "confidence": 0.9668113589286804,
-    "correct": true
+    "prediction": "Glomerular endothelial cells",
+    "confidence": 0.5329970121383667,
+    "correct": false
   },
   {
-    "id": "test-8787",
+    "id": "test-44794",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
     "truth": "Proximal Tubule Segments",
-    "prediction": "Proximal Tubule Segments",
-    "confidence": 0.9861656427383423,
-    "correct": true
+    "prediction": "Thick Ascending Limb",
+    "confidence": 0.5284806489944458,
+    "correct": false
   },
   {
-    "id": "test-5624",
+    "id": "test-26782",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
     "truth": "Thick Ascending Limb",
     "prediction": "Thick Ascending Limb",
-    "confidence": 0.9681400060653687,
+    "confidence": 0.8997069597244263,
     "correct": true
   }
 ]

@@ -1,82 +1,82 @@
 [
   {
-    "id": "test-1755",
+    "id": "test-1471",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
     "truth": "actinic keratoses and intraepithelial carcinoma",
-    "prediction": "actinic keratoses and intraepithelial carcinoma",
-    "confidence": 0.973652184009552,
-    "correct": true
+    "prediction": "benign keratosis-like lesions",
+    "confidence": 0.8110764622688293,
+    "correct": false
   },
   {
-    "id": "test-399",
+    "id": "test-453",
     "input": "02-input.png",
     "overlay": "02-attribution.png",
     "kind": "attribution",
     "truth": "basal cell carcinoma",
     "prediction": "basal cell carcinoma",
-    "confidence": 0.9557244777679443,
+    "confidence": 0.9321147203445435,
     "correct": true
   },
   {
-    "id": "test-1052",
+    "id": "test-351",
     "input": "03-input.png",
     "overlay": "03-attribution.png",
     "kind": "attribution",
     "truth": "benign keratosis-like lesions",
     "prediction": "benign keratosis-like lesions",
-    "confidence": 0.9784340262413025,
+    "confidence": 0.9342092871665955,
     "correct": true
   },
   {
-    "id": "test-895",
+    "id": "test-56",
     "input": "04-input.png",
     "overlay": "04-attribution.png",
     "kind": "attribution",
     "truth": "dermatofibroma",
     "prediction": "dermatofibroma",
-    "confidence": 0.9749910831451416,
+    "confidence": 0.944713830947876,
     "correct": true
   },
   {
-    "id": "test-986",
+    "id": "test-137",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
     "truth": "melanoma",
     "prediction": "melanoma",
-    "confidence": 0.9697011113166809,
+    "confidence": 0.937785267829895,
     "correct": true
   },
   {
-    "id": "test-791",
+    "id": "test-1511",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
     "truth": "melanocytic nevi",
     "prediction": "melanocytic nevi",
-    "confidence": 0.9508213400840759,
+    "confidence": 0.9291563630104065,
     "correct": true
   },
   {
-    "id": "test-707",
+    "id": "test-797",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
     "truth": "vascular lesions",
     "prediction": "vascular lesions",
-    "confidence": 0.958346962928772,
+    "confidence": 0.9580969214439392,
     "correct": true
   },
   {
-    "id": "test-702",
+    "id": "test-914",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
     "truth": "actinic keratoses and intraepithelial carcinoma",
-    "prediction": "basal cell carcinoma",
-    "confidence": 0.9383355975151062,
-    "correct": false
+    "prediction": "actinic keratoses and intraepithelial carcinoma",
+    "confidence": 0.9568773508071899,
+    "correct": true
   }
 ]

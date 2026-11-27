@@ -1,82 +1,82 @@
 [
   {
-    "id": "test-11",
+    "id": "test-45",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
     "truth": "malignant",
     "prediction": "malignant",
-    "confidence": 0.9998463626543526,
+    "confidence": 0.9994557204190642,
     "correct": true
   },
   {
-    "id": "test-134",
+    "id": "test-43",
     "input": "02-input.png",
     "overlay": "02-attribution.png",
     "kind": "attribution",
     "truth": "normal, benign",
     "prediction": "normal, benign",
-    "confidence": 0.9999531507492065,
+    "confidence": 0.9999008178710938,
     "correct": true
   },
   {
-    "id": "test-44",
+    "id": "test-138",
     "input": "03-input.png",
     "overlay": "03-attribution.png",
     "kind": "attribution",
     "truth": "malignant",
-    "prediction": "normal, benign",
-    "confidence": 0.9908969402313232,
-    "correct": false
+    "prediction": "malignant",
+    "confidence": 0.9983483122196048,
+    "correct": true
   },
   {
-    "id": "test-76",
+    "id": "test-12",
     "input": "04-input.png",
     "overlay": "04-attribution.png",
     "kind": "attribution",
     "truth": "normal, benign",
-    "prediction": "malignant",
-    "confidence": 0.9998358167649712,
-    "correct": false
+    "prediction": "normal, benign",
+    "confidence": 0.9995686411857605,
+    "correct": true
   },
   {
-    "id": "test-114",
+    "id": "test-107",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
     "truth": "malignant",
     "prediction": "malignant",
-    "confidence": 0.9997834559471812,
+    "confidence": 0.9751316718757153,
     "correct": true
   },
   {
-    "id": "test-90",
+    "id": "test-73",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
     "truth": "normal, benign",
     "prediction": "normal, benign",
-    "confidence": 0.999920129776001,
+    "confidence": 0.9997118711471558,
     "correct": true
   },
   {
-    "id": "test-149",
+    "id": "test-26",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
-    "truth": "normal, benign",
+    "truth": "malignant",
     "prediction": "malignant",
-    "confidence": 0.9964968485292047,
-    "correct": false
+    "confidence": 0.9988316112430766,
+    "correct": true
   },
   {
-    "id": "test-6",
+    "id": "test-59",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
-    "truth": "malignant",
-    "prediction": "malignant",
-    "confidence": 0.9997830331558362,
+    "truth": "normal, benign",
+    "prediction": "normal, benign",
+    "confidence": 0.9943972826004028,
     "correct": true
   }
 ]

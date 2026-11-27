@@ -1,82 +1,82 @@
 [
   {
-    "id": "test-2519",
+    "id": "test-2215",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
     "truth": "basophil",
     "prediction": "basophil",
-    "confidence": 0.9493755102157593,
+    "confidence": 0.9390484094619751,
     "correct": true
   },
   {
-    "id": "test-2157",
+    "id": "test-2191",
     "input": "02-input.png",
     "overlay": "02-attribution.png",
     "kind": "attribution",
     "truth": "eosinophil",
     "prediction": "eosinophil",
-    "confidence": 0.9281618595123291,
+    "confidence": 0.9253090620040894,
     "correct": true
   },
   {
-    "id": "test-118",
+    "id": "test-1189",
     "input": "03-input.png",
     "overlay": "03-attribution.png",
     "kind": "attribution",
     "truth": "erythroblast",
     "prediction": "erythroblast",
-    "confidence": 0.941490650177002,
+    "confidence": 0.9254281520843506,
     "correct": true
   },
   {
-    "id": "test-3024",
+    "id": "test-2961",
     "input": "04-input.png",
     "overlay": "04-attribution.png",
     "kind": "attribution",
     "truth": "immature granulocytes(myelocytes, metamyelocytes and promyelocytes)",
     "prediction": "immature granulocytes(myelocytes, metamyelocytes and promyelocytes)",
-    "confidence": 0.9330670833587646,
+    "confidence": 0.9191164970397949,
     "correct": true
   },
   {
-    "id": "test-133",
+    "id": "test-1831",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
     "truth": "lymphocyte",
     "prediction": "lymphocyte",
-    "confidence": 0.9345430135726929,
+    "confidence": 0.9198297262191772,
     "correct": true
   },
   {
-    "id": "test-1637",
+    "id": "test-2065",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
     "truth": "monocyte",
     "prediction": "monocyte",
-    "confidence": 0.9419867992401123,
+    "confidence": 0.9355437755584717,
     "correct": true
   },
   {
-    "id": "test-3212",
+    "id": "test-2561",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
     "truth": "neutrophil",
     "prediction": "neutrophil",
-    "confidence": 0.9487351179122925,
+    "confidence": 0.9357312917709351,
     "correct": true
   },
   {
-    "id": "test-2165",
+    "id": "test-3040",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
     "truth": "platelet",
     "prediction": "platelet",
-    "confidence": 0.9359793663024902,
+    "confidence": 0.9286689758300781,
     "correct": true
   }
 ]

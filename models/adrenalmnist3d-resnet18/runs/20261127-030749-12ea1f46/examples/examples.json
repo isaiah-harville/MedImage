@@ -1,82 +1,90 @@
 [
   {
-    "id": "test-247",
+    "id": "test-14",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
+    "volume": "01-volume.npy",
     "truth": "normal",
     "prediction": "normal",
-    "confidence": 0.9992075025802478,
+    "confidence": 0.9761313702911139,
     "correct": true
   },
   {
-    "id": "test-227",
+    "id": "test-197",
     "input": "02-input.png",
     "overlay": "02-attribution.png",
     "kind": "attribution",
+    "volume": "02-volume.npy",
     "truth": "hyperplasia",
     "prediction": "hyperplasia",
-    "confidence": 0.9999989867210388,
+    "confidence": 0.4208263158798218,
     "correct": true
   },
   {
-    "id": "test-38",
+    "id": "test-224",
     "input": "03-input.png",
     "overlay": "03-attribution.png",
     "kind": "attribution",
+    "volume": "03-volume.npy",
     "truth": "normal",
-    "prediction": "hyperplasia",
-    "confidence": 0.9631944894790649,
-    "correct": false
+    "prediction": "normal",
+    "confidence": 0.9831048920750618,
+    "correct": true
   },
   {
-    "id": "test-172",
+    "id": "test-188",
     "input": "04-input.png",
     "overlay": "04-attribution.png",
     "kind": "attribution",
+    "volume": "04-volume.npy",
     "truth": "hyperplasia",
-    "prediction": "normal",
-    "confidence": 0.9380991756916046,
-    "correct": false
+    "prediction": "hyperplasia",
+    "confidence": 0.818595290184021,
+    "correct": true
   },
   {
-    "id": "test-44",
+    "id": "test-212",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
+    "volume": "05-volume.npy",
     "truth": "normal",
     "prediction": "normal",
-    "confidence": 0.9988417304120958,
+    "confidence": 0.9872747976332903,
     "correct": true
   },
   {
-    "id": "test-273",
+    "id": "test-230",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
+    "volume": "06-volume.npy",
     "truth": "hyperplasia",
-    "prediction": "hyperplasia",
-    "confidence": 0.9999685883522034,
-    "correct": true
+    "prediction": "normal",
+    "confidence": 0.8319160044193268,
+    "correct": false
   },
   {
-    "id": "test-281",
+    "id": "test-287",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
+    "volume": "07-volume.npy",
     "truth": "normal",
-    "prediction": "hyperplasia",
-    "confidence": 0.7769660949707031,
-    "correct": false
+    "prediction": "normal",
+    "confidence": 0.791708379983902,
+    "correct": true
   },
   {
-    "id": "test-177",
+    "id": "test-67",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
+    "volume": "08-volume.npy",
     "truth": "hyperplasia",
-    "prediction": "normal",
-    "confidence": 0.8988032191991806,
-    "correct": false
+    "prediction": "hyperplasia",
+    "confidence": 0.5077097415924072,
+    "correct": true
   }
 ]

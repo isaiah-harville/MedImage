@@ -1,82 +1,90 @@
 [
   {
-    "id": "test-228",
+    "id": "test-176",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
+    "volume": "01-volume.npy",
     "truth": "buckle rib fracture",
     "prediction": "buckle rib fracture",
-    "confidence": 0.9469139575958252,
+    "confidence": 0.794398307800293,
     "correct": true
   },
   {
-    "id": "test-204",
+    "id": "test-72",
     "input": "02-input.png",
     "overlay": "02-attribution.png",
     "kind": "attribution",
+    "volume": "02-volume.npy",
     "truth": "nondisplaced rib fracture",
-    "prediction": "nondisplaced rib fracture",
-    "confidence": 0.9205422401428223,
-    "correct": true
+    "prediction": "buckle rib fracture",
+    "confidence": 0.5982428193092346,
+    "correct": false
   },
   {
-    "id": "test-8",
+    "id": "test-218",
     "input": "03-input.png",
     "overlay": "03-attribution.png",
     "kind": "attribution",
+    "volume": "03-volume.npy",
     "truth": "displaced rib fracture",
     "prediction": "displaced rib fracture",
-    "confidence": 0.6951913833618164,
+    "confidence": 0.5210413336753845,
     "correct": true
   },
   {
-    "id": "test-155",
+    "id": "test-166",
     "input": "04-input.png",
     "overlay": "04-attribution.png",
     "kind": "attribution",
+    "volume": "04-volume.npy",
     "truth": "buckle rib fracture",
-    "prediction": "nondisplaced rib fracture",
-    "confidence": 0.8207969665527344,
-    "correct": false
+    "prediction": "buckle rib fracture",
+    "confidence": 0.8229128122329712,
+    "correct": true
   },
   {
-    "id": "test-138",
+    "id": "test-79",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
+    "volume": "05-volume.npy",
     "truth": "nondisplaced rib fracture",
     "prediction": "buckle rib fracture",
-    "confidence": 0.8702854514122009,
+    "confidence": 0.5273690819740295,
     "correct": false
   },
   {
-    "id": "test-102",
+    "id": "test-158",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
+    "volume": "06-volume.npy",
     "truth": "displaced rib fracture",
-    "prediction": "nondisplaced rib fracture",
-    "confidence": 0.7750440835952759,
-    "correct": false
+    "prediction": "displaced rib fracture",
+    "confidence": 0.5031130313873291,
+    "correct": true
   },
   {
-    "id": "test-3",
+    "id": "test-146",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
+    "volume": "07-volume.npy",
     "truth": "buckle rib fracture",
-    "prediction": "buckle rib fracture",
-    "confidence": 0.9398662447929382,
-    "correct": true
+    "prediction": "nondisplaced rib fracture",
+    "confidence": 0.6171001195907593,
+    "correct": false
   },
   {
-    "id": "test-80",
+    "id": "test-66",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
+    "volume": "08-volume.npy",
     "truth": "nondisplaced rib fracture",
-    "prediction": "nondisplaced rib fracture",
-    "confidence": 0.8892682194709778,
-    "correct": true
+    "prediction": "buckle rib fracture",
+    "confidence": 0.4624192714691162,
+    "correct": false
   }
 ]

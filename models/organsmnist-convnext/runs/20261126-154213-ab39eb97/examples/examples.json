@@ -1,82 +1,82 @@
 [
   {
-    "id": "test-2549",
+    "id": "test-7693",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
     "truth": "bladder",
     "prediction": "bladder",
-    "confidence": 0.9610185623168945,
+    "confidence": 0.9244321584701538,
     "correct": true
   },
   {
-    "id": "test-2536",
+    "id": "test-7782",
     "input": "02-input.png",
     "overlay": "02-attribution.png",
     "kind": "attribution",
     "truth": "femur-left",
     "prediction": "femur-left",
-    "confidence": 0.9228308200836182,
+    "confidence": 0.5229154825210571,
     "correct": true
   },
   {
-    "id": "test-4184",
+    "id": "test-8780",
     "input": "03-input.png",
     "overlay": "03-attribution.png",
     "kind": "attribution",
     "truth": "femur-right",
-    "prediction": "femur-right",
-    "confidence": 0.9679570198059082,
-    "correct": true
+    "prediction": "femur-left",
+    "confidence": 0.5074107646942139,
+    "correct": false
   },
   {
-    "id": "test-4863",
+    "id": "test-4323",
     "input": "04-input.png",
     "overlay": "04-attribution.png",
     "kind": "attribution",
     "truth": "heart",
     "prediction": "heart",
-    "confidence": 0.9740524888038635,
+    "confidence": 0.9218796491622925,
     "correct": true
   },
   {
-    "id": "test-2067",
+    "id": "test-520",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
     "truth": "kidney-left",
-    "prediction": "kidney-left",
-    "confidence": 0.9821920990943909,
-    "correct": true
+    "prediction": "spleen",
+    "confidence": 0.9290275573730469,
+    "correct": false
   },
   {
-    "id": "test-7359",
+    "id": "test-8621",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
     "truth": "kidney-right",
     "prediction": "kidney-right",
-    "confidence": 0.9809257388114929,
+    "confidence": 0.692428469657898,
     "correct": true
   },
   {
-    "id": "test-2283",
+    "id": "test-2224",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
     "truth": "liver",
     "prediction": "liver",
-    "confidence": 0.925677478313446,
+    "confidence": 0.8962960839271545,
     "correct": true
   },
   {
-    "id": "test-7076",
+    "id": "test-285",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
     "truth": "lung-left",
     "prediction": "lung-left",
-    "confidence": 0.9581001996994019,
+    "confidence": 0.9368413090705872,
     "correct": true
   }
 ]

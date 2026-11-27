@@ -1,82 +1,82 @@
 [
   {
-    "id": "test-293",
+    "id": "test-615",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
     "truth": "choroidal neovascularization",
     "prediction": "choroidal neovascularization",
-    "confidence": 0.9436866044998169,
+    "confidence": 0.9359105229377747,
     "correct": true
   },
   {
-    "id": "test-71",
+    "id": "test-688",
     "input": "02-input.png",
     "overlay": "02-attribution.png",
     "kind": "attribution",
     "truth": "diabetic macular edema",
     "prediction": "diabetic macular edema",
-    "confidence": 0.9462887048721313,
+    "confidence": 0.9367166757583618,
     "correct": true
   },
   {
-    "id": "test-770",
+    "id": "test-187",
     "input": "03-input.png",
     "overlay": "03-attribution.png",
     "kind": "attribution",
     "truth": "drusen",
     "prediction": "drusen",
-    "confidence": 0.9474397301673889,
+    "confidence": 0.8751786947250366,
     "correct": true
   },
   {
-    "id": "test-486",
+    "id": "test-373",
     "input": "04-input.png",
     "overlay": "04-attribution.png",
     "kind": "attribution",
     "truth": "normal",
     "prediction": "normal",
-    "confidence": 0.9363949298858643,
+    "confidence": 0.9344868659973145,
     "correct": true
   },
   {
-    "id": "test-984",
+    "id": "test-741",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
     "truth": "choroidal neovascularization",
-    "prediction": "drusen",
-    "confidence": 0.7817515134811401,
-    "correct": false
+    "prediction": "choroidal neovascularization",
+    "confidence": 0.9390227794647217,
+    "correct": true
   },
   {
-    "id": "test-809",
+    "id": "test-730",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
     "truth": "diabetic macular edema",
-    "prediction": "choroidal neovascularization",
-    "confidence": 0.9266966581344604,
-    "correct": false
+    "prediction": "diabetic macular edema",
+    "confidence": 0.9373641610145569,
+    "correct": true
   },
   {
-    "id": "test-555",
+    "id": "test-109",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
     "truth": "drusen",
-    "prediction": "choroidal neovascularization",
-    "confidence": 0.9365307092666626,
-    "correct": false
+    "prediction": "drusen",
+    "confidence": 0.9385110139846802,
+    "correct": true
   },
   {
-    "id": "test-795",
+    "id": "test-444",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
-    "truth": "choroidal neovascularization",
-    "prediction": "choroidal neovascularization",
-    "confidence": 0.9428054094314575,
+    "truth": "normal",
+    "prediction": "normal",
+    "confidence": 0.9341917037963867,
     "correct": true
   }
 ]

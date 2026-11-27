@@ -1,0 +1,90 @@
+[
+  {
+    "id": "test-372",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "volume": "01-volume.npy",
+    "truth": "liver",
+    "prediction": "liver",
+    "confidence": 0.9134986400604248,
+    "correct": true
+  },
+  {
+    "id": "test-135",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "volume": "02-volume.npy",
+    "truth": "kidney-right",
+    "prediction": "kidney-right",
+    "confidence": 0.9417428374290466,
+    "correct": true
+  },
+  {
+    "id": "test-468",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "volume": "03-volume.npy",
+    "truth": "kidney-left",
+    "prediction": "kidney-left",
+    "confidence": 0.9448705315589905,
+    "correct": true
+  },
+  {
+    "id": "test-138",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "volume": "04-volume.npy",
+    "truth": "femur-right",
+    "prediction": "femur-right",
+    "confidence": 0.9101613163948059,
+    "correct": true
+  },
+  {
+    "id": "test-160",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "volume": "05-volume.npy",
+    "truth": "femur-left",
+    "prediction": "femur-left",
+    "confidence": 0.8983052372932434,
+    "correct": true
+  },
+  {
+    "id": "test-51",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "volume": "06-volume.npy",
+    "truth": "bladder",
+    "prediction": "bladder",
+    "confidence": 0.9412133097648621,
+    "correct": true
+  },
+  {
+    "id": "test-288",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "volume": "07-volume.npy",
+    "truth": "heart",
+    "prediction": "heart",
+    "confidence": 0.8783808350563049,
+    "correct": true
+  },
+  {
+    "id": "test-271",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "volume": "08-volume.npy",
+    "truth": "lung-right",
+    "prediction": "lung-right",
+    "confidence": 0.9606780409812927,
+    "correct": true
+  }
+]

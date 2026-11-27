@@ -1,82 +1,82 @@
 [
   {
-    "id": "test-6590",
+    "id": "test-1050",
     "input": "01-input.png",
     "overlay": "01-attribution.png",
     "kind": "attribution",
     "truth": "adipose",
     "prediction": "adipose",
-    "confidence": 0.9297332763671875,
+    "confidence": 0.9278210401535034,
     "correct": true
   },
   {
-    "id": "test-775",
+    "id": "test-4940",
     "input": "02-input.png",
     "overlay": "02-attribution.png",
     "kind": "attribution",
     "truth": "background",
     "prediction": "background",
-    "confidence": 0.9269130825996399,
+    "confidence": 0.9248369932174683,
     "correct": true
   },
   {
-    "id": "test-4436",
+    "id": "test-5510",
     "input": "03-input.png",
     "overlay": "03-attribution.png",
     "kind": "attribution",
     "truth": "debris",
     "prediction": "debris",
-    "confidence": 0.9232690334320068,
+    "confidence": 0.9185343980789185,
     "correct": true
   },
   {
-    "id": "test-2226",
+    "id": "test-1134",
     "input": "04-input.png",
     "overlay": "04-attribution.png",
     "kind": "attribution",
     "truth": "lymphocytes",
     "prediction": "lymphocytes",
-    "confidence": 0.9304523468017578,
+    "confidence": 0.9193107485771179,
     "correct": true
   },
   {
-    "id": "test-5528",
+    "id": "test-3515",
     "input": "05-input.png",
     "overlay": "05-attribution.png",
     "kind": "attribution",
     "truth": "mucus",
     "prediction": "mucus",
-    "confidence": 0.9474095702171326,
+    "confidence": 0.9276422262191772,
     "correct": true
   },
   {
-    "id": "test-245",
+    "id": "test-6785",
     "input": "06-input.png",
     "overlay": "06-attribution.png",
     "kind": "attribution",
     "truth": "smooth muscle",
     "prediction": "smooth muscle",
-    "confidence": 0.9301702976226807,
+    "confidence": 0.9181225299835205,
     "correct": true
   },
   {
-    "id": "test-451",
+    "id": "test-6577",
     "input": "07-input.png",
     "overlay": "07-attribution.png",
     "kind": "attribution",
     "truth": "normal colon mucosa",
     "prediction": "normal colon mucosa",
-    "confidence": 0.9414976835250854,
+    "confidence": 0.928141713142395,
     "correct": true
   },
   {
-    "id": "test-2462",
+    "id": "test-7054",
     "input": "08-input.png",
     "overlay": "08-attribution.png",
     "kind": "attribution",
     "truth": "cancer-associated stroma",
-    "prediction": "cancer-associated stroma",
-    "confidence": 0.9338607788085938,
-    "correct": true
+    "prediction": "smooth muscle",
+    "confidence": 0.9136233329772949,
+    "correct": false
   }
 ]
