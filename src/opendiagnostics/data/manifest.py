@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import torch
 from monai.transforms import LoadImage
 
 from opendiagnostics.data.base import SPLIT_NAMES, DatasetInfo, MedicalDataModule, Source
@@ -27,7 +28,8 @@ class LoadedImages:
         image = (image - image.min()) / span if span else image * 0
         if image.ndim == 3:
             image = np.swapaxes(image, -1, -2)
-        return image, self.labels[index]
+        # A tensor, not an array: torchvision reads a numpy array as height x width x channel.
+        return torch.from_numpy(np.ascontiguousarray(image)), self.labels[index]
 
 
 class CSVImageDataModule(MedicalDataModule):
