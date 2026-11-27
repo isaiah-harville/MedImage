@@ -8,6 +8,7 @@ from opendiagnostics.data.base import (
     patient_split,
     summarize,
 )
+from opendiagnostics.data.boxes import BoxManifestDataModule
 from opendiagnostics.data.manifest import CSVImageDataModule
 from opendiagnostics.data.medmnist import MedMNISTDataModule
 from opendiagnostics.data.pcam import PCamDataModule
@@ -18,6 +19,7 @@ from opendiagnostics.data.synthetic import (
 
 __all__ = [
     "SPLIT_NAMES",
+    "BoxManifestDataModule",
     "CSVImageDataModule",
     "DatasetInfo",
     "LeakageError",
