@@ -2,6 +2,7 @@ import importlib
 import io
 import sys
 import urllib.request
+import zipfile
 
 import numpy as np
 import pytest
@@ -224,3 +225,22 @@ def test_cbis_series_download_unpacks_each_zip_once(scripts, tmp_path):
     assert fetched == [f"{cbis.NBIA}getImage?SeriesInstanceUID=9.9"]
     assert (tmp_path / "dicom" / "Mass_P" / "9.9" / "1-1.dcm").read_bytes() == b"dicom"
     assert not (tmp_path / "archives" / "9.9.zip").exists()
+
+
+def _zip(path, members):
+    with zipfile.ZipFile(path, "w") as handle:
+        for name, body in members.items():
+            handle.writestr(name, body)
+    return path
+
+
+def test_flattened_extraction_drops_the_archive_folders(scripts, tmp_path):
+    archive = _zip(tmp_path / "a.zip", {"project/1.2/1.2.3/1.2.3.4.dcm": b"x", "top.dcm": b"y"})
+    dest = scripts["common"].extract(archive, tmp_path / "out", flatten=True)
+    assert sorted(p.name for p in dest.iterdir()) == [".complete", "1.2.3.4.dcm", "top.dcm"]
+
+
+def test_flattened_extraction_refuses_two_files_with_one_name(scripts, tmp_path):
+    archive = _zip(tmp_path / "a.zip", {"x/same.dcm": b"1", "y/same.dcm": b"2"})
+    with pytest.raises(RuntimeError, match=r"two files named same\.dcm"):
+        scripts["common"].extract(archive, tmp_path / "out", flatten=True)

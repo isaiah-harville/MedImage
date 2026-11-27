@@ -129,7 +129,7 @@ def main(argv: list[str] | None = None) -> None:
     archives = root / "archives"
     images = root / "images"
     if not (images / ".complete").exists():
-        extract(download(IMAGES, archives / IMAGES.rsplit("/", 1)[1]), images)
+        extract(download(IMAGES, archives / IMAGES.rsplit("/", 1)[1]), images, flatten=True)
     if args.delete_archives:
         (archives / IMAGES.rsplit("/", 1)[1]).unlink(missing_ok=True)
     export = json.loads(download(ANNOTATIONS, archives / ANNOTATIONS.rsplit("/", 1)[1]).read_text())

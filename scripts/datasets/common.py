@@ -51,13 +51,30 @@ def download(url: str, dest: Path, opener: Opener = urllib.request.urlopen) -> P
     return dest
 
 
-def extract(archive: Path, dest: Path) -> Path:
-    """Unzip ``archive`` into ``dest`` once; a marker file records that it finished."""
+def extract(archive: Path, dest: Path, flatten: bool = False) -> Path:
+    """Unzip ``archive`` into ``dest`` once; a marker file records that it finished.
+
+    ``flatten`` writes every file straight into ``dest`` under its own name, dropping the
+    archive's folders. Deeply nested archives otherwise pass Windows' 260-character path
+    limit. Two members with the same name are an error.
+    """
     if (dest / DONE).exists():
         return dest
     dest.mkdir(parents=True, exist_ok=True)
     with zipfile.ZipFile(archive) as handle:
-        handle.extractall(dest)
+        if not flatten:
+            handle.extractall(dest)
+        else:
+            seen: set[str] = set()
+            for member in handle.infolist():
+                name = Path(member.filename).name
+                if member.is_dir() or not name:
+                    continue
+                if name in seen:
+                    raise RuntimeError(f"{archive} holds two files named {name}; cannot flatten")
+                seen.add(name)
+                with handle.open(member) as src, (dest / name).open("wb") as dst:
+                    shutil.copyfileobj(src, dst, length=1 << 20)
     (dest / DONE).touch()
     return dest
 
