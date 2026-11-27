@@ -87,7 +87,9 @@ def main() -> None:
         archive,
         root / "labels",
         args.delete_archives,
-        keep=lambda name: any(m in name for m in (*MASKS, "clinical_information/marksheet.csv")),
+        members=lambda name: (
+            name if any(m in name for m in (*MASKS, "clinical_information/marksheet.csv")) else None
+        ),
     )
     for fold, (size, md5) in FOLDS.items():
         archive = root / f"picai_public_images_fold{fold}.zip"

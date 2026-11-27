@@ -45,8 +45,11 @@ project and run from these files.
    [docs/weights.md](../docs/weights.md#publish). Pass `--no-checkpoint` to publish
    without the weights.
 
-The `*-convnext` projects cover the twelve MedMNIST 2D subsets at 224 px, and the
+The `*mnist-convnext` projects cover the twelve MedMNIST 2D subsets at 224 px, and the
 `*-resnet18` projects the six 3D subsets at 64³. The 3D projects have no published run yet.
+`nih-chestxray14-convnext`, `kermany-oct-convnext` and `kermany-cxr-convnext` train on the
+full-resolution source images at 448 px; download each dataset first with the script named
+at the top of its config. None of the three has a published run yet.
 The `*-dynunet` projects segment KiTS23, the ten Medical Segmentation Decathlon tasks,
 TotalSegmentator, ACDC and PI-CAI. Download each dataset first with its script in
 `scripts/datasets/`, which writes the manifest the config reads; none has a published run.

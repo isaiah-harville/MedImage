@@ -1,0 +1,9 @@
+benchmark: Kermany pediatric chest X-ray, official test folder (624 images)
+protocol: >-
+  Normal versus pneumonia on the official test folder: AUROC, and accuracy, sensitivity and
+  specificity at the threshold fitted on validation. The original results are in Kermany et al.,
+  Cell 2018 (doi:10.1016/j.cell.2018.02.010), but cell.com, ScienceDirect and the Elsevier API
+  all refused to serve the full text, so no number is listed until it is read from the paper.
+  PneumoniaMNIST uses this test folder but center-crops and shrinks the images to 28 px (or
+  zero-pads them, in MedMNIST+), so its results are not listed here.
+baselines: []

@@ -50,7 +50,9 @@ def test_extract_unpacks_chosen_tar_members_and_deletes_the_archive(load, tmp_pa
     fetch = load("_download")
     archive = tmp_path / "a.tar.gz"
     _tar(archive, {"x/keep.txt": b"1", "x/._keep.txt": b"2"})
-    out = fetch.extract(archive, tmp_path / "out", True, keep=lambda n: "/._" not in n)
+    out = fetch.extract(
+        archive, tmp_path / "out", True, members=lambda n: None if "/._" in n else n
+    )
     assert (out / "x" / "keep.txt").read_bytes() == b"1"
     assert not (out / "x" / "._keep.txt").exists()
     assert not archive.exists()

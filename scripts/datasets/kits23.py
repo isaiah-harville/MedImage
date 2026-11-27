@@ -44,7 +44,7 @@ def main() -> None:
         archive,
         root / "repo",
         args.delete_archives,
-        keep=lambda name: name.endswith("/segmentation.nii.gz"),
+        members=lambda name: name if name.endswith("/segmentation.nii.gz") else None,
     )
     (labels,) = (root / "repo").glob("kits23-*/dataset")
     rows = []

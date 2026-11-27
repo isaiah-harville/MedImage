@@ -1,0 +1,27 @@
+benchmark: Kermany OCT2017, official test folder (1,000 images, 250 per class)
+protocol: >-
+  4-class accuracy on the official test folder, with images of the same patients never in
+  training. OpticNet trained on the earlier release's 83,484 training images; Mendeley v3, which
+  we use, has 108,309. Both test folders hold 1,000 images, but whether they are the same images
+  is not verified. The OpticNet authors trained every listed model themselves; their table's
+  InceptionV3 row is quoted from Kermany et al. and is left out because the Cell paper could not
+  be read. One image is 0.1 points, so the published values differ by a few images and no
+  source gives an interval. Papers on the 968-image test set or on OCTMNIST are a different
+  benchmark.
+baselines:
+  - method: "OpticNet-71, trained from scratch"
+    metrics: {accuracy: 0.998}
+    source: Kamran et al., ICMLA 2019, arXiv 1910.05672v1, Table IV
+    url: https://arxiv.org/abs/1910.05672
+  - method: "Xception, ImageNet pre-trained"
+    metrics: {accuracy: 0.997}
+    source: Kamran et al., ICMLA 2019, arXiv 1910.05672v1, Table IV
+    url: https://arxiv.org/abs/1910.05672
+  - method: "MobileNet-v2, ImageNet pre-trained"
+    metrics: {accuracy: 0.994}
+    source: Kamran et al., ICMLA 2019, arXiv 1910.05672v1, Table IV
+    url: https://arxiv.org/abs/1910.05672
+  - method: "ResNet50-v1, ImageNet pre-trained"
+    metrics: {accuracy: 0.993}
+    source: Kamran et al., ICMLA 2019, arXiv 1910.05672v1, Table IV
+    url: https://arxiv.org/abs/1910.05672

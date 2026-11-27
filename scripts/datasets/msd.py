@@ -33,7 +33,10 @@ def prepare(task: str, root: Path, delete: bool) -> None:
     if not (root / f".{archive.name}.extracted").exists():
         download(DecathlonDataset.resource[task], archive, md5=DecathlonDataset.md5[task])
     folder = extract(
-        archive, root, delete, keep=lambda name: not name.rsplit("/", 1)[-1].startswith("._")
+        archive,
+        root,
+        delete,
+        members=lambda name: None if name.rsplit("/", 1)[-1].startswith("._") else name,
     )
     task_dir = folder / task
     listing = json.loads((task_dir / "dataset.json").read_text())
