@@ -1,0 +1,82 @@
+[
+  {
+    "id": "test-10667",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "atelectasis, effusion, infiltration, mass",
+    "prediction": "effusion",
+    "confidence": 0.7431679368019104,
+    "correct": null
+  },
+  {
+    "id": "test-22143",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "cardiomegaly, infiltration, nodule, edema",
+    "prediction": "cardiomegaly",
+    "confidence": 0.5037383437156677,
+    "correct": null
+  },
+  {
+    "id": "test-19059",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "effusion, infiltration, mass",
+    "prediction": "effusion, infiltration",
+    "confidence": 0.724090576171875,
+    "correct": null
+  },
+  {
+    "id": "test-7376",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "infiltration",
+    "prediction": "none",
+    "confidence": 0.25982561707496643,
+    "correct": null
+  },
+  {
+    "id": "test-15047",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "mass, pneumothorax",
+    "prediction": "mass",
+    "confidence": 0.8116759657859802,
+    "correct": null
+  },
+  {
+    "id": "test-17137",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "mass, nodule",
+    "prediction": "nodule",
+    "confidence": 0.61555016040802,
+    "correct": null
+  },
+  {
+    "id": "test-17634",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "pneumonia, edema",
+    "prediction": "infiltration",
+    "confidence": 0.547947883605957,
+    "correct": null
+  },
+  {
+    "id": "test-21874",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "pneumothorax, fibrosis",
+    "prediction": "pleural",
+    "confidence": 0.5846269130706787,
+    "correct": null
+  }
+]

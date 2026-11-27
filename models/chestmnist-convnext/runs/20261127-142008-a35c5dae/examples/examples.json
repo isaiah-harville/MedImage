@@ -1,0 +1,82 @@
+[
+  {
+    "id": "test-10667",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "atelectasis, effusion, infiltration, mass",
+    "prediction": "none",
+    "confidence": 0.1561049073934555,
+    "correct": null
+  },
+  {
+    "id": "test-22143",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "cardiomegaly, infiltration, nodule, edema",
+    "prediction": "cardiomegaly",
+    "confidence": 0.5041808485984802,
+    "correct": null
+  },
+  {
+    "id": "test-19059",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "effusion, infiltration, mass",
+    "prediction": "effusion",
+    "confidence": 0.6851073503494263,
+    "correct": null
+  },
+  {
+    "id": "test-7376",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "infiltration",
+    "prediction": "none",
+    "confidence": 0.35488009452819824,
+    "correct": null
+  },
+  {
+    "id": "test-15047",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "mass, pneumothorax",
+    "prediction": "none",
+    "confidence": 0.4522939920425415,
+    "correct": null
+  },
+  {
+    "id": "test-17137",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "mass, nodule",
+    "prediction": "nodule",
+    "confidence": 0.5142173171043396,
+    "correct": null
+  },
+  {
+    "id": "test-17634",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "pneumonia, edema",
+    "prediction": "none",
+    "confidence": 0.47377896308898926,
+    "correct": null
+  },
+  {
+    "id": "test-21874",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "pneumothorax, fibrosis",
+    "prediction": "none",
+    "confidence": 0.2845759987831116,
+    "correct": null
+  }
+]
