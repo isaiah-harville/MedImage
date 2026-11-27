@@ -43,17 +43,17 @@ Source: [arXiv 2110.14795, Table 3](https://arxiv.org/abs/2110.14795) and [medmn
 **Later papers with higher numbers** (single runs, 28→224 upsampled or 28 native, not peer-comparable to MedMNIST+):
 
 - **MedViT-S (224)** (Manzari et al., arXiv 2302.09462, Table 3; the images are "first resized to a size of 224 x 224"):
-  - PneumoniaMNIST: AUC 0.995 / ACC 0.961
-  - ChestMNIST: MedViT-L reaches 0.805 / 0.959
-  - BreastMNIST: MedViT-S reaches 0.938 / 0.897
+    - PneumoniaMNIST: AUC 0.995 / ACC 0.961
+    - ChestMNIST: MedViT-L reaches 0.805 / 0.959
+    - BreastMNIST: MedViT-S reaches 0.938 / 0.897
 
-  Source: [arXiv 2302.09462](https://arxiv.org/abs/2302.09462)
+    Source: [arXiv 2302.09462](https://arxiv.org/abs/2302.09462)
 - **C-Mixer** (Zheng & Jia, arXiv 2304.10054, Table II; an arXiv preprint, 28×28, self-supervised pre-training on the training set):
-  - PneumoniaMNIST: AUC 0.997 / ACC 0.966
-  - ChestMNIST: 0.822 / 0.963
-  - BreastMNIST: 0.939 / 0.899
+    - PneumoniaMNIST: AUC 0.997 / ACC 0.966
+    - ChestMNIST: 0.822 / 0.963
+    - BreastMNIST: 0.939 / 0.899
 
-  This is the highest PneumoniaMNIST number I found. The paper says fine-tuning "does not use the data augmentation scheme or early-stopping strategy", and it does not say how the checkpoint was chosen. Its ResNet baseline rows differ from the MedMNIST v2 table (for example, ResNet-18 (28) PneumoniaMNIST 0.957 / 0.843). ([arXiv 2304.10054](https://arxiv.org/abs/2304.10054))
+    This is the highest PneumoniaMNIST number I found. The paper says fine-tuning "does not use the data augmentation scheme or early-stopping strategy", and it does not say how the checkpoint was chosen. Its ResNet baseline rows differ from the MedMNIST v2 table (for example, ResNet-18 (28) PneumoniaMNIST 0.957 / 0.843). ([arXiv 2304.10054](https://arxiv.org/abs/2304.10054))
 
 **Bar to beat.**
 - PneumoniaMNIST: AUC 0.997 / ACC 0.966 (C-Mixer, preprint). The peer-reviewed bar is 0.995 / 0.961 (MedViT-S). With multi-seed rigor, the bar is 98.92 / 91.56 (MedMNIST+).
@@ -97,10 +97,10 @@ Source: [arXiv 2110.14795, Table 3](https://arxiv.org/abs/2110.14795) and [medmn
 **Google's adjudicated expert labels** ([Google Cloud dataset page](https://docs.cloud.google.com/healthcare-api/docs/resources/public-datasets/nih-chest); access through a Google form):
 
 - **Four findings (airspace opacity, pneumothorax, nodule/mass, fracture).** 1,962 test and 2,412 val images, each adjudicated by 3 radiologists.
-  - Majkowska et al. (Radiology 2020) report these AUCs on ChestX-ray14: pneumothorax 0.94, nodule/mass 0.91, airspace opacity 0.94, fracture 0.81 ([PubMed 31793848](https://pubmed.ncbi.nlm.nih.gov/31793848/)). I read them in the PubMed abstract because pubs.rsna.org returned 403.
+    - Majkowska et al. (Radiology 2020) report these AUCs on ChestX-ray14: pneumothorax 0.94, nodule/mass 0.91, airspace opacity 0.94, fracture 0.81 ([PubMed 31793848](https://pubmed.ncbi.nlm.nih.gov/31793848/)). I read them in the PubMed abstract because pubs.rsna.org returned 403.
 - **All 14 findings plus normal/abnormal.** 810 PA test images, majority vote of 3 of 5 radiologists.
-  - Nabulsi et al. (Sci Rep 2021) report normal-vs-abnormal AUC 0.94 (95% CI 0.93–0.96) ([PMC8410908](https://pmc.ncbi.nlm.nih.gov/articles/PMC8410908/)).
-  - Mean 14-finding AUROC on these labels: **not found.**
+    - Nabulsi et al. (Sci Rep 2021) report normal-vs-abnormal AUC 0.94 (95% CI 0.93–0.96) ([PMC8410908](https://pmc.ncbi.nlm.nih.gov/articles/PMC8410908/)).
+    - Mean 14-finding AUROC on these labels: **not found.**
 
 **Reproducible locally?** Yes. The images, labels and official split files are public. The Google labels are public after you request access.
 
@@ -137,11 +137,10 @@ All top-10 entries are ensembles, between 0.927 and 0.930.
 
 **Pitfalls.**
 - **Validation reported as test.** Many papers report the 234-image (200-study) validation set and call it "test".
-  - Foundation Ark lists CheXpert test as 234 images ([PMC11095392, Table 1](https://pmc.ncbi.nlm.nih.gov/articles/PMC11095392)), with Ark-6 at 89.14.
-  - Xiao et al.'s 89.3 CheXpert mAUC ([medical_mae](https://github.com/lambert-x/medical_mae)) has no stated test set.
-  - EVA-X still says the official test set "is not public" ([arXiv 2405.05237](https://arxiv.org/abs/2405.05237)).
-
-  None of these numbers is comparable to 0.930.
+    - Foundation Ark lists CheXpert test as 234 images ([PMC11095392, Table 1](https://pmc.ncbi.nlm.nih.gov/articles/PMC11095392)), with Ark-6 at 89.14.
+    - Xiao et al.'s 89.3 CheXpert mAUC ([medical_mae](https://github.com/lambert-x/medical_mae)) has no stated test set.
+    - EVA-X still says the official test set "is not public" ([arXiv 2405.05237](https://arxiv.org/abs/2405.05237)).
+    - None of these numbers is comparable to 0.930.
 - **Frontal-only images and other label sets.** CheXFound reports AUROC 0.908 on 518 test images (the frontal images), with its own 202-image val set ([arXiv 2502.05142](https://arxiv.org/abs/2502.05142)). It may not use the 5-finding average; that is not verified.
 - **Uncertain-label policy.** U-Ones, U-Zeros or label smoothing change results; state which you use.
 - **Model selection on val.** With only 200 studies, choosing checkpoints on val overfits.
@@ -316,11 +315,10 @@ There is no official metric or leaderboard.
 - **OpticNet-71:** test accuracy 99.80%, sensitivity 99.80, specificity 99.93 ([arXiv 1910.05672, Table IV](https://arxiv.org/abs/1910.05672)). The same table lists Xception at 99.70 and MobileNet-v2 at 99.40.
 - **ReLaX:** accuracy 0.9979 on **968** test images ([arXiv 2109.02436](https://arxiv.org/abs/2109.02436)). That is a different test-set version, so it is not the same benchmark.
 - **The original Kermany et al. result (Cell 2018):** **not verified.**
-  - cell.com and sciencedirect.com both returned 403.
-  - OpticNet's table cites InceptionV3 at 96.60 accuracy, 97.80 sensitivity and 97.40 specificity ([arXiv 1910.05672](https://arxiv.org/abs/1910.05672)).
-  - ReLaX cites 0.961 ([arXiv 2109.02436](https://arxiv.org/abs/2109.02436)).
-
-  These are secondary citations, and they disagree.
+    - cell.com and sciencedirect.com both returned 403.
+    - OpticNet's table cites InceptionV3 at 96.60 accuracy, 97.80 sensitivity and 97.40 specificity ([arXiv 1910.05672](https://arxiv.org/abs/1910.05672)).
+    - ReLaX cites 0.961 ([arXiv 2109.02436](https://arxiv.org/abs/2109.02436)).
+    - These are secondary citations, and they disagree.
 
 **Bar to beat:** 99.8% (2 errors out of 1,000). The benchmark is saturated, and gains are within the 1–2 image noise floor.
 
