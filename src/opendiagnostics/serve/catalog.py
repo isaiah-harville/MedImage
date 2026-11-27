@@ -8,11 +8,13 @@ from dataclasses import dataclass
 CATEGORIES = {
     "CT": "CT and MRI",
     "MRI": "CT and MRI",
+    "MR angiography": "CT and MRI",
     "X-ray": "X-ray and mammography",
     "Mammography": "X-ray and mammography",
     "Ultrasound": "Ultrasound",
     "Histology (H&E)": "Pathology and microscopy",
     "Microscopy": "Pathology and microscopy",
+    "Electron microscopy": "Pathology and microscopy",
     "Dermatoscopy": "Skin",
     "Optical coherence tomography": "Eye",
     "Fundus photography": "Eye",
@@ -35,6 +37,19 @@ DATASETS = {
     "organamnist": ScanType("Abdominal CT, axial slice", "CT", "Which organ is in view?"),
     "organcmnist": ScanType("Abdominal CT, coronal slice", "CT", "Which organ is in view?"),
     "organsmnist": ScanType("Abdominal CT, sagittal slice", "CT", "Which organ is in view?"),
+    "organmnist3d": ScanType("Abdominal CT volume", "CT", "Which organ is in view?"),
+    "nodulemnist3d": ScanType(
+        "Chest CT, lung nodule volume", "CT", "Is the nodule malignant or benign?"
+    ),
+    "adrenalmnist3d": ScanType(
+        "Abdominal CT, adrenal gland shape", "CT", "Adrenal hyperplasia or normal?"
+    ),
+    "fracturemnist3d": ScanType(
+        "Chest CT, rib fracture volume", "CT", "Buckle, nondisplaced, or displaced fracture?"
+    ),
+    "vesselmnist3d": ScanType(
+        "Brain vessel shape", "MR angiography", "Aneurysm or healthy vessel segment?"
+    ),
     "chestmnist": ScanType("Chest X-ray", "X-ray", "Which of 14 findings are present?"),
     "nih-chestxray14": ScanType("Chest X-ray", "X-ray", "Which of 14 findings are present?"),
     "pneumoniamnist": ScanType("Pediatric chest X-ray", "X-ray", "Pneumonia or normal?"),
@@ -46,6 +61,9 @@ DATASETS = {
     ),
     "pcam": ScanType(
         "Lymph node slide patch", "Histology (H&E)", "Does the patch contain metastatic tumor?"
+    ),
+    "synapsemnist3d": ScanType(
+        "Synapse volume", "Electron microscopy", "Excitatory or inhibitory synapse?"
     ),
     "bloodmnist": ScanType("Blood cell", "Microscopy", "Which blood cell type?"),
     "tissuemnist": ScanType("Kidney cortex cells", "Microscopy", "Which kidney cell type?"),
