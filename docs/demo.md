@@ -11,7 +11,8 @@ PNG or JPEG of at most 10 MB.
 ## Data handling
 
 Uploaded images are never stored. This is enforced in code and in the deployment, and the
-site's privacy page (`web/src/routes/privacy`) states it to users.
+site's privacy page (`web/src/routes/privacy`) states it to users. Request metadata may be
+logged; uploaded content never is.
 
 - **In memory only.** The frontend reads the upload with `request.formData()` and
   forwards it from memory. The API reads the body into memory with a 10 MB cap and parses
@@ -21,15 +22,21 @@ site's privacy page (`web/src/routes/privacy`) states it to users.
 - **Gone after the response.** Nothing keeps the image or the result once the response
   is sent. There is no database, cache, or object store. Responses carry
   `Cache-Control: no-store`.
-- **No logs of requests.** The API runs with access logs off and logs nothing per request.
-  The frontend logs nothing about requests either. Traefik writes no access logs. Pod
-  logs (errors only, never images or IP addresses) go to Loki and are kept for 14 days.
+- **Request logs carry metadata only.** Logging a request's time, path, status, client IP,
+  and user agent is allowed. Logging the uploaded image, its file name, the result, or any
+  request body is not. Today the API runs with access logs off, the frontend logs nothing
+  per request, and Traefik writes no access logs. Pod logs go to Loki and are kept for 14
+  days.
+- **Cloudflare** proxies all traffic to `diagnostics.harville.dev`, uploads included, and
+  sees each request and the client's IP address. The privacy page says so and links
+  Cloudflare's privacy policy.
 - **Rate limiting** holds client IP addresses in Traefik's memory only.
 - **No accounts, cookies, analytics, or third-party scripts.**
 - **No training on uploads.** Uploads are never used to train or evaluate models.
 
-A change that keeps any uploaded data, adds request logging, or adds a third-party script
-must update the privacy page in the same change; see invariant 9 in `AGENTS.md`.
+A change that keeps any uploaded data, logs request contents, keeps logs longer, or adds a
+third-party script must update the privacy page in the same change; see invariant 9 in
+`AGENTS.md`.
 
 ## Parts
 

@@ -9,7 +9,7 @@ import PolicySection from '#lib/components/PolicySection.svelte';
 
 <article class="max-w-2xl">
   <h1 class="text-3xl font-semibold tracking-tight">Privacy</h1>
-  <p class="mt-2 text-sm text-fg-secondary">Last updated <time datetime="2026-11-26">2026-11-26</time></p>
+  <p class="mt-2 text-sm text-fg-secondary">Last updated <time datetime="2026-11-27">2026-11-27</time></p>
   <p class="mt-4 text-lg">
     This site runs research models on medical images. Here is what happens to an image you upload
     and what we keep.
@@ -43,14 +43,34 @@ import PolicySection from '#lib/components/PolicySection.svelte';
     <p>No accounts, no cookies, no analytics, no trackers, and no third-party scripts or fonts.</p>
   </PolicySection>
 
-  <PolicySection title="Server operations">
-    <p>The web server and the inference service write no per-request logs.</p>
+  <PolicySection title="Request logs">
     <p>
-      Application error logs, which never contain images or IP addresses, are kept for 14 days.
+      To run and protect the site, our servers may log details of each request: the time, the page
+      or file asked for, the response status, your IP address, and your browser's user agent. These
+      logs never contain the images you upload, their file names, or the results, and they are kept
+      for 14 days.
     </p>
     <p>
-      To enforce rate limits, the reverse proxy holds client IP addresses in memory only briefly.
-      It does not write access logs.
+      Rate limits are enforced on IP addresses, which the reverse proxy holds in memory only
+      briefly.
+    </p>
+  </PolicySection>
+
+  <PolicySection title="Cloudflare">
+    <p>
+      All traffic to this site, including uploads, passes through Cloudflare on its way to our
+      servers. Cloudflare sees each request, including your IP address, and handles it under the
+      <a
+        class="font-medium text-accent underline underline-offset-2 hover:text-accent-hover"
+        href="https://www.cloudflare.com/privacypolicy/">Cloudflare privacy policy</a
+      >.
+    </p>
+  </PolicySection>
+
+  <PolicySection title="Model weights">
+    <p>
+      Downloads of model weights are handled like any other request: they may be logged as above,
+      and nothing else about you is kept.
     </p>
   </PolicySection>
 

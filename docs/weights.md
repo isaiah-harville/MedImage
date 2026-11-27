@@ -69,7 +69,7 @@ storage. The homelab repository configures it:
   bucket, and only for GET and HEAD. No other method reaches the storage, so nothing can
   be written through it, even with a presigned URL. It removes any `Authorization` header,
   so every request is anonymous. Each client may make 10 requests a minute and two
-  downloads at once. Traefik writes no access logs.
+  downloads at once. Requests may be logged with metadata only, like the rest of the site.
 - Apart from the homelab's admin key, only the `opendiagnostics` publisher key can write,
   only to this bucket, and only through the LAN endpoint `https://s3.int.harville.dev`.
 

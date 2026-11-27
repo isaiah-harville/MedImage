@@ -9,9 +9,11 @@ describe('/privacy', () => {
     const { body } = render(Privacy);
 
     expect(body).toContain('never written to disk, stored, logged, or used to train');
-    expect(body).toContain('kept for 14 days');
+    expect(body).toContain('never contain the images you upload');
+    expect(body).toMatch(/kept\s+for 14 days/);
+    expect(body).toContain('passes through Cloudflare');
     expect(body).toContain('No accounts, no cookies, no analytics');
-    expect(body).toContain('datetime="2026-11-26"');
+    expect(body).toContain('datetime="2026-11-27"');
     expect(body).toContain('href="https://github.com/isaiah-harville/opendiagnostics/issues"');
   });
 

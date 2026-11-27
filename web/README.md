@@ -21,7 +21,8 @@ image proxy. The browser never sees `API_URL`. The contract between the two is
 
 - An upload is read with `request.formData()` and forwarded to the inference service from memory.
   It is never written to disk.
-- Nothing logs the file, its name, the client IP, or request contents. The only logs are
+- Nothing logs the file, its name, the result, or request contents. Request metadata (time,
+  path, status, client IP, user agent) may be logged; today the only logs are
   inference-service errors (name and message).
 - Every non-GET response (every form action, so every prediction) has `Cache-Control: no-store`.
   Every response has `Referrer-Policy: no-referrer`.
