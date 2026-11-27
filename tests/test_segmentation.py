@@ -273,3 +273,9 @@ def test_smoke_segmentation_trains_evaluates_and_reproduces(tmp_path):
     copy = tmp_path / "copy"
     shutil.copytree(run_dir, copy)
     assert evaluate_run(copy)["test"] == metrics["test"]
+
+
+def test_smoke_segmentation_runs_are_bitwise_reproducible_on_cpu(tmp_path):
+    first = fit_smoke("segmentation", tmp_path / "a")
+    second = fit_smoke("segmentation", tmp_path / "b")
+    assert (first / "metrics.json").read_text() == (second / "metrics.json").read_text()

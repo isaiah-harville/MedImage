@@ -24,11 +24,10 @@ from pathlib import Path
 from typing import Any
 
 import torch
-from monai.data import Dataset, MetaTensor, PersistentDataset
+from monai.data import DataLoader, Dataset, MetaTensor, PersistentDataset
 from monai.data.utils import json_hashing
 from monai.transforms import Compose, LoadImaged
 from monai.utils import convert_to_tensor
-from torch.utils.data import DataLoader
 
 from opendiagnostics.data.base import SPLIT_NAMES, DatasetInfo, MedicalDataModule, Source
 
@@ -73,7 +72,9 @@ class SegmentationDataModule(MedicalDataModule):
     one (loading, reorienting, resampling, intensity scaling) with MONAI's
     ``PersistentDataset``, so later epochs read preprocessed tensors. The cache is keyed on
     the case and the transforms, so a changed transform does not reuse stale entries.
-    ``eval_batch_size`` is always 1, because whole volumes differ in shape.
+    ``eval_batch_size`` is always 1, because whole volumes differ in shape. MONAI's
+    ``DataLoader`` seeds the random transforms from torch's seed in each worker, or in the
+    main process without workers, so runs repeat exactly.
     """
 
     def __init__(self, cache_dir: str | None = None, **kwargs: Any) -> None:
