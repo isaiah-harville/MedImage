@@ -42,13 +42,13 @@ DATASETS = {
         "Chest CT, lung nodule volume", "CT", "Is the nodule malignant or benign?"
     ),
     "adrenalmnist3d": ScanType(
-        "Abdominal CT, adrenal gland shape", "CT", "Adrenal hyperplasia or normal?"
+        "Adrenal gland shape mask, from CT", "CT", "Adrenal hyperplasia or normal?"
     ),
     "fracturemnist3d": ScanType(
         "Chest CT, rib fracture volume", "CT", "Buckle, nondisplaced, or displaced fracture?"
     ),
     "vesselmnist3d": ScanType(
-        "Brain vessel shape", "MR angiography", "Aneurysm or healthy vessel segment?"
+        "Brain vessel shape mask", "MR angiography", "Aneurysm or healthy vessel segment?"
     ),
     "chestmnist": ScanType("Chest X-ray", "X-ray", "Which of 14 findings are present?"),
     "nih-chestxray14": ScanType("Chest X-ray", "X-ray", "Which of 14 findings are present?"),
