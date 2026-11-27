@@ -21,6 +21,13 @@ export const modelSummarySchema = z
     run_id: z.string(),
     test_auroc: z.object({ value: z.number(), lower: z.number(), upper: z.number() }).nullable(),
     demo_count: z.number().int().nonnegative(),
+    weights: z
+      .object({
+        url: z.url({ protocol: /^https$/ }),
+        bytes: z.number().int().positive(),
+        sha256: z.string().regex(/^[0-9a-f]{64}$/),
+      })
+      .nullable(),
   })
   .transform((m) => ({
     id: m.id,
@@ -36,6 +43,7 @@ export const modelSummarySchema = z
     runId: m.run_id,
     testAuroc: m.test_auroc,
     demoCount: m.demo_count,
+    weights: m.weights,
   }));
 
 export const demoSampleSchema = z

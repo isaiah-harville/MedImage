@@ -50,8 +50,10 @@ describe('createApiClient', () => {
       runId: '20261127-031500-abcd1234',
       testAuroc: { value: 0.97, lower: 0.96, upper: 0.98 },
       demoCount: 4,
+      weights: modelsJson[0]?.weights,
     });
     expect(models[1]?.testAuroc).toBeNull();
+    expect(models[1]?.weights).toBeNull();
   });
 
   it('maps GET /models/{id}/demo and encodes the id in the path', async () => {

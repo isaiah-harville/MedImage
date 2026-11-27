@@ -5,6 +5,7 @@ import DemoGallery from '#lib/components/DemoGallery.svelte';
 import Disclaimer from '#lib/components/Disclaimer.svelte';
 import ResultView from '#lib/components/ResultView.svelte';
 import UploadForm from '#lib/components/UploadForm.svelte';
+import WeightsDownload from '#lib/components/WeightsDownload.svelte';
 import { formatLabel } from '#lib/format.ts';
 import type { SubmitFunction } from '$app/forms';
 import type { ActionData, PageData } from './$types';
@@ -116,4 +117,8 @@ const submit: SubmitFunction = ({ formData, action }) => {
       />
     </div>
   </section>
+{/if}
+
+{#if data.model.weights}
+  <WeightsDownload weights={data.model.weights} license={data.model.license} />
 {/if}

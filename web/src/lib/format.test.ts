@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { verdict } from './format.ts';
+import { formatBytes, verdict } from './format.ts';
 
 describe('verdict', () => {
   it('is unknown for uploads, which have no ground truth', () => {
@@ -16,5 +16,12 @@ describe('verdict', () => {
     const prediction = { labelMode: 'multilabel' as const, truth: 'mass, effusion' };
     expect(verdict({ ...prediction, predicted: ['effusion', 'mass'] })).toBe('correct');
     expect(verdict({ ...prediction, predicted: ['mass'] })).toBe('wrong');
+  });
+});
+
+describe('formatBytes', () => {
+  it('shows checkpoints in whole megabytes', () => {
+    expect(formatBytes(200_123_456)).toBe('200 MB');
+    expect(formatBytes(4_200)).toBe('5 kB');
   });
 });

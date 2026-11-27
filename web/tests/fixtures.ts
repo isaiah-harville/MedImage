@@ -16,6 +16,11 @@ export const modelsJson = [
     run_id: '20261127-031500-abcd1234',
     test_auroc: { value: 0.97, lower: 0.96, upper: 0.98 },
     demo_count: 4,
+    weights: {
+      url: 'https://diagnostics.harville.dev/opendiagnostics-weights/pneumoniamnist-convnext/20261127-031500-abcd1234/checkpoint.ckpt',
+      bytes: 200_123_456,
+      sha256: 'a'.repeat(64),
+    },
   },
   {
     id: 'dermamnist-resnet',
@@ -40,6 +45,7 @@ export const modelsJson = [
     run_id: '20261127-041500-ef567890',
     test_auroc: null,
     demo_count: 0,
+    weights: null,
   },
 ];
 

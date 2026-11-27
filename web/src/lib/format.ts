@@ -17,6 +17,10 @@ export function formatLatency(ms: number): string {
   return ms < 1000 ? `${Math.round(ms)} ms` : `${(ms / 1000).toFixed(2)} s`;
 }
 
+export function formatBytes(bytes: number): string {
+  return bytes < 1e6 ? `${Math.ceil(bytes / 1e3)} kB` : `${Math.round(bytes / 1e6)} MB`;
+}
+
 export function formatLabel(label: string): string {
   const spaced = label.replaceAll('_', ' ');
   return spaced.charAt(0).toUpperCase() + spaced.slice(1);
