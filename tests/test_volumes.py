@@ -138,6 +138,24 @@ def test_a_fold_manifest_needs_a_test_fold(volumes):
         _module(volumes, test_fold=None)
 
 
+@pytest.mark.parametrize(
+    ("folds", "message"),
+    [({"test_fold": 7}, "test_fold 7 is not a fold"), ({"val_fold": 1, "test_fold": 1}, "differ")],
+)
+def test_unknown_or_equal_folds_are_refused(volumes, folds, message):
+    with pytest.raises(ValueError, match=message):
+        _module(volumes, **folds)
+
+
+def test_a_split_column_is_used_as_given(tmp_path):
+    names = ["train", "train", "val", "test"]
+    entries = [_entry(f"v{n}", f"p{n}") | {"split": s} for n, s in enumerate(names)]
+    for entry in entries:
+        _volume(tmp_path / entry["images"][0])
+    data = _module(_manifest(tmp_path, entries), test_fold=None)
+    assert data.splits == {"train": [0, 1], "val": [2], "test": [3]}
+
+
 def test_several_images_per_volume_are_channels(tmp_path):
     entries = [_entry(f"v{n}", f"p{n}", channels=2) for n in range(4)]
     for entry in entries:
