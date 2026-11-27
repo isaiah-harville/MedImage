@@ -43,3 +43,4 @@ ts	phase	decision	why	evidence	result
 2026-11-27T21:29:59Z	package	built main.pdf with pdflatex in texlive/texlive, looked at all 8 pages, made preview.png at 80 dpi (680x880 like the other papers), packed arxiv.tar.gz	stage 8; the docs site reads main.pdf and preview.png	build/pages/page-1..8.png; package.ts rebuilt the packed copy to 8 pages	done; nothing submitted
 2026-11-27T21:29:59Z	package	kept main.pdf as the committed PDF and ignored the build script's paper.pdf copy	paper.yaml names main.pdf; committing both would duplicate 270 KB	.gitignore	done
 2026-11-27T21:29:59Z	review	skipped the cross-model review of this log	no other vendor's model is configured	none	not done
+2026-11-27T22:41:40Z	setup	removed Claude from the author block; the Acknowledgment keeps its description of Claude's part	the user asked to comply with arXiv's policy, which does not allow generative AI tools as authors	user message 2026-11-27	sole author Isaiah R. Harville

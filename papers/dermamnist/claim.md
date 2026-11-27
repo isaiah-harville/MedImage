@@ -84,5 +84,5 @@ The two subsets differ in class mix (melanoma is 20% of the overlap subset and 6
 ## Authors
 
 - Isaiah R. Harville. Affiliation and email: placeholder, to be filled in by the author.
-- Claude (Anthropic), kept as coauthor at the user's request, which overrides the write-paper skill's no-AI-author rule. The Acknowledgment says how Claude was used.
+- Claude (Anthropic) is not an author, because arXiv does not allow generative AI tools as authors. The Acknowledgment says how Claude was used.
 - arXiv category: unknown; suggested eess.IV with a cs.CV cross-list.

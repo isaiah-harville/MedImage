@@ -71,5 +71,5 @@ Checks run in stage 1, from `vet.py` unless noted:
 ## Authors
 
 - Isaiah R. Harville, <affiliation placeholder>, <email placeholder>.
-- Claude (Anthropic), kept as a coauthor by the user's explicit override of the write-paper no-AI-author rule (decision log, 2026-11-27).
+- Claude (Anthropic) is not an author, because arXiv does not allow generative AI tools as authors. The Acknowledgment says how Claude was used.
 - arXiv category: placeholder. Suggested primary eess.IV, cross-list cs.CV.

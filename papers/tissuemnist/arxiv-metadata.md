@@ -3,7 +3,7 @@
 For the human authors to paste into the arXiv form. Nothing has been submitted.
 
 - **Title:** Three Seeds of a ConvNeXt-Small Recipe Score Above the Best Published TissueMNIST Results
-- **Authors:** Isaiah R. Harville; Claude (Anthropic). arXiv's policy says generative AI tools should not be listed as authors, so the authors must decide this before submitting (see `main.tex` lines 1-3).
+- **Authors:** Isaiah R. Harville. arXiv's policy does not allow generative AI tools as authors, so Claude's part in the work is described in the Acknowledgment.
 - **Affiliation:** Independent Researcher (not yet confirmed).
 - **Comments:** 8 pages, 2 figures, 4 tables. Code, configurations, and per-image predictions at https://github.com/isaiah-harville/opendiagnostics
 - **Primary category:** eess.IV (suggested, not confirmed)

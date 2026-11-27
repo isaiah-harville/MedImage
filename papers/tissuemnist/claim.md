@@ -92,4 +92,4 @@ Numbers in the text that are not run outputs, with their source:
 ## Authors
 
 - Isaiah R. Harville, Independent Researcher (affiliation not yet confirmed by the author).
-- Claude, Anthropic. Coauthor at the user's request (overrides the write-paper skill's no-AI-author rule; see decisions.tsv). IEEE's policy does not allow AI authors, and arXiv's policy must be checked before submission; main.tex carries a comment on this.
+- Claude (Anthropic) is not an author, because arXiv's policy does not allow generative AI tools as authors. The Acknowledgment says how Claude was used.
