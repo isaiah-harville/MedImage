@@ -3,12 +3,14 @@ let { src, alt, caption }: { src: string; alt: string; caption: string } = $prop
 </script>
 
 <figure class="min-w-0">
+  <figcaption class="mb-2 font-mono text-[11px] tracking-wide text-[var(--color-viewer-foreground)] uppercase">
+    {caption}
+  </figcaption>
   <img
     {src}
     {alt}
     width="224"
     height="224"
-    class="aspect-square w-full rounded-[var(--radius-lg)] bg-secondary object-contain shadow-[var(--elevation-1)] [image-rendering:pixelated]"
+    class="aspect-square w-full bg-black object-contain [image-rendering:pixelated]"
   />
-  <figcaption class="mt-2 text-[12px] text-foreground-muted">{caption}</figcaption>
 </figure>

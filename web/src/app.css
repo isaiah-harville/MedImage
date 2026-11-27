@@ -1,5 +1,38 @@
 @import "@sivir-ui/svelte/ui.css";
 
+/* A clinical palette on Sivir's theme contract: cool neutral canvas, white panels, one teal
+   accent, and tighter radii. */
+:root {
+  --color-background: hsl(210 20% 96.5%);
+  --color-secondary: hsl(210 16% 93%);
+  --color-border: hsl(210 14% 88%);
+  --color-border-strong: hsl(210 12% 78%);
+  --color-foreground: hsl(212 28% 14%);
+  --color-foreground-muted: hsl(212 12% 40%);
+  --color-primary: #0f6b78;
+  --color-accent-tint: hsl(188 45% 94%);
+  --color-viewer: hsl(214 24% 8%);
+  --color-viewer-foreground: hsl(210 16% 82%);
+  --radius-sm: 4px;
+  --radius-md: 5px;
+  --radius-lg: 6px;
+  --radius-xl: 8px;
+}
+
+.dark {
+  --color-background: hsl(214 22% 7%);
+  --color-card: hsl(214 20% 10%);
+  --color-panel: hsl(214 20% 11.5%);
+  --color-secondary: hsl(214 16% 15%);
+  --color-border: hsl(214 14% 18%);
+  --color-border-strong: hsl(214 12% 27%);
+  --color-foreground: hsl(210 20% 92%);
+  --color-foreground-muted: hsl(212 12% 64%);
+  --color-primary: #4fb3c0;
+  --color-accent-tint: hsl(188 40% 14%);
+  --color-viewer: hsl(214 26% 4%);
+}
+
 @layer base {
   html {
     -webkit-font-smoothing: antialiased;

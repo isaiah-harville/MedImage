@@ -1,16 +1,11 @@
 <script lang="ts">
-import * as Card from '@sivir-ui/svelte/components/card';
 import type { Prediction } from '#lib/contract.ts';
 import { formatLabel, formatLatency, verdict } from '#lib/format.ts';
 import ImagePanel from './ImagePanel.svelte';
 import ProbabilityBars from './ProbabilityBars.svelte';
 import VerdictBadge from './VerdictBadge.svelte';
 
-let {
-  prediction,
-  sourceLabel,
-  allowUploads,
-}: { prediction: Prediction; sourceLabel: string; allowUploads: boolean } = $props();
+let { prediction, sourceLabel }: { prediction: Prediction; sourceLabel: string } = $props();
 
 const outcome = $derived(verdict(prediction));
 const predictedText = $derived(
@@ -20,52 +15,49 @@ const predictedText = $derived(
 );
 </script>
 
-<Card.Root>
-  <section aria-labelledby="result-heading" class="p-6">
-    <h2 id="result-heading" tabindex="-1" class="text-[13px] font-medium text-foreground-muted focus:outline-none">
-      Result for {sourceLabel}
-    </h2>
-    <p class="mt-1 text-[24px] leading-tight font-semibold tracking-[-0.02em]">{predictedText}</p>
-    {#if outcome !== 'unknown' && prediction.truth !== null}
-      <div class="mt-3">
-        <VerdictBadge verdict={outcome} truth={formatLabel(prediction.truth)} />
-      </div>
-    {/if}
-
-    <div class="mt-5 grid grid-cols-2 gap-3">
+<section aria-labelledby="result-heading">
+  <div class="rounded-[var(--radius-xl)] bg-[var(--color-viewer)] p-4 sm:p-5">
+    <h2 id="result-heading" tabindex="-1" class="sr-only">Result for {sourceLabel}</h2>
+    <p class="font-mono text-[11px] text-[var(--color-viewer-foreground)]">
+      {sourceLabel} · {formatLatency(prediction.latencyMs)}
+    </p>
+    <div class="mt-3 grid grid-cols-2 gap-3">
       <ImagePanel
         src={prediction.inputPng}
         alt="The scan as the model saw it, resized to 224 by 224 pixels."
-        caption="Input, as the model saw it"
+        caption="Input"
       />
       <ImagePanel
         src={prediction.attributionPng}
         alt="The same scan with an attribution map overlaid. Brighter regions influenced the top prediction more."
-        caption="Attribution map"
+        caption="Attribution"
       />
     </div>
-    <p class="mt-3 text-[12px] text-foreground-muted">
-      The map highlights the pixels that most influenced the top prediction. It is not proof that
-      the model uses clinically relevant features.
-    </p>
+  </div>
 
-    <div class="mt-6 border-t border-border pt-5">
+  <div class="mt-4 rounded-[var(--radius-xl)] bg-card p-5 shadow-[var(--elevation-control)]">
+    <div class="flex flex-wrap items-start justify-between gap-3">
+      <div>
+        <p class="text-[12px] text-foreground-muted">Model output</p>
+        <p class="mt-0.5 text-[20px] leading-tight font-semibold tracking-[-0.015em]">{predictedText}</p>
+      </div>
+      {#if outcome !== 'unknown' && prediction.truth !== null}
+        <VerdictBadge verdict={outcome} truth={formatLabel(prediction.truth)} />
+      {/if}
+    </div>
+    <div class="mt-5">
       <ProbabilityBars {prediction} />
     </div>
-    <dl class="mt-5 flex flex-wrap gap-x-6 gap-y-1 text-[12px] text-foreground-muted">
-      {#if prediction.threshold !== null}
-        <div class="flex gap-1.5">
-          <dt>Decision threshold</dt>
-          <dd class="font-mono tabular-nums text-foreground">{prediction.threshold.toFixed(2)}</dd>
-        </div>
-      {/if}
-      <div class="flex gap-1.5">
-        <dt>Latency</dt>
-        <dd class="font-mono tabular-nums text-foreground">{formatLatency(prediction.latencyMs)}</dd>
-      </div>
-    </dl>
-    {#if allowUploads || prediction.disclaimer}
-      <p class="mt-4 text-[12px] text-foreground-muted">{prediction.disclaimer}</p>
+    {#if prediction.threshold !== null}
+      <p class="mt-3 text-[12px] text-foreground-muted">
+        Decision threshold <span class="font-mono tabular-nums">{prediction.threshold.toFixed(2)}</span>,
+        chosen on validation data.
+      </p>
     {/if}
-  </section>
-</Card.Root>
+    <p class="mt-3 border-t border-border pt-3 text-[12px] text-foreground-muted">
+      The attribution map shows the pixels that most influenced the top prediction, by Integrated
+      Gradients. It is not evidence that the model uses clinically relevant features.
+      {prediction.disclaimer}
+    </p>
+  </div>
+</section>
