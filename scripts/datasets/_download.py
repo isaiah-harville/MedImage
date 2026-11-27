@@ -1,7 +1,7 @@
 """Shared steps of the dataset download scripts: fetch, verify, extract, write the manifest.
 
-Every step is idempotent. A finished download is kept only after its size (and MD5, when the
-source publishes one) matches; an interrupted one resumes from its ``.part`` file.
+Every step is idempotent. A finished download is kept only after its size (and MD5 or SHA-256,
+when the source publishes one) matches; an interrupted one resumes from its ``.part`` file.
 """
 
 from __future__ import annotations
@@ -9,6 +9,7 @@ from __future__ import annotations
 import argparse
 import csv
 import hashlib
+import tarfile
 import urllib.request
 import zipfile
 from collections.abc import Callable, Iterable, Mapping
@@ -31,16 +32,18 @@ def arguments(description: str) -> argparse.Namespace:
     return parser.parse_args()
 
 
-def md5sum(path: Path) -> str:
-    digest = hashlib.md5()
+def md5sum(path: Path, algorithm: str = "md5") -> str:
+    digest = hashlib.new(algorithm)
     with path.open("rb") as handle:
         while chunk := handle.read(CHUNK):
             digest.update(chunk)
     return digest.hexdigest()
 
 
-def _matches(path: Path, size: int | None, md5: str | None) -> bool:
+def _matches(path: Path, size: int | None, md5: str | None, sha256: str | None = None) -> bool:
     if size is not None and path.stat().st_size != size:
+        return False
+    if sha256 is not None and md5sum(path, "sha256") != sha256:
         return False
     return md5 is None or md5sum(path) == md5
 
@@ -51,10 +54,12 @@ def download(
     size: int | None = None,
     md5: str | None = None,
     opener: Opener | None = None,
+    sha256: str | None = None,
 ) -> Path:
-    """Fetch ``url`` to ``dest``, resuming a partial download, and check its size and MD5."""
+    """Fetch ``url`` to ``dest``, resuming a partial download, and check its size and MD5 or
+    SHA-256."""
     if dest.exists():
-        if _matches(dest, size, md5):
+        if _matches(dest, size, md5, sha256):
             return dest
         raise RuntimeError(
             f"{dest} exists but does not match the published size {size} or MD5 {md5}; "
@@ -73,7 +78,7 @@ def download(
             resumed = have and getattr(response, "status", 200) == 206
             with part.open("ab" if resumed else "wb") as handle:
                 _copy(response, handle)
-    if not _matches(part, size, md5):
+    if not _matches(part, size, md5, sha256):
         got = part.stat().st_size
         part.unlink()
         raise RuntimeError(
@@ -89,14 +94,27 @@ def _copy(response: BinaryIO, handle: BinaryIO) -> None:
         handle.write(chunk)
 
 
-def extract(archive: Path, into: Path, delete_archive: bool = False) -> Path:
-    """Unzip ``archive`` into ``into`` once; a marker file records that it finished."""
+def extract(
+    archive: Path,
+    into: Path,
+    delete_archive: bool = False,
+    keep: Callable[[str], bool] | None = None,
+) -> Path:
+    """Unpack a zip or tar ``archive`` into ``into`` once; a marker file records that it
+    finished. With ``keep``, only the members whose name it accepts are unpacked. Tar members
+    that would land outside ``into`` are refused."""
     marker = into / f".{archive.name}.extracted"
     if not marker.exists():
         print(f"extracting {archive} -> {into}")
         into.mkdir(parents=True, exist_ok=True)
-        with zipfile.ZipFile(archive) as handle:
-            handle.extractall(into)
+        if zipfile.is_zipfile(archive):
+            with zipfile.ZipFile(archive) as handle:
+                names = handle.namelist()
+                handle.extractall(into, [n for n in names if keep(n)] if keep else None)
+        else:
+            with tarfile.open(archive) as handle:
+                members = [m for m in handle.getmembers() if keep is None or keep(m.name)]
+                handle.extractall(into, members, filter="data")
         marker.touch()
     if delete_archive and archive.exists():
         archive.unlink()
@@ -141,13 +159,15 @@ def read_csv(path: Path, required: Iterable[str], delimiter: str = ",") -> list[
     return rows
 
 
-def write_manifest(root: Path, rows: Iterable[Mapping[str, str]]) -> Path:
+def write_manifest(
+    root: Path, rows: Iterable[Mapping[str, str]], columns: Iterable[str] = MANIFEST_COLUMNS
+) -> Path:
     """Write ``manifest.csv`` atomically, with paths relative to ``root``."""
     rows = list(rows)
     out = root / "manifest.csv"
     tmp = out.with_suffix(".csv.tmp")
     with tmp.open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=MANIFEST_COLUMNS)
+        writer = csv.DictWriter(handle, fieldnames=list(columns))
         writer.writeheader()
         writer.writerows(rows)
     tmp.replace(out)
