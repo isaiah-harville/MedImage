@@ -20,8 +20,8 @@ logged; uploaded content never is.
   and a test fails if one is. Both pods' `/tmp` is a RAM-backed `emptyDir`, so even a
   library that spooled could not reach a node's disk.
 - **Gone after the response.** Nothing keeps the image or the result once the response
-  is sent. Nothing stores uploads or results: the only volume holds model checkpoints, and
-  the API mounts it read-only. Responses carry `Cache-Control: no-store`.
+  is sent. Nothing stores uploads or results: the only volume holds published models
+  downloaded from the weights bucket. Responses carry `Cache-Control: no-store`.
 - **Request logs carry metadata only.** Logging a request's time, path, status, client IP,
   and user agent is allowed. Logging the uploaded image, its file name, the result, or any
   request body is not. Today the API runs with access logs off, the frontend logs nothing
@@ -40,10 +40,10 @@ invariant 9 in `AGENTS.md`.
 
 ## Parts
 
-- **`opendiagnostics.serve`**, the inference API (`Dockerfile.serve`). It loads every
-  bundled model on CPU at startup and implements the [demo API](api.md). Only the
-  frontend can reach it. Its only outbound connections are DNS and the in-cluster S3
-  port, used at startup to download checkpoints.
+- **`opendiagnostics.serve`**, the inference API (`Dockerfile.serve`). It serves the
+  published models on CPU and implements the [demo API](api.md). Only the frontend can
+  reach it. Its only outbound connections are DNS and the in-cluster S3 port, used to
+  download published models.
 - **`web/`**, the SvelteKit frontend (`web/Dockerfile`), with the privacy policy at
   `/privacy`. Only its server calls the API; the browser never sees the API's address. See
   `web/README.md`.
@@ -52,37 +52,45 @@ invariant 9 in `AGENTS.md`.
 
 | Variable | Default | Meaning |
 |---|---|---|
-| `WEIGHTS_DIR` | required (`/weights` in the image) | folder of bundled models |
-| `WEIGHTS_CACHE` | required | folder of downloaded checkpoints |
-| `WEIGHTS_BASE_URL` | the public weights URL | where `opendiagnostics-fetch-weights` downloads from |
+| `WEIGHTS_CACHE` | required | writable folder for downloaded runs and checkpoints |
+| `WEIGHTS_BASE_URL` | the public weights URL | where the weights bucket is read from |
+| `REFRESH_SECONDS` | `600` | how often to check the catalog for new models; `0` checks only at startup |
 | `LISTEN_ADDRESS` | `:8080` | `host:port` to listen on |
 | `ATTRIBUTION_STEPS` | `16` | Integrated Gradients steps per explanation |
 | `MAX_CONCURRENT` | `2` | predictions that may run at once |
 
 ## Run it locally
 
-Bundle the published runs, download their checkpoints, then start the API:
+Start the API. It downloads the published models from the public bucket into the cache
+folder first; the public route allows 10 requests a minute, so the first start waits a few
+minutes:
 
 ```bash
-uv run python scripts/bundle_models.py weights
-export WEIGHTS_DIR=weights WEIGHTS_CACHE=weights-cache
-uv run --extra serve opendiagnostics-fetch-weights
-uv run --extra serve opendiagnostics-serve
+WEIGHTS_CACHE=weights-cache uv run --extra serve opendiagnostics-serve
 ```
 
 Then start the frontend against it (`API_URL=http://localhost:8080`); see
 [web/README.md](../web/README.md).
 
-## Model weights
+## Models
 
-The image carries each project's latest published run files, which `scripts/bundle_models.py`
-copies, but no checkpoints. When the pod starts, the `fetch-weights` init container runs
-`opendiagnostics-fetch-weights`, which downloads each checkpoint from the in-cluster SeaweedFS
-S3 endpoint into a cache volume as `<sha256>.ckpt`. It checks each file's size and SHA-256
-against `artifacts.yaml` before giving it that name, skips checkpoints already in the cache,
-and deletes ones no bundled model uses. A new image downloads only the checkpoints that
-changed. Until a run is published, the image workflow skips the build. See
-[model weights](../docs/weights.md).
+The image holds no models, so the site deploys whether or not anything is published.
+`opendiagnostics publish` puts each published run in the weights bucket and records it in
+`catalog.json`:
+
+```
+catalog.json                         {"models": {"<project>": "<run-id>", ...}}
+<project>/<run-id>/demo.tar          config.yaml, metrics.json, artifacts.yaml, examples/
+<project>/<run-id>/checkpoint.ckpt
+```
+
+At startup, and every `REFRESH_SECONDS`, the API reads the catalog from the in-cluster
+SeaweedFS S3 endpoint. It downloads each new run's `demo.tar` into the cache volume, and its
+checkpoint as `<sha256>.ckpt` after checking the size and SHA-256 against `artifacts.yaml`.
+Anything already cached is not downloaded again. It then loads new runs, drops retired
+ones, and deletes cached files the catalog no longer names. A model that fails to download
+or load is logged and left out. With no catalog, the API serves no models and the site
+says so. See [model weights](../docs/weights.md).
 
 ## Deployment
 

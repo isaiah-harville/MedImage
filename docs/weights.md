@@ -63,6 +63,8 @@ S3 storage. Git holds only each checkpoint's URL and SHA-256.
 
 `opendiagnostics publish` uploads the checkpoint when the dataset's license allows it. It
 then confirms that the public URL serves the file and records the URL in `artifacts.yaml`.
+It also uploads the run's demo files and points the project's entry in the bucket's
+`catalog.json` at the run, so the demo site serves it within ten minutes.
 It needs the publisher key and a machine on the LAN:
 
 ```bash
@@ -82,8 +84,11 @@ sops -d --extract '["stringData"]["seaweedfs_s3_config"]' \
   | jq '.identities[] | select(.name == "opendiagnostics") | .credentials[0]'
 ```
 
-Publishing again uploads nothing while the checkpoint is unchanged.
+Publishing again does not upload an unchanged checkpoint. Publishing an older run makes the
+demo serve that run again.
 `--no-checkpoint` publishes the results without uploading the weights. Publish never
 deletes a stored checkpoint. To remove one, delete the object with the publisher key
 (`aws s3 rm s3://opendiagnostics-weights/<project>/<run-id>/checkpoint.ckpt` with the
-variables above), then remove its `url` from `artifacts.yaml`.
+variables above), then remove its `url` from `artifacts.yaml`. If the demo serves that run,
+first remove the project from `catalog.json` or publish another run for it; the demo skips a
+cataloged run whose checkpoint it cannot download.

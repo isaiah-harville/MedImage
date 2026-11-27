@@ -1,48 +1,96 @@
-import pytest
-from conftest import bundle_published, serve_checkpoint
+import json
+import urllib.error
 
-from opendiagnostics.publish import WEIGHTS_URL, load_artifacts
-from opendiagnostics.serve.weights import fetch
+import pytest
+from conftest import MemoryBucket, smoke_project
+
+from opendiagnostics.publish import WEIGHTS_URL
+from opendiagnostics.serve.weights import COMPLETE, prune, sync
 
 IN_CLUSTER = "http://seaweedfs-s3.seaweedfs.svc:8333/opendiagnostics-weights"
 
 
 @pytest.fixture
-def weights(finished_run, tmp_path):
-    return bundle_published(finished_run, tmp_path)
+def bucket(finished_run, tmp_path):
+    bucket = MemoryBucket()
+    smoke_project(finished_run, tmp_path / "models", bucket=bucket)
+    bucket.served.clear()
+    return bucket
 
 
-def test_fetch_downloads_from_the_base_url_and_names_the_file_by_its_hash(
-    finished_run, weights, tmp_path
+def _rewrite(bucket):
+    def open_url(url):
+        return bucket.open_url(url.replace(IN_CLUSTER, WEIGHTS_URL))
+
+    return open_url
+
+
+def test_sync_downloads_each_cataloged_run_and_names_its_checkpoint_by_hash(
+    finished_run, bucket, tmp_path
 ):
-    served: list[str] = []
-    opener = serve_checkpoint(finished_run / "checkpoint.ckpt", served)
-    assert fetch(weights, tmp_path / "cache", IN_CLUSTER, opener) == ["smoke-project"]
-    [artifact] = [
-        a
-        for a in load_artifacts(weights / "smoke-project" / "artifacts.yaml").files
-        if a.file == "checkpoint.ckpt"
+    seen = []
+    opener = _rewrite(bucket)
+    [folder] = sync(tmp_path / "cache", IN_CLUSTER, lambda url: seen.append(url) or opener(url))
+    run = finished_run.name
+    assert folder == tmp_path / "cache" / "models" / "smoke-project" / run
+    assert seen == [
+        f"{IN_CLUSTER}/catalog.json",
+        f"{IN_CLUSTER}/smoke-project/{run}/demo.tar",
+        f"{IN_CLUSTER}/smoke-project/{run}/checkpoint.ckpt",
     ]
-    assert artifact.url
-    assert served == [f"{IN_CLUSTER}/{artifact.url.removeprefix(WEIGHTS_URL + '/')}"]
-    assert [p.name for p in (tmp_path / "cache").iterdir()] == [f"{artifact.sha256}.ckpt"]
+    assert {"config.yaml", "metrics.json", "artifacts.yaml", "examples", COMPLETE} <= {
+        p.name for p in folder.iterdir()
+    }
+    [checkpoint] = (tmp_path / "cache" / "checkpoints").iterdir()
+    assert checkpoint.read_bytes() == (finished_run / "checkpoint.ckpt").read_bytes()
+    assert len(checkpoint.stem) == 64
 
 
-def test_fetch_skips_a_cached_checkpoint_and_removes_unused_ones(finished_run, weights, tmp_path):
+def test_sync_again_reads_only_the_catalog(bucket, tmp_path):
+    sync(tmp_path / "cache", WEIGHTS_URL, bucket.open_url)
+    bucket.served.clear()
+    assert len(sync(tmp_path / "cache", WEIGHTS_URL, bucket.open_url)) == 1
+    assert bucket.served == [f"{WEIGHTS_URL}/catalog.json"]
+
+
+def test_prune_removes_runs_and_checkpoints_the_catalog_dropped(bucket, tmp_path):
     cache = tmp_path / "cache"
-    opener = serve_checkpoint(finished_run / "checkpoint.ckpt")
-    fetch(weights, cache, WEIGHTS_URL, opener)
-    (cache / f"{'0' * 64}.ckpt").write_bytes(b"old")
-    served: list[str] = []
-    again = serve_checkpoint(finished_run / "checkpoint.ckpt", served)
-    assert fetch(weights, cache, WEIGHTS_URL, again) == []
-    assert served == []
-    assert len(list(cache.iterdir())) == 1
+    folders = sync(cache, WEIGHTS_URL, bucket.open_url)
+    (cache / "models" / "old-project" / "r1").mkdir(parents=True)
+    (cache / "checkpoints" / f"{'0' * 64}.ckpt").write_bytes(b"old")
+    prune(cache, folders)
+    assert [p.name for p in (cache / "models").iterdir()] == ["smoke-project"]
+    assert len(list((cache / "checkpoints").iterdir())) == 1
+    prune(cache, [])
+    assert list((cache / "models").iterdir()) == []
+    assert list((cache / "checkpoints").iterdir()) == []
 
 
-def test_fetch_refuses_a_checkpoint_whose_hash_does_not_match(weights, tmp_path):
-    wrong = tmp_path / "wrong.ckpt"
-    wrong.write_bytes(b"not the checkpoint")
-    with pytest.raises(ValueError, match=r"artifacts\.yaml expects"):
-        fetch(weights, tmp_path / "cache", WEIGHTS_URL, serve_checkpoint(wrong))
-    assert list((tmp_path / "cache").iterdir()) == []
+def test_a_checkpoint_whose_hash_does_not_match_is_skipped(finished_run, bucket, tmp_path):
+    key = f"smoke-project/{finished_run.name}/checkpoint.ckpt"
+    bucket.objects[key] = b"not the checkpoint"
+    assert sync(tmp_path / "cache", WEIGHTS_URL, bucket.open_url) == []
+    assert list((tmp_path / "cache" / "checkpoints").iterdir()) == []
+
+
+def test_an_empty_bucket_serves_no_models(tmp_path):
+    assert sync(tmp_path / "cache", WEIGHTS_URL, MemoryBucket().open_url) == []
+
+
+def test_a_catalog_naming_an_unsafe_folder_is_refused(bucket, tmp_path):
+    bucket.objects["catalog.json"] = json.dumps({"models": {"../escape": "r1"}}).encode()
+    with pytest.raises(ValueError, match="not a safe folder name"):
+        sync(tmp_path / "cache", WEIGHTS_URL, bucket.open_url)
+
+
+def test_sync_waits_and_retries_when_rate_limited(bucket, tmp_path):
+    waits, limited = [], []
+
+    def open_url(url):
+        if not limited:
+            limited.append(url)
+            raise urllib.error.HTTPError(url, 429, "Too Many Requests", None, None)  # ty: ignore[invalid-argument-type]
+        return bucket.open_url(url)
+
+    assert len(sync(tmp_path / "cache", WEIGHTS_URL, open_url, sleep=waits.append)) == 1
+    assert waits == [10.0]

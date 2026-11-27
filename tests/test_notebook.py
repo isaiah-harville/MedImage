@@ -1,5 +1,6 @@
 import pytest
 import yaml
+from conftest import MemoryBucket
 
 from opendiagnostics.cli import main
 from opendiagnostics.notebook import MARKER, NotebookError, build_notebook
@@ -27,7 +28,7 @@ BASELINES = {
 
 @pytest.fixture
 def notebook(finished_run, project, tmp_path):
-    publish_run(finished_run, project, upload=lambda path, key: None)
+    publish_run(finished_run, project, bucket=MemoryBucket())
     (project / "baselines.yaml").write_text(yaml.safe_dump(BASELINES))
     (project / "MODEL_CARD.md").write_text("# Smoke model\n\nA card.\n")
     out = tmp_path / "docs" / "notebook"

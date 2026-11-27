@@ -1,6 +1,6 @@
 # The API takes traffic only from the frontend. Its only outbound connections are DNS and
-# the SeaweedFS S3 port, where the init container downloads checkpoints; the bucket allows
-# anonymous reads of the weights only.
+# the SeaweedFS S3 port, where it downloads published models; the bucket allows anonymous
+# reads of the weights bucket only.
 # The frontend takes traffic only from traefik-public and talks only to DNS and the API.
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy

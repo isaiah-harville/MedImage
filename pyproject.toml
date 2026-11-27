@@ -52,7 +52,6 @@ serve = [
 [project.scripts]
 opendiagnostics = "opendiagnostics.cli:main"
 opendiagnostics-serve = "opendiagnostics.serve:main"
-opendiagnostics-fetch-weights = "opendiagnostics.serve.weights:main"
 
 [project.urls]
 Repository = "https://github.com/isaiah-harville/opendiagnostics"

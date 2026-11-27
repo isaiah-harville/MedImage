@@ -11,6 +11,7 @@ from __future__ import annotations
 
 import io
 import threading
+from collections.abc import Callable, Mapping
 from typing import Any
 
 from fastapi import FastAPI, HTTPException, Request
@@ -77,15 +78,19 @@ def _buffered(request: Request, body: bytes) -> Request:
 
 
 def create_app(
-    models: dict[str, ServedModel], attribution_steps: int = 16, max_concurrent: int = 2
+    models: Callable[[], Mapping[str, ServedModel]],
+    attribution_steps: int = 16,
+    max_concurrent: int = 2,
 ) -> FastAPI:
+    """``models`` is called per request, so the served set can change while running."""
     app = FastAPI(title="OpenDiagnostics demo API", docs_url=None, redoc_url=None)
     slots = threading.BoundedSemaphore(max_concurrent)
 
     def model_for(model_id: str) -> ServedModel:
-        if model_id not in models:
+        model = models().get(model_id)
+        if model is None:
             raise HTTPException(404, f"no model {model_id!r}")
-        return models[model_id]
+        return model
 
     def run(model: ServedModel, image: Image.Image, truth: str | None) -> dict[str, Any]:
         with slots:
@@ -93,11 +98,11 @@ def create_app(
 
     @app.get("/healthz")
     def healthz() -> dict[str, Any]:
-        return {"status": "ok", "models": len(models)}
+        return {"status": "ok", "models": len(models())}
 
     @app.get("/models")
     def list_models() -> list[dict[str, Any]]:
-        return [m.description for m in models.values()]
+        return [m.description for m in models().values()]
 
     @app.get("/models/{model_id}/demo")
     def demos(model_id: str) -> list[dict[str, Any]]:

@@ -1,10 +1,9 @@
-"""Load published models from a weights directory and run them on single images.
+"""Load published models from the cache and run them on single images.
 
-The weights directory holds one folder per model, made by ``scripts/bundle_models.py``:
-``config.yaml`` (the run's resolved config), ``metrics.json``, ``artifacts.yaml`` (the
-checkpoint's URL and SHA-256), and optionally ``examples/`` with the run's license-cleared
-example images. Checkpoints are loaded from the cache that ``opendiagnostics-fetch-weights``
-fills.
+Each model is a folder ``<project>/<run-id>/`` that ``weights.sync`` downloaded: the run's
+``config.yaml``, ``metrics.json``, ``artifacts.yaml`` (the checkpoint's URL and SHA-256), and
+optionally ``examples/`` with its license-cleared example images. Its checkpoint is in the
+cache, named by SHA-256.
 """
 
 from __future__ import annotations
@@ -12,6 +11,7 @@ from __future__ import annotations
 import base64
 import io
 import json
+import logging
 import time
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -29,6 +29,8 @@ from opendiagnostics.modules import ImageClassifier
 from opendiagnostics.publish import EXAMPLES, EXAMPLES_MANIFEST
 from opendiagnostics.serve.catalog import ORDER, describe
 from opendiagnostics.serve.weights import cached, checkpoint_of
+
+log = logging.getLogger("opendiagnostics.serve")
 
 DISCLAIMER = (
     "Research model, not a medical device. It has not been cleared or approved for clinical "
@@ -63,28 +65,25 @@ def _input_size(config: dict[str, Any]) -> int:
 
 
 def load_model(folder: Path, cache: Path) -> ServedModel:
+    model_id = folder.parent.name
     artifact = checkpoint_of(folder)
     if artifact is None:
-        raise ValueError(f"{folder.name}: artifacts.yaml has no checkpoint URL")
+        raise ValueError(f"{model_id}: artifacts.yaml has no checkpoint URL")
     checkpoint = cached(cache, artifact)
     if not checkpoint.is_file():
-        raise FileNotFoundError(
-            f"{folder.name}: {checkpoint} is missing; run opendiagnostics-fetch-weights first"
-        )
+        raise FileNotFoundError(f"{model_id}: {checkpoint} is missing; sync the cache first")
     config = yaml.safe_load((folder / "config.yaml").read_text())
     cli = load_run(folder, with_data=False)
     module = cli.model
     if not isinstance(module, ImageClassifier):
-        raise ValueError(
-            f"{folder.name}: only classifiers can be served, got {type(module).__name__}"
-        )
+        raise ValueError(f"{model_id}: only classifiers can be served, got {type(module).__name__}")
     state = torch.load(checkpoint, map_location="cpu", weights_only=True)
     module.load_state_dict(state["state_dict"])
     module.eval()
     metrics = json.loads((folder / "metrics.json").read_text())
     info = cli.datamodule.info
     flag = (config["data"].get("init_args") or {}).get("flag")
-    scan = describe(flag, folder.name)
+    scan = describe(flag, model_id)
     test_auroc = metrics.get("test", {}).get("auroc")
     demos = {}
     manifest = folder / EXAMPLES / EXAMPLES_MANIFEST
@@ -94,14 +93,14 @@ def load_model(folder: Path, cache: Path) -> ServedModel:
                 example["id"], example["truth"], folder / EXAMPLES / example["input"]
             )
     return ServedModel(
-        id=folder.name,
+        id=model_id,
         module=module,
         transform=cli.datamodule.eval_transforms,
         info=info,
         size=_input_size(config),
         threshold=float(metrics.get("calibration", {}).get("threshold", 0.5)),
         description={
-            "id": folder.name,
+            "id": model_id,
             "scan_type": scan.scan_type,
             "modality": scan.modality,
             "question": scan.question,
@@ -111,9 +110,7 @@ def load_model(folder: Path, cache: Path) -> ServedModel:
             "dataset": f"{flag} (MedMNIST v2)" if flag else type(cli.datamodule).__name__,
             "license": info.license,
             "citation": info.citation,
-            "run_id": (folder / "RUN_ID").read_text().strip()
-            if (folder / "RUN_ID").exists()
-            else None,
+            "run_id": folder.name,
             "test_auroc": (
                 {k: test_auroc[k] for k in ("value", "lower", "upper")}
                 if isinstance(test_auroc, dict)
@@ -126,17 +123,35 @@ def load_model(folder: Path, cache: Path) -> ServedModel:
     )
 
 
-def load_models(weights_dir: Path, cache: Path) -> dict[str, ServedModel]:
-    folders = [p for p in sorted(weights_dir.iterdir()) if checkpoint_of(p) is not None]
-    if not folders:
-        raise FileNotFoundError(f"{weights_dir} holds no model folders with a checkpoint URL")
-    models = [load_model(folder, cache) for folder in folders]
+def _rank(model: ServedModel) -> tuple[int, str]:
+    flag = model.id.split("-")[0]
+    return (ORDER.index(flag) if flag in ORDER else len(ORDER), model.id)
 
-    def rank(model: ServedModel) -> tuple[int, str]:
-        flag = model.id.split("-")[0]
-        return (ORDER.index(flag) if flag in ORDER else len(ORDER), model.id)
 
-    return {m.id: m for m in sorted(models, key=rank)}
+def load_models(folders: list[Path], cache: Path) -> dict[str, ServedModel]:
+    """Load each model folder. A model that fails to load is logged and left out."""
+    models = []
+    for folder in folders:
+        try:
+            models.append(load_model(folder, cache))
+        except Exception:
+            log.exception("could not load %s/%s", folder.parent.name, folder.name)
+    return {m.id: m for m in sorted(models, key=_rank)}
+
+
+def refresh(
+    models: dict[str, ServedModel], folders: list[Path], cache: Path
+) -> dict[str, ServedModel]:
+    """The models for ``folders``, reusing those in ``models`` whose run has not changed."""
+    kept, new = [], []
+    for folder in folders:
+        current = models.get(folder.parent.name)
+        if current is not None and current.description["run_id"] == folder.name:
+            kept.append(current)
+        else:
+            new.append(folder)
+    loaded = kept + list(load_models(new, cache).values())
+    return {m.id: m for m in sorted(loaded, key=_rank)}
 
 
 def _png(image: torch.Tensor) -> str:

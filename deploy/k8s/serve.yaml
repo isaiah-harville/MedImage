@@ -1,7 +1,8 @@
-# The inference API (Dockerfile.serve). CPU only. An init container downloads each model's
-# checkpoint from the in-cluster weights bucket into a cache volume, named by SHA-256, so a
-# restart or a new image downloads only checkpoints it has not seen. The API mounts the cache
-# read-only and writes nothing but /tmp, which is in memory. Uploads are never stored.
+# The inference API (Dockerfile.serve). CPU only. The image holds no models: at startup and
+# every REFRESH_SECONDS it reads catalog.json from the in-cluster weights bucket and downloads
+# new runs into a cache volume, checkpoints named by SHA-256, so it never downloads the same
+# checkpoint twice. It writes nothing else but /tmp, which is in memory. Uploads are never
+# stored.
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
@@ -48,33 +49,6 @@ spec:
         fsGroup: 10001
         seccompProfile:
           type: RuntimeDefault
-      initContainers:
-        - name: fetch-weights
-          image: ghcr.io/isaiah-harville/opendiagnostics-serve:main
-          imagePullPolicy: IfNotPresent
-          command: [opendiagnostics-fetch-weights]
-          env:
-            - name: WEIGHTS_CACHE
-              value: /cache
-            - name: WEIGHTS_BASE_URL
-              value: http://seaweedfs-s3.seaweedfs.svc.cluster.local:8333/opendiagnostics-weights
-          resources:
-            requests:
-              cpu: 100m
-              memory: 256Mi
-            limits:
-              cpu: "1"
-              memory: 512Mi
-          securityContext:
-            allowPrivilegeEscalation: false
-            readOnlyRootFilesystem: true
-            capabilities:
-              drop: [ALL]
-          volumeMounts:
-            - name: cache
-              mountPath: /cache
-            - name: tmp
-              mountPath: /tmp
       containers:
         - name: serve
           image: ghcr.io/isaiah-harville/opendiagnostics-serve:main
@@ -85,6 +59,10 @@ spec:
           env:
             - name: WEIGHTS_CACHE
               value: /cache
+            - name: WEIGHTS_BASE_URL
+              value: http://seaweedfs-s3.seaweedfs.svc.cluster.local:8333/opendiagnostics-weights
+            - name: REFRESH_SECONDS
+              value: "600"
             - name: ATTRIBUTION_STEPS
               value: "16"
             - name: MAX_CONCURRENT
@@ -92,13 +70,13 @@ spec:
             # One BLAS thread per CPU in the limit.
             - name: OMP_NUM_THREADS
               value: "2"
-          # Loading every model takes up to a minute or two on CPU.
+          # The first start downloads every checkpoint (about 200 MB each) before serving.
           startupProbe:
             httpGet:
               path: /healthz
               port: http
             periodSeconds: 5
-            failureThreshold: 60
+            failureThreshold: 360
           readinessProbe:
             httpGet:
               path: /healthz
@@ -125,7 +103,6 @@ spec:
           volumeMounts:
             - name: cache
               mountPath: /cache
-              readOnly: true
             - name: tmp
               mountPath: /tmp
       volumes:

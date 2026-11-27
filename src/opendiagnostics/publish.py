@@ -6,6 +6,10 @@ which lists the large files (the checkpoint) by size, SHA-256, and download URL.
 dataset's license allows sharing trained weights, the checkpoint is uploaded to the public
 weights bucket (see ``docs/weights.md``) and the example figures (``examples/``) are copied;
 otherwise neither leaves the machine.
+
+The bucket is also what the demo serves. Publishing a run with its checkpoint uploads
+``<project>/<run-id>/demo.tar`` (the run's config, metrics, artifacts, and examples) and
+points the project's entry in ``catalog.json`` at that run.
 """
 
 from __future__ import annotations
@@ -13,9 +17,11 @@ from __future__ import annotations
 import hashlib
 import json
 import shutil
+import tarfile
+import tempfile
 import urllib.request
-from collections.abc import Callable
 from pathlib import Path
+from typing import Protocol
 
 import boto3
 import yaml
@@ -37,6 +43,9 @@ USER_AGENT = "opendiagnostics"
 # figures and checkpoints may be published. Anything else, including credentialed data and
 # unknown licenses, publishes neither.
 OPEN_LICENSES = frozenset({"CC0 1.0", "CC BY 3.0", "CC BY 4.0", "CC BY-NC 4.0", "generated"})
+CATALOG = "catalog.json"
+DEMO_BUNDLE = "demo.tar"
+DEMO_FILES = ("config.yaml", "metrics.json", "artifacts.yaml")
 
 
 class PublishError(RuntimeError):
@@ -72,40 +81,92 @@ def load_artifacts(path: Path) -> Artifacts:
     return Artifacts.model_validate(yaml.safe_load(path.read_text()) or {"files": []})
 
 
-Upload = Callable[[Path, str], None]
+class Bucket(Protocol):
+    def put(self, path: Path, key: str) -> None: ...
+
+    def get(self, key: str) -> bytes | None: ...
 
 
-def upload_weights(path: Path, key: str) -> None:
-    """Upload ``path`` to the weights bucket at ``key``, then check that its public URL
-    serves it. Credentials and the endpoint come from the standard AWS variables."""
-    try:
-        client = boto3.client(
-            "s3",
-            config=Config(
-                s3={"addressing_style": "path"}, request_checksum_calculation="when_required"
-            ),
+class S3Bucket:
+    """The weights bucket, written with the publisher key. Credentials and the endpoint come
+    from the standard AWS variables; the client is made on first use."""
+
+    def __init__(self) -> None:
+        self._client = None
+
+    def _s3(self):
+        if self._client is None:
+            self._client = boto3.client(
+                "s3",
+                config=Config(
+                    s3={"addressing_style": "path"}, request_checksum_calculation="when_required"
+                ),
+            )
+        return self._client
+
+    def _failed(self, action: str, error: Exception) -> PublishError:
+        return PublishError(
+            f"{action} failed: {error}. Set AWS_ENDPOINT_URL_S3, AWS_ACCESS_KEY_ID, and "
+            "AWS_SECRET_ACCESS_KEY to the publisher key (docs/weights.md), or pass "
+            "--no-checkpoint to publish without weights."
         )
-        client.upload_file(
-            str(path), WEIGHTS_BUCKET, key, ExtraArgs={"ContentType": "application/octet-stream"}
-        )
-    except (BotoCoreError, ClientError, S3UploadFailedError) as error:
-        raise PublishError(
-            f"Uploading {path.name} to s3://{WEIGHTS_BUCKET}/{key} failed: {error}. Set "
-            "AWS_ENDPOINT_URL_S3, AWS_ACCESS_KEY_ID, and AWS_SECRET_ACCESS_KEY to the publisher "
-            "key (docs/weights.md), or pass --no-checkpoint to publish without weights."
-        ) from error
-    url = f"{WEIGHTS_URL}/{key}"
-    try:
-        request = urllib.request.Request(url, method="HEAD", headers={"User-Agent": USER_AGENT})
-        with urllib.request.urlopen(request, timeout=30) as r:
-            served = int(r.headers.get("Content-Length", -1))
-    except OSError as error:
-        raise PublishError(
-            f"Uploaded {path.name}, but {url} is not publicly readable: {error}. The bucket "
-            "needs anonymous read and the public route on diagnostics.harville.dev."
-        ) from error
-    if served != path.stat().st_size:
-        raise PublishError(f"{url} serves {served} bytes, expected {path.stat().st_size}")
+
+    def get(self, key: str) -> bytes | None:
+        try:
+            return self._s3().get_object(Bucket=WEIGHTS_BUCKET, Key=key)["Body"].read()
+        except ClientError as error:
+            if error.response.get("Error", {}).get("Code") in ("NoSuchKey", "404"):
+                return None
+            raise self._failed(f"Reading s3://{WEIGHTS_BUCKET}/{key}", error) from error
+        except BotoCoreError as error:
+            raise self._failed(f"Reading s3://{WEIGHTS_BUCKET}/{key}", error) from error
+
+    def put(self, path: Path, key: str) -> None:
+        """Upload ``path`` to ``key``. A checkpoint is then checked at its public URL, which
+        is the one people download from."""
+        try:
+            self._s3().upload_file(
+                str(path),
+                WEIGHTS_BUCKET,
+                key,
+                ExtraArgs={"ContentType": "application/octet-stream"},
+            )
+        except (BotoCoreError, ClientError, S3UploadFailedError) as error:
+            raise self._failed(
+                f"Uploading {path.name} to s3://{WEIGHTS_BUCKET}/{key}", error
+            ) from error
+        if Path(key).name not in LARGE_FILES:
+            return
+        url = f"{WEIGHTS_URL}/{key}"
+        try:
+            request = urllib.request.Request(url, method="HEAD", headers={"User-Agent": USER_AGENT})
+            with urllib.request.urlopen(request, timeout=30) as r:
+                served = int(r.headers.get("Content-Length", -1))
+        except OSError as error:
+            raise PublishError(
+                f"Uploaded {path.name}, but {url} is not publicly readable: {error}. The bucket "
+                "needs anonymous read and the public route on diagnostics.harville.dev."
+            ) from error
+        if served != path.stat().st_size:
+            raise PublishError(f"{url} serves {served} bytes, expected {path.stat().st_size}")
+
+
+def _publish_demo(bucket: Bucket, target: Path, project: str) -> None:
+    with tempfile.TemporaryDirectory() as scratch:
+        bundle = Path(scratch) / DEMO_BUNDLE
+        with tarfile.open(bundle, "w") as tar:
+            for name in DEMO_FILES:
+                tar.add(target / name, arcname=name)
+            if (target / EXAMPLES).is_dir():
+                tar.add(target / EXAMPLES, arcname=EXAMPLES)
+        bucket.put(bundle, f"{project}/{target.name}/{DEMO_BUNDLE}")
+        current = bucket.get(CATALOG)
+        catalog = json.loads(current) if current else {"models": {}}
+        catalog["models"][project] = target.name
+        catalog["models"] = dict(sorted(catalog["models"].items()))
+        listing = Path(scratch) / CATALOG
+        listing.write_text(json.dumps(catalog, indent=2) + "\n")
+        bucket.put(listing, CATALOG)
 
 
 def _license_allows_sharing(run_dir: Path) -> bool:
@@ -119,7 +180,7 @@ def publish_run(
     include_predictions: bool = True,
     allow_dirty: bool = False,
     include_checkpoint: bool = True,
-    upload: Upload = upload_weights,
+    bucket: Bucket | None = None,
 ) -> Path:
     """Copy a finished run into ``project_dir/runs/<run-id>``.
 
@@ -127,8 +188,10 @@ def publish_run(
     trained weights and ``include_checkpoint`` is true, the checkpoint is uploaded to
     ``<project>/<run-id>/checkpoint.ckpt`` in the weights bucket. ``artifacts.yaml`` records
     its size and SHA-256 either way, and its URL once uploaded. Rerunning on the same run
-    keeps the recorded URL and uploads nothing.
+    keeps the recorded URL and does not upload the checkpoint again. Once the checkpoint is in
+    the bucket, the run's demo bundle is uploaded and the catalog points the project at it.
     """
+    bucket = bucket or S3Bucket()
     run_dir, project_dir = Path(run_dir), Path(project_dir)
     if not (run_dir / "metrics.json").exists():
         raise PublishError(f"{run_dir} has no metrics.json; publish a run that finished")
@@ -170,10 +233,12 @@ def publish_run(
         url = previous.url if previous is not None and previous.sha256 == digest else None
         if url is None and include_checkpoint and _license_allows_sharing(run_dir):
             key = f"{project_dir.name}/{run_dir.name}/{name}"
-            upload(source, key)
+            bucket.put(source, key)
             url = f"{WEIGHTS_URL}/{key}"
         artifacts.append(Artifact(file=name, bytes=source.stat().st_size, sha256=digest, url=url))
     (target / "artifacts.yaml").write_text(
         yaml.safe_dump(Artifacts(files=artifacts).model_dump(), sort_keys=False)
     )
+    if include_checkpoint and any(a.url for a in artifacts):
+        _publish_demo(bucket, target, project_dir.name)
     return target

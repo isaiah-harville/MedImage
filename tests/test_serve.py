@@ -3,23 +3,30 @@ import tempfile
 
 import numpy as np
 import pytest
-from conftest import bundle_published, bundler, serve_checkpoint, smoke_project
+from conftest import MemoryBucket, smoke_project
 from fastapi.testclient import TestClient
 from PIL import Image
 
 from opendiagnostics.publish import WEIGHTS_URL
 from opendiagnostics.serve import settings_from
 from opendiagnostics.serve.app import create_app
-from opendiagnostics.serve.models import DISCLAIMER, load_models
-from opendiagnostics.serve.weights import fetch
+from opendiagnostics.serve.models import DISCLAIMER, load_models, refresh
+from opendiagnostics.serve.weights import sync
 
 
 @pytest.fixture(scope="module")
-def client(finished_run, tmp_path_factory):
+def synced(finished_run, tmp_path_factory):
     tmp = tmp_path_factory.mktemp("serve")
-    weights = bundle_published(finished_run, tmp)
-    fetch(weights, tmp / "cache", WEIGHTS_URL, serve_checkpoint(finished_run / "checkpoint.ckpt"))
-    return TestClient(create_app(load_models(weights, tmp / "cache"), attribution_steps=4))
+    bucket = MemoryBucket()
+    smoke_project(finished_run, tmp / "models", bucket=bucket)
+    cache = tmp / "cache"
+    return sync(cache, WEIGHTS_URL, bucket.open_url), cache
+
+
+@pytest.fixture(scope="module")
+def client(synced):
+    models = load_models(*synced)
+    return TestClient(create_app(lambda: models, attribution_steps=4))
 
 
 def _png(size=(32, 32), mode="L", fmt="PNG"):
@@ -86,12 +93,28 @@ def test_unknown_model_and_sample_are_404(client):
     assert client.post("/models/smoke-project/demo/nope/predict").status_code == 404
 
 
-def test_settings_require_an_existing_weights_dir_and_a_cache(tmp_path):
-    settings = settings_from({"WEIGHTS_DIR": str(tmp_path), "WEIGHTS_CACHE": str(tmp_path)})
+def test_settings_require_a_cache_and_default_to_the_public_bucket(tmp_path):
+    settings = settings_from({"WEIGHTS_CACHE": str(tmp_path)})
     assert settings.host_port == ("0.0.0.0", 8080)
     assert str(settings.weights_base_url) == WEIGHTS_URL
-    with pytest.raises(SystemExit, match="WEIGHTS_DIR and WEIGHTS_CACHE"):
-        settings_from({"WEIGHTS_DIR": str(tmp_path)})
+    assert settings.refresh_seconds == 600
+    with pytest.raises(SystemExit, match="WEIGHTS_CACHE is required"):
+        settings_from({})
+
+
+def test_the_service_answers_with_no_models_before_anything_is_published():
+    client = TestClient(create_app(lambda: {}))
+    assert client.get("/healthz").json() == {"status": "ok", "models": 0}
+    assert client.get("/models").json() == []
+    assert client.get("/models/smoke-project/demo").status_code == 404
+
+
+def test_refresh_keeps_unchanged_models_and_drops_retired_ones(synced):
+    folders, cache = synced
+    models = refresh({}, folders, cache)
+    assert list(models) == ["smoke-project"]
+    assert refresh(models, folders, cache)["smoke-project"] is models["smoke-project"]
+    assert refresh(models, [], cache) == {}
 
 
 def test_every_response_is_marked_no_store(client):
@@ -115,13 +138,3 @@ def test_large_uploads_never_touch_disk(client, monkeypatch):
         "/models/smoke-project/predict", files={"file": ("x.png", buffer.getvalue(), "image/png")}
     )
     assert response.status_code == 200
-
-
-def test_bundler_skips_runs_without_a_public_checkpoint_and_exits_3_when_none_remain(
-    finished_run, tmp_path
-):
-    smoke_project(finished_run, tmp_path / "models", include_checkpoint=False)
-    weights = tmp_path / "weights"
-    (weights / "removed-project").mkdir(parents=True)
-    assert bundler().main([str(weights), "--models", str(tmp_path / "models")]) == 3
-    assert list(weights.iterdir()) == []
