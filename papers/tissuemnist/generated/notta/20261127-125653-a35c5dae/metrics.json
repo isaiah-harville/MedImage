@@ -1,0 +1,392 @@
+{
+  "checkpoint_epoch": 6,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 2,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.9631395105163829,
+      "lower": 0.961322247201601,
+      "upper": 0.9648655631664284,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.7871453790363783,
+      "lower": 0.779135655740679,
+      "upper": 0.7957745601992473,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.7866751269035533,
+      "lower": 0.7816402284263959,
+      "upper": 0.7920082487309645,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.7208001017570496,
+      "lower": 0.7132754787802696,
+      "upper": 0.7285695672035217,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Collecting Duct, Connecting Tubule": {
+      "value": 0.9620501489933335,
+      "lower": 0.9596019790623198,
+      "upper": 0.964342406405674,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Collecting Duct, Connecting Tubule": {
+      "value": 0.9314287417550986,
+      "lower": 0.9264670559968913,
+      "upper": 0.9358105066147872,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Distal Convoluted Tubule": {
+      "value": 0.9250640874775138,
+      "lower": 0.9167024124980276,
+      "upper": 0.9322618159094463,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Distal Convoluted Tubule": {
+      "value": 0.5900197614120031,
+      "lower": 0.5596330861220469,
+      "upper": 0.617847752658348,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Glomerular endothelial cells": {
+      "value": 0.9766212464300434,
+      "lower": 0.9717548693757013,
+      "upper": 0.9813676148446971,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Glomerular endothelial cells": {
+      "value": 0.6558523371372666,
+      "lower": 0.6209931168974017,
+      "upper": 0.6919110453382848,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Interstitial endothelial cells": {
+      "value": 0.9744305870491806,
+      "lower": 0.9710622273051039,
+      "upper": 0.9775355093528134,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Interstitial endothelial cells": {
+      "value": 0.8434577262391396,
+      "lower": 0.8294231498066698,
+      "upper": 0.8579960222852903,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Leukocytes": {
+      "value": 0.9685688046358317,
+      "lower": 0.9645806852426949,
+      "upper": 0.9725856067650842,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Leukocytes": {
+      "value": 0.7927570294705597,
+      "lower": 0.7743352819075185,
+      "upper": 0.811652999034819,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Podocytes": {
+      "value": 0.9745484655741936,
+      "lower": 0.9693412171277188,
+      "upper": 0.9789922569824969,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Podocytes": {
+      "value": 0.7243027197106661,
+      "lower": 0.6965118983593566,
+      "upper": 0.7540630099068687,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Proximal Tubule Segments": {
+      "value": 0.9634458811439306,
+      "lower": 0.9610390523850664,
+      "upper": 0.9659049878643989,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Proximal Tubule Segments": {
+      "value": 0.9070711670121591,
+      "lower": 0.9010590686710548,
+      "upper": 0.9134341674101359,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Thick Ascending Limb": {
+      "value": 0.9603868628270366,
+      "lower": 0.9573398731017525,
+      "upper": 0.963552607782394,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Thick Ascending Limb": {
+      "value": 0.8522735495541337,
+      "lower": 0.8418666609830149,
+      "upper": 0.8625150863927035,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 23640,
+    "n_patients": 23640
+  },
+  "test": {
+    "auroc": {
+      "value": 0.9632113966317108,
+      "lower": 0.9620206542408812,
+      "upper": 0.9644634974569086,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.786988528796556,
+      "lower": 0.7814113465379899,
+      "upper": 0.7928250636320147,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.7828045685279188,
+      "lower": 0.7792724196277496,
+      "upper": 0.7864652072758037,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.7167603969573975,
+      "lower": 0.7114400908350944,
+      "upper": 0.7224716186523438,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Collecting Duct, Connecting Tubule": {
+      "value": 0.96176181470327,
+      "lower": 0.9601294448424098,
+      "upper": 0.9633653620359647,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Collecting Duct, Connecting Tubule": {
+      "value": 0.9326084248802711,
+      "lower": 0.9295347924359267,
+      "upper": 0.9354139220190786,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Distal Convoluted Tubule": {
+      "value": 0.9286161050023775,
+      "lower": 0.9231496758409976,
+      "upper": 0.9339606553754114,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Distal Convoluted Tubule": {
+      "value": 0.6054679570763077,
+      "lower": 0.5865805918090017,
+      "upper": 0.6252514644443921,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Glomerular endothelial cells": {
+      "value": 0.9777347291081853,
+      "lower": 0.9736269434757524,
+      "upper": 0.9810803106228007,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Glomerular endothelial cells": {
+      "value": 0.6555147988455147,
+      "lower": 0.6299667690650396,
+      "upper": 0.6815473944347097,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Interstitial endothelial cells": {
+      "value": 0.9748928227184473,
+      "lower": 0.9728259800561498,
+      "upper": 0.9768748013427639,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Interstitial endothelial cells": {
+      "value": 0.8407055896573427,
+      "lower": 0.8306140189567046,
+      "upper": 0.8503053729999603,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Leukocytes": {
+      "value": 0.9654790922346441,
+      "lower": 0.9624763311841927,
+      "upper": 0.968612267571001,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Leukocytes": {
+      "value": 0.7850303068063091,
+      "lower": 0.7717346407051368,
+      "upper": 0.7976850995864461,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Podocytes": {
+      "value": 0.9726204622050005,
+      "lower": 0.9693456486341557,
+      "upper": 0.9759144390947462,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Podocytes": {
+      "value": 0.7183129425710109,
+      "lower": 0.6997944338480169,
+      "upper": 0.7370253817862322,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Proximal Tubule Segments": {
+      "value": 0.9629394649515252,
+      "lower": 0.9611438582107308,
+      "upper": 0.9646776284020562,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Proximal Tubule Segments": {
+      "value": 0.9046806436805075,
+      "lower": 0.8997598188881033,
+      "upper": 0.9094956058769179,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/Thick Ascending Limb": {
+      "value": 0.9616466821302363,
+      "lower": 0.9594564821961192,
+      "upper": 0.9637640811085652,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/Thick Ascending Limb": {
+      "value": 0.8535875668551844,
+      "lower": 0.8466249587019973,
+      "upper": 0.8603967243528587,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 47280,
+    "n_patients": 47280
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 6
+  },
+  "rescored": {
+    "git": {
+      "commit": "841b8f429894cdb06b6b3d5a32ac77c8c5deae68",
+      "branch": "main",
+      "dirty": false
+    },
+    "at": "2026-11-27T23:14:03+00:00"
+  }
+}
