@@ -7,27 +7,36 @@ from pathlib import Path
 from typing import Any
 
 import numpy as np
+import torch
 from monai.transforms import LoadImage
 
 from opendiagnostics.data.base import SPLIT_NAMES, DatasetInfo, MedicalDataModule, Source
 
+_reader = LoadImage(image_only=True, ensure_channel_first=True)
+
+
+def read_image(path: str | Path) -> np.ndarray:
+    """A float32 image min-max scaled to ``[0, 1]``, shaped ``(C, H, W)`` for 2D files, so
+    pixel ``x`` is the column and ``y`` the row."""
+    image = np.asarray(_reader(str(path)), dtype=np.float32)
+    span = image.max() - image.min()
+    image = (image - image.min()) / span if span else image * 0
+    if image.ndim == 3:
+        image = np.ascontiguousarray(np.swapaxes(image, -1, -2))
+    return image
+
 
 class LoadedImages:
-    def __init__(self, paths: list[str], labels: list[int]) -> None:
+    def __init__(self, paths: list[str], targets: list[Any]) -> None:
         self.paths = paths
-        self.labels = labels
-        self.reader = LoadImage(image_only=True, ensure_channel_first=True)
+        self.targets = targets
 
     def __len__(self) -> int:
         return len(self.paths)
 
-    def __getitem__(self, index: int) -> tuple[Any, int]:
-        image = np.asarray(self.reader(self.paths[index]), dtype=np.float32)
-        span = image.max() - image.min()
-        image = (image - image.min()) / span if span else image * 0
-        if image.ndim == 3:
-            image = np.swapaxes(image, -1, -2)
-        return image, self.labels[index]
+    def __getitem__(self, index: int) -> tuple[Any, Any]:
+        # A tensor, not an array: torchvision reads a numpy array as height x width x channel.
+        return torch.from_numpy(read_image(self.paths[index])), self.targets[index]
 
 
 class CSVImageDataModule(MedicalDataModule):

@@ -1,0 +1,123 @@
+# Prepare the data once: uv run python scripts/datasets/isic2019.py data/isic2019
+#   uv run opendiagnostics fit -c models/isic2019-convnext/config.yaml
+name: isic2019-convnext
+notes: ISIC 2019 8-class diagnosis at 384 px. Lesion-level 70/15/15 split of the training data; ISIC 2019
+  has no patient IDs.
+seed_everything: 0
+trainer:
+  accelerator: auto
+  precision: bf16-mixed
+  deterministic: warn
+  max_epochs: 20
+  log_every_n_steps: 50
+  callbacks:
+  - class_path: lightning.pytorch.callbacks.EMAWeightAveraging
+    init_args:
+      decay: 0.999
+  - class_path: lightning.pytorch.callbacks.LearningRateMonitor
+    init_args:
+      logging_interval: epoch
+model:
+  class_path: opendiagnostics.modules.ImageClassifier
+  init_args:
+    network:
+      class_path: timm.create_model
+      init_args:
+        model_name: convnext_small.fb_in22k_ft_in1k_384
+        pretrained: true
+      dict_kwargs:
+        num_classes: 8
+        in_chans: 3
+        drop_path_rate: 0.2
+    tta: true
+    label_smoothing: 0.1
+data:
+  class_path: opendiagnostics.data.CSVImageDataModule
+  init_args:
+    manifest: data/isic2019/manifest.csv
+    split: predefined
+    split_column: split
+    class_names:
+    - MEL
+    - NV
+    - BCC
+    - AK
+    - BKL
+    - DF
+    - VASC
+    - SCC
+    in_channels: 3
+    license: CC BY-NC 4.0
+    citation: ISIC 2019 Challenge training data. Tschandl P, et al. Sci Data 5:180161 (2018); Codella
+      NCF, et al. arXiv:1710.05006 (2017); Hernández-Pérez C, et al. Sci Data 11:641 (2024)
+    batch_size: 24
+    eval_batch_size: 64
+    num_workers: 8
+    train_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: torchvision.transforms.v2.Resize
+          init_args:
+            size:
+            - 384
+            - 384
+            antialias: true
+        - class_path: torchvision.transforms.v2.RandomHorizontalFlip
+        - class_path: torchvision.transforms.v2.RandomVerticalFlip
+        - class_path: torchvision.transforms.v2.RandomAffine
+          init_args:
+            degrees: 180
+            scale:
+            - 0.9
+            - 1.1
+        - class_path: torchvision.transforms.v2.ColorJitter
+          init_args:
+            brightness: 0.1
+            contrast: 0.1
+            saturation: 0.1
+        - class_path: torchvision.transforms.v2.Normalize
+          init_args:
+            mean:
+            - 0.485
+            - 0.456
+            - 0.406
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+    eval_transforms:
+      class_path: torchvision.transforms.v2.Compose
+      init_args:
+        transforms:
+        - class_path: torchvision.transforms.v2.Resize
+          init_args:
+            size:
+            - 384
+            - 384
+            antialias: true
+        - class_path: torchvision.transforms.v2.Normalize
+          init_args:
+            mean:
+            - 0.485
+            - 0.456
+            - 0.406
+            std:
+            - 0.229
+            - 0.224
+            - 0.225
+optimizer:
+  class_path: torch.optim.AdamW
+  init_args:
+    lr: 0.0001
+    weight_decay: 0.05
+lr_scheduler:
+  class_path: torch.optim.lr_scheduler.CosineAnnealingLR
+  init_args:
+    T_max: 20
+    eta_min: 1.0e-06
+checkpoint:
+  monitor: val/balanced_accuracy
+  mode: max
+eval:
+  bootstrap_samples: 1000

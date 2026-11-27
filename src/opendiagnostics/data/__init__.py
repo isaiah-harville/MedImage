@@ -8,9 +8,11 @@ from opendiagnostics.data.base import (
     patient_split,
     summarize,
 )
+from opendiagnostics.data.boxes import BoxManifestDataModule
 from opendiagnostics.data.camelyon import Camelyon16DataModule, Camelyon17DataModule
 from opendiagnostics.data.manifest import CSVImageDataModule
 from opendiagnostics.data.medmnist import MedMNISTDataModule
+from opendiagnostics.data.pcam import PCamDataModule
 from opendiagnostics.data.slides import SlideFeatureDataModule
 from opendiagnostics.data.synthetic import (
     SyntheticClassificationDataModule,
@@ -20,6 +22,7 @@ from opendiagnostics.data.synthetic import (
 
 __all__ = [
     "SPLIT_NAMES",
+    "BoxManifestDataModule",
     "CSVImageDataModule",
     "Camelyon16DataModule",
     "Camelyon17DataModule",
@@ -27,6 +30,7 @@ __all__ = [
     "LeakageError",
     "MedMNISTDataModule",
     "MedicalDataModule",
+    "PCamDataModule",
     "SlideFeatureDataModule",
     "Source",
     "SyntheticClassificationDataModule",

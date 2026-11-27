@@ -18,6 +18,7 @@ classifiers = [
 dependencies = [
     "boto3>=1.36",
     "captum>=0.8",
+    "h5py>=3.10",
     "jsonargparse[signatures]>=4.40",
     "lightning>=2.5",
     "medmnist>=3.0",
@@ -60,6 +61,7 @@ Repository = "https://github.com/isaiah-harville/opendiagnostics"
 [dependency-groups]
 dev = [
     "httpx>=0.28",
+    "openpyxl>=3.1",
     "pytest>=8.3",
     "ruff>=0.8",
     "ty>=0.0.111",

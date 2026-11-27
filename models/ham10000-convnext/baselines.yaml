@@ -1,0 +1,40 @@
+benchmark: ISIC 2018 Task 3 (lesion diagnosis), official held-out test set
+protocol: >-
+  Balanced multiclass accuracy (mean per-class recall of the argmax decision) on the ISIC 2018
+  Task 3 test images, after training on the 10,015 HAM10000 images. Our balanced_accuracy has the
+  same definition. The challenge scored 1,512 test images (Codella et al., arXiv 1902.03368,
+  Section 2.3); we score the images in the ground truth that Harvard Dataverse publishes, and the
+  run's n_samples records how many that is. Leaderboard values are single submissions with no
+  intervals, so a claim to beat one needs its value outside our 95% interval. Entries marked
+  "external data" trained on images beyond HAM10000; ours does not.
+baselines:
+  - method: "MetaOptima Technology Inc., top 10 models averaged (external data)"
+    metrics: {balanced_accuracy: 0.885}
+    source: ISIC 2018 Challenge leaderboard, Task 3, rank 1
+    url: https://challenge.isic-archive.com/leaderboards/2018/
+    notes: Used external data. Codella et al. (arXiv 1902.03368, Section 3.3) also give 0.885 as the best Part 3 result.
+  - method: "DAISYLab, large ensemble with multi-cropping and loss weighting (external data)"
+    metrics: {balanced_accuracy: 0.856}
+    source: ISIC 2018 Challenge leaderboard, Task 3, rank 2
+    url: https://challenge.isic-archive.com/leaderboards/2018/
+    notes: Used external data.
+  - method: "Sun Yat-sen University, ensemble of SENet and PNASNet with test-time augmentation"
+    metrics: {balanced_accuracy: 0.845}
+    source: ISIC 2018 Challenge leaderboard, Task 3, rank 3
+    url: https://challenge.isic-archive.com/leaderboards/2018/
+    notes: No external data.
+  - method: "Li, DenseNet"
+    metrics: {balanced_accuracy: 0.815}
+    source: ISIC 2018 Challenge leaderboard, Task 3, rank 4
+    url: https://challenge.isic-archive.com/leaderboards/2018/
+    notes: No external data.
+  - method: "Ask Sina, average of two approaches"
+    metrics: {balanced_accuracy: 0.812}
+    source: ISIC 2018 Challenge leaderboard, Task 3, rank 5
+    url: https://challenge.isic-archive.com/leaderboards/2018/
+    notes: No external data.
+  - method: "RECOD Titans, average of 15 models trained only with challenge data"
+    metrics: {balanced_accuracy: 0.803}
+    source: ISIC 2018 Challenge leaderboard, Task 3, rank 6
+    url: https://challenge.isic-archive.com/leaderboards/2018/
+    notes: No external data.

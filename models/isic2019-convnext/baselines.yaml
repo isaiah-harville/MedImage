@@ -1,0 +1,8 @@
+benchmark: ISIC 2019 training data, our lesion-level 70/15/15 split
+protocol: >-
+  No published result is comparable. The challenge ranked balanced multiclass accuracy on its
+  8,238-image test set, which adds a ninth "none of the others" class that an 8-class model cannot
+  predict, so its leaderboard does not match this protocol. Results on other splits of the
+  training data test on different lesions and are not listed. Compare our own runs with
+  `opendiagnostics compare` on this split.
+baselines: []

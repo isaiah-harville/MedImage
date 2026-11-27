@@ -4,7 +4,11 @@
 
 ::: opendiagnostics.data.medmnist
 
+::: opendiagnostics.data.pcam
+
 ::: opendiagnostics.data.manifest
+
+::: opendiagnostics.data.boxes
 
 ::: opendiagnostics.data.synthetic
 
