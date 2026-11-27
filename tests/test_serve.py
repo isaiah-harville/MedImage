@@ -1,32 +1,40 @@
+import base64
 import io
 import tempfile
+import time
 
 import numpy as np
 import pytest
 from conftest import MemoryBucket, smoke_project
 from fastapi.testclient import TestClient
+from litserve.utils import wrap_litserve_start
 from PIL import Image
 
 from opendiagnostics.publish import WEIGHTS_URL
 from opendiagnostics.serve import settings_from
-from opendiagnostics.serve.app import create_app
-from opendiagnostics.serve.models import DISCLAIMER, load_models, refresh
+from opendiagnostics.serve.app import ClassifierAPI, create_server, describe
+from opendiagnostics.serve.models import DISCLAIMER
 from opendiagnostics.serve.weights import sync
 
 
+def _ready(client):
+    deadline = time.monotonic() + 120
+    while client.get("/health").status_code != 200:
+        assert time.monotonic() < deadline, "the LitServe worker never became ready"
+        time.sleep(0.2)
+    return client
+
+
 @pytest.fixture(scope="module")
-def synced(finished_run, tmp_path_factory):
+def client(finished_run, tmp_path_factory):
     tmp = tmp_path_factory.mktemp("serve")
     bucket = MemoryBucket()
     smoke_project(finished_run, tmp / "models", bucket=bucket)
     cache = tmp / "cache"
-    return sync(cache, WEIGHTS_URL, bucket.open_url), cache
-
-
-@pytest.fixture(scope="module")
-def client(synced):
-    models = load_models(*synced)
-    return TestClient(create_app(lambda: models, attribution_steps=4))
+    folders = sync(cache, WEIGHTS_URL, bucket.open_url)
+    server = create_server(describe(folders, cache), ClassifierAPI(folders, cache, 4))
+    with wrap_litserve_start(server) as started, TestClient(started.app) as client:
+        yield _ready(client)
 
 
 def _png(size=(32, 32), mode="L", fmt="PNG"):
@@ -35,8 +43,13 @@ def _png(size=(32, 32), mode="L", fmt="PNG"):
     return buffer.getvalue()
 
 
+def _upload(client, data, model="smoke-project"):
+    image = base64.b64encode(data).decode()
+    return client.post("/predict", json={"model": model, "image": image})
+
+
 def test_health_and_model_listing(client):
-    assert client.get("/healthz").json() == {"status": "ok", "models": 1}
+    assert client.get("/health").status_code == 200
     [model] = client.get("/models").json()
     assert model["id"] == "smoke-project"
     assert model["label_mode"] == "binary"
@@ -54,7 +67,9 @@ def test_demo_images_are_listed_served_and_predicted(client):
     first = demos[0]
     image = client.get(first["image_url"])
     assert image.headers["content-type"] == "image/png"
-    result = client.post(f"/models/smoke-project/demo/{first['sample_id']}/predict").json()
+    result = client.post(
+        "/predict", json={"model": "smoke-project", "sample_id": first["sample_id"]}
+    ).json()
     assert result["truth"] == first["truth"]
     assert result["disclaimer"] == DISCLAIMER
     assert [p["class"] for p in result["probabilities"]] in (
@@ -66,9 +81,7 @@ def test_demo_images_are_listed_served_and_predicted(client):
 
 
 def test_upload_is_predicted_and_not_given_a_truth(client):
-    response = client.post(
-        "/models/smoke-project/predict", files={"file": ("x.jpg", _png(fmt="JPEG"), "image/jpeg")}
-    )
+    response = _upload(client, _png(fmt="JPEG"))
     assert response.status_code == 200
     assert response.json()["truth"] is None
     assert response.json()["predicted"][0] in ("class_0", "class_1")
@@ -84,13 +97,36 @@ def test_upload_is_predicted_and_not_given_a_truth(client):
     ],
 )
 def test_bad_uploads_are_refused(client, payload, status):
-    response = client.post("/models/smoke-project/predict", files={"file": ("f", payload)})
-    assert response.status_code == status
+    assert _upload(client, payload).status_code == status
+
+
+def test_a_body_over_the_cap_is_refused_before_it_is_read(client):
+    response = client.post(
+        "/predict",
+        content=b"{" + b" " * (14 * 1024 * 1024) + b"}",
+        headers={"content-type": "application/json"},
+    )
+    assert response.status_code == 413
+
+
+@pytest.mark.parametrize(
+    "body",
+    [
+        {"model": "smoke-project"},
+        {"model": "smoke-project", "sample_id": "a", "image": "AAAA"},
+        {"model": "smoke-project", "image": "not base64!"},
+    ],
+)
+def test_malformed_requests_are_422(client, body):
+    assert client.post("/predict", json=body).status_code == 422
 
 
 def test_unknown_model_and_sample_are_404(client):
     assert client.get("/models/nope/demo").status_code == 404
-    assert client.post("/models/smoke-project/demo/nope/predict").status_code == 404
+    assert client.get("/models/smoke-project/demo/nope.png").status_code == 404
+    assert _upload(client, _png(), model="nope").status_code == 404
+    response = client.post("/predict", json={"model": "smoke-project", "sample_id": "nope"})
+    assert response.status_code == 404
 
 
 def test_settings_require_a_cache_and_default_to_the_public_bucket(tmp_path):
@@ -98,31 +134,22 @@ def test_settings_require_a_cache_and_default_to_the_public_bucket(tmp_path):
     assert settings.host_port == ("0.0.0.0", 8080)
     assert str(settings.weights_base_url) == WEIGHTS_URL
     assert settings.refresh_seconds == 600
+    assert settings.workers == 1
     with pytest.raises(SystemExit, match="WEIGHTS_CACHE is required"):
         settings_from({})
 
 
-def test_the_service_answers_with_no_models_before_anything_is_published():
-    client = TestClient(create_app(lambda: {}))
-    assert client.get("/healthz").json() == {"status": "ok", "models": 0}
-    assert client.get("/models").json() == []
-    assert client.get("/models/smoke-project/demo").status_code == 404
-
-
-def test_refresh_keeps_unchanged_models_and_drops_retired_ones(synced):
-    folders, cache = synced
-    models = refresh({}, folders, cache)
-    assert list(models) == ["smoke-project"]
-    assert refresh(models, folders, cache)["smoke-project"] is models["smoke-project"]
-    assert refresh(models, [], cache) == {}
+def test_the_service_answers_with_no_models_before_anything_is_published(tmp_path):
+    server = create_server({}, ClassifierAPI([], tmp_path, 4))
+    with wrap_litserve_start(server) as started, TestClient(started.app) as client:
+        _ready(client)
+        assert client.get("/models").json() == []
+        assert _upload(client, _png()).status_code == 404
 
 
 def test_every_response_is_marked_no_store(client):
     assert client.get("/models").headers["cache-control"] == "no-store"
-    response = client.post(
-        "/models/smoke-project/predict", files={"file": ("x.png", _png(), "image/png")}
-    )
-    assert response.headers["cache-control"] == "no-store"
+    assert _upload(client, _png()).headers["cache-control"] == "no-store"
 
 
 def test_large_uploads_never_touch_disk(client, monkeypatch):
@@ -134,7 +161,21 @@ def test_large_uploads_never_touch_disk(client, monkeypatch):
     buffer = io.BytesIO()
     Image.fromarray(noise).save(buffer, "PNG")
     assert buffer.tell() > 2 * 1024 * 1024
-    response = client.post(
-        "/models/smoke-project/predict", files={"file": ("x.png", buffer.getvalue(), "image/png")}
-    )
-    assert response.status_code == 200
+    assert _upload(client, buffer.getvalue()).status_code == 200
+
+
+def test_the_watcher_restarts_only_when_the_catalog_names_different_runs(tmp_path, monkeypatch):
+    import threading
+
+    from opendiagnostics import serve
+
+    served = [tmp_path / "a" / "r1"]
+    answers = iter([list(served), None, [tmp_path / "a" / "r2"]])
+    kills = []
+    monkeypatch.setattr(serve, "_synced", lambda cache, base_url: next(answers))
+    monkeypatch.setattr(serve.os, "kill", lambda pid, sig: kills.append(sig))
+    settings = settings_from({"WEIGHTS_CACHE": str(tmp_path), "REFRESH_SECONDS": "1"})
+    stop = threading.Event()
+    monkeypatch.setattr(stop, "wait", lambda timeout: False)
+    serve.watch(settings, served, stop)
+    assert kills == [serve.signal.SIGTERM]

@@ -1,9 +1,10 @@
-"""The demo inference service: ``opendiagnostics-serve``.
+"""The demo inference service: ``opendiagnostics-serve``, built on LitServe.
 
-It serves whatever ``catalog.json`` in the weights bucket names. At startup, and then every
-``REFRESH_SECONDS``, it downloads new runs into ``WEIGHTS_CACHE`` and loads them, so a newly
-published model appears without a new image or a restart. It starts and answers with no
-models when nothing is published yet.
+It serves whatever ``catalog.json`` in the weights bucket names. At startup it downloads the
+cataloged runs into ``WEIGHTS_CACHE`` and starts a LitServe server with one worker that
+holds every model. Every ``REFRESH_SECONDS`` it checks the catalog again; when it changes,
+it downloads the new runs and exits so its supervisor (Kubernetes) restarts it on the new
+set. It starts and answers with no models when nothing is published yet.
 
 Configuration comes from the environment, read and checked once at startup:
 
@@ -14,13 +15,14 @@ Configuration comes from the environment, read and checked once at startup:
 | ``REFRESH_SECONDS`` | ``600`` | how often to check the catalog; ``0`` checks only at startup |
 | ``LISTEN_ADDRESS`` | ``:8080`` | ``host:port`` to listen on |
 | ``ATTRIBUTION_STEPS`` | ``16`` | Integrated Gradients steps per explanation |
-| ``MAX_CONCURRENT`` | ``2`` | predictions that may run at once |
+| ``WORKERS`` | ``1`` | LitServe worker processes; each holds every model |
 """
 
 from __future__ import annotations
 
 import logging
 import os
+import signal
 import threading
 from pathlib import Path
 
@@ -37,7 +39,7 @@ class Settings(BaseModel):
     refresh_seconds: int = Field(600, ge=0)
     listen_address: str = ":8080"
     attribution_steps: int = Field(16, ge=1, le=256)
-    max_concurrent: int = Field(2, ge=1, le=64)
+    workers: int = Field(1, ge=1, le=8)
 
     @property
     def host_port(self) -> tuple[str, int]:
@@ -54,40 +56,45 @@ def settings_from(environ: dict[str, str]) -> Settings:
         raise SystemExit(f"invalid configuration: {problems}. WEIGHTS_CACHE is required.") from None
 
 
-def main() -> None:
-    import uvicorn
+def _synced(cache: Path, base_url: str) -> list[Path] | None:
+    from opendiagnostics.serve.weights import sync
 
-    from opendiagnostics.serve.app import create_app
-    from opendiagnostics.serve.models import refresh
-    from opendiagnostics.serve.weights import prune, sync
+    try:
+        return sync(cache, base_url)
+    except Exception:
+        log.exception("reading the weights bucket failed")
+        return None
+
+
+def watch(settings: Settings, served: list[Path], stop: threading.Event) -> None:
+    """Exit the process once the catalog names a different set of runs."""
+    cache, base_url = settings.weights_cache, str(settings.weights_base_url)
+    while not stop.wait(settings.refresh_seconds):
+        folders = _synced(cache, base_url)
+        if folders is not None and set(folders) != set(served):
+            log.info("the catalog changed; restarting to serve %d models", len(folders))
+            os.kill(os.getpid(), signal.SIGTERM)
+            return
+
+
+def main() -> None:
+    from opendiagnostics.serve.app import ClassifierAPI, create_server, describe
+    from opendiagnostics.serve.weights import prune
 
     logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
+    # LitServe stops its workers cleanly on KeyboardInterrupt; Kubernetes and watch() send TERM.
+    signal.signal(signal.SIGTERM, signal.default_int_handler)
     settings = settings_from(dict(os.environ))
-    cache, base_url = settings.weights_cache, str(settings.weights_base_url)
-    served = [{}]
-
-    def update() -> None:
-        folders = sync(cache, base_url)
-        served[0] = refresh(served[0], folders, cache)
-        prune(cache, folders)
-        log.info("serving %d models", len(served[0]))
-
-    def safely_update() -> None:
-        try:
-            update()
-        except Exception:
-            log.exception("refreshing the models failed; serving the previous set")
-
-    def keep_updating() -> None:
-        while not stop.wait(settings.refresh_seconds):
-            safely_update()
-
-    safely_update()
-
+    cache = settings.weights_cache
+    folders = _synced(cache, str(settings.weights_base_url)) or []
+    prune(cache, folders)
+    listings = describe(folders, cache)
+    log.info("serving %d models", len(listings))
+    api = ClassifierAPI(folders, cache, settings.attribution_steps)
+    server = create_server(listings, api, settings.workers)
     stop = threading.Event()
     if settings.refresh_seconds:
-        threading.Thread(target=keep_updating, name="refresh", daemon=True).start()
-    app = create_app(lambda: served[0], settings.attribution_steps, settings.max_concurrent)
+        threading.Thread(target=watch, args=(settings, folders, stop), daemon=True).start()
     host, port = settings.host_port
-    uvicorn.run(app, host=host, port=port, log_level="info", access_log=False)
+    server.run(host=host, port=port, generate_client_file=False, access_log=False)
     stop.set()

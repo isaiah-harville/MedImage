@@ -1,13 +1,13 @@
 # Demo API
 
 The contract between the demo frontend (`web/`) and the inference service
-(`opendiagnostics.serve`). All responses are JSON unless stated. The service runs on CPU and
-holds no state: uploads are processed in memory and never stored or logged, and every
-response carries `Cache-Control: no-store`.
+(`opendiagnostics.serve`, built on LitServe). All responses are JSON unless stated. The
+service runs on CPU and holds no state: uploads are processed in memory and never stored or
+logged, and every response carries `Cache-Control: no-store`.
 
-## `GET /healthz`
+## `GET /health`
 
-`200 {"status": "ok", "models": <count>}` once every model is loaded.
+LitServe's health check: `200 ok` once its worker has loaded every model, `503` before.
 
 ## `GET /models`
 
@@ -53,21 +53,24 @@ Curated test images from the open dataset, with ground truth:
 
 The demo image as `image/png`.
 
-## `POST /models/{id}/demo/{sample_id}/predict`
+## `POST /predict`
 
-Runs the model on a demo image. Returns a `Prediction`.
+Runs a model on one image. The JSON body names the model and gives exactly one input:
 
-## `POST /models/{id}/predict`
+```json
+{"model": "pneumoniamnist-convnext", "sample_id": "test-12"}
+{"model": "pneumoniamnist-convnext", "image": "<base64 PNG or JPEG>"}
+```
 
-`multipart/form-data` with one field, `file`: a PNG or JPEG, at most 10 MB and
-4096 x 4096 pixels. Returns a `Prediction`. Errors:
+`sample_id` runs a demo image; `image` runs an upload of at most 10 MB and 4096 x 4096
+pixels. Returns a `Prediction`. Errors:
 
 | Status | When |
 |---|---|
 | 404 | unknown model id or sample id |
-| 413 | file over 10 MB or image over 4096 x 4096 |
+| 413 | body over about 13.4 MB, file over 10 MB, or image over 4096 x 4096 |
 | 415 | not a PNG or JPEG |
-| 422 | the file could not be decoded as an image |
+| 422 | neither or both inputs, `image` not base64, or the file could not be decoded |
 
 ## `Prediction`
 

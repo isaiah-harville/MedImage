@@ -74,7 +74,7 @@ describe('upload action', () => {
       request: uploadRequest(png()),
     });
 
-    expect(calls).toEqual(['http://api/models/pneumoniamnist-convnext/predict']);
+    expect(calls).toEqual(['http://api/predict']);
     expect(result).toMatchObject({ source: 'upload', sampleId: null, prediction: { truth: null } });
   });
 

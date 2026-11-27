@@ -1,36 +1,65 @@
-"""The inference HTTP API. The contract is deploy/api.md.
+"""The inference API, served by LitServe. The contract is deploy/api.md.
 
-Uploads stay in memory for the length of one request and are never written to disk, stored,
-or logged: the body is read into memory with a size cap and parsed there, and Starlette's
-multipart parser is set never to spool a part to a temporary file. Every response carries
-``Cache-Control: no-store``. Predictions run in a bounded number of threads so a burst of
-requests cannot exhaust memory.
+One ``LitAPI`` at ``POST /predict`` runs every model, in a LitServe worker process that loads
+them once. The API process answers the model listing and demo images from each run's files.
+
+Uploads arrive as base64 inside a JSON body, which LitServe's size limit caps before it is
+all read. They are decoded in memory, handed to the worker over an in-memory queue, and never
+written to disk, stored, or logged. Every response carries ``Cache-Control: no-store``.
 """
 
-from __future__ import annotations
-
+# No `from __future__ import annotations` here: LitServe builds the /predict endpoint from
+# decode_request's type hint at runtime, and FastAPI cannot resolve a string annotation.
+import base64
+import binascii
 import io
-import threading
-from collections.abc import Callable, Mapping
-from typing import Any
+from collections.abc import Mapping
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any, Self
 
-from fastapi import FastAPI, HTTPException, Request
-from fastapi.concurrency import run_in_threadpool
+import litserve as ls
+from fastapi import HTTPException, Request
 from fastapi.responses import FileResponse
 from PIL import Image, UnidentifiedImageError
-from starlette.datastructures import UploadFile as StarletteUploadFile
-from starlette.formparsers import MultiPartParser
+from pydantic import BaseModel, ConfigDict, model_validator
 
-from opendiagnostics.serve.models import ServedModel, predict
+from opendiagnostics.serve.models import DemoImage, ServedModel, load_models, predict
 
 MAX_UPLOAD_BYTES = 10 * 1024 * 1024
-# The multipart envelope around the file adds a few hundred bytes.
-MAX_BODY_BYTES = MAX_UPLOAD_BYTES + 64 * 1024
-# Keep every multipart part in memory; the body cap above bounds how much that can be.
-MultiPartParser.spool_max_size = MAX_BODY_BYTES
+# Base64 grows the image by a third; the JSON around it adds a little.
+MAX_BODY_BYTES = MAX_UPLOAD_BYTES * 4 // 3 + 64 * 1024
 MAX_SIDE = 4096
 FORMATS = {"PNG", "JPEG"}
 Image.MAX_IMAGE_PIXELS = MAX_SIDE * MAX_SIDE
+
+
+@dataclass(frozen=True)
+class Listing:
+    """What the API process knows about a served model: no weights, only its files."""
+
+    description: dict[str, Any]
+    demos: dict[str, DemoImage]
+
+
+class PredictRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    model: str
+    sample_id: str | None = None
+    image: str | None = None
+
+    @model_validator(mode="after")
+    def _one_input(self) -> Self:
+        if (self.sample_id is None) == (self.image is None):
+            raise ValueError("send exactly one of sample_id (a demo image) or image (base64)")
+        return self
+
+
+def describe(folders: list[Path], cache: Path) -> dict[str, Listing]:
+    """Each model's listing. The weights are loaded to check them, then let go: only the
+    worker keeps models in memory."""
+    return {i: Listing(m.description, m.demos) for i, m in load_models(folders, cache).items()}
 
 
 def _decode(data: bytes) -> Image.Image:
@@ -49,106 +78,95 @@ def _decode(data: bytes) -> Image.Image:
     return image
 
 
-async def _read_limited(request: Request) -> bytes:
-    """The request body, refusing anything over the cap before it is all read."""
-    declared = request.headers.get("content-length")
-    if declared and declared.isdigit() and int(declared) > MAX_BODY_BYTES:
+def _upload(encoded: str) -> Image.Image:
+    try:
+        data = base64.b64decode(encoded, validate=True)
+    except (binascii.Error, ValueError) as error:
+        raise HTTPException(422, "image must be base64") from error
+    if len(data) > MAX_UPLOAD_BYTES:
         raise HTTPException(413, "files may be at most 10 MB")
-    chunks, size = [], 0
-    async for chunk in request.stream():
-        size += len(chunk)
-        if size > MAX_BODY_BYTES:
-            raise HTTPException(413, "files may be at most 10 MB")
-        chunks.append(chunk)
-    return b"".join(chunks)
+    return _decode(data)
 
 
-def _buffered(request: Request, body: bytes) -> Request:
-    """A copy of ``request`` whose body is the in-memory ``body``."""
-    sent = False
+class ClassifierAPI(ls.LitAPI):
+    """Every published classifier behind one endpoint; the request names the model."""
 
-    async def receive() -> dict[str, Any]:
-        nonlocal sent
-        if sent:
-            return {"type": "http.disconnect"}
-        sent = True
-        return {"type": "http.request", "body": body, "more_body": False}
+    def __init__(self, folders: list[Path], cache: Path, attribution_steps: int) -> None:
+        super().__init__(api_path="/predict")
+        self.folders, self.cache, self.attribution_steps = folders, cache, attribution_steps
+        self.models: dict[str, ServedModel] = {}
 
-    return Request(request.scope, receive)
+    def setup(self, device: str) -> None:
+        self.models = load_models(self.folders, self.cache)
 
-
-def create_app(
-    models: Callable[[], Mapping[str, ServedModel]],
-    attribution_steps: int = 16,
-    max_concurrent: int = 2,
-) -> FastAPI:
-    """``models`` is called per request, so the served set can change while running."""
-    app = FastAPI(title="OpenDiagnostics demo API", docs_url=None, redoc_url=None)
-    slots = threading.BoundedSemaphore(max_concurrent)
-
-    def model_for(model_id: str) -> ServedModel:
-        model = models().get(model_id)
+    def decode_request(
+        self, request: PredictRequest, **kwargs: Any
+    ) -> tuple[ServedModel, Image.Image, str | None]:
+        model = self.models.get(request.model)
         if model is None:
+            raise HTTPException(404, f"no model {request.model!r}")
+        if request.image is not None:
+            return model, _upload(request.image), None
+        demo = model.demos.get(request.sample_id or "")
+        if demo is None:
+            raise HTTPException(404, f"no demo image {request.sample_id!r} for {model.id}")
+        with Image.open(demo.path) as image:
+            image.load()
+            return model, image.copy(), demo.truth
+
+    def predict(
+        self, x: tuple[ServedModel, Image.Image, str | None], **kwargs: Any
+    ) -> dict[str, Any]:
+        model, image, truth = x
+        return predict(model, image, truth, self.attribution_steps)
+
+    def encode_response(self, output: dict[str, Any], **kwargs: Any) -> dict[str, Any]:
+        return output
+
+
+def create_server(
+    listings: Mapping[str, Listing], api: ClassifierAPI, workers: int = 1
+) -> ls.LitServer:
+    server = ls.LitServer(
+        api,
+        accelerator="cpu",
+        workers_per_device=workers,
+        timeout=120,
+        max_payload_size=MAX_BODY_BYTES,
+        disable_openapi_url=True,
+    )
+    app = server.app
+
+    def listing_for(model_id: str) -> Listing:
+        listing = listings.get(model_id)
+        if listing is None:
             raise HTTPException(404, f"no model {model_id!r}")
-        return model
+        return listing
 
-    def run(model: ServedModel, image: Image.Image, truth: str | None) -> dict[str, Any]:
-        with slots:
-            return predict(model, image, truth, attribution_steps)
-
-    @app.get("/healthz")
-    def healthz() -> dict[str, Any]:
-        return {"status": "ok", "models": len(models())}
+    def demo_for(model_id: str, sample_id: str) -> DemoImage:
+        demo = listing_for(model_id).demos.get(sample_id)
+        if demo is None:
+            raise HTTPException(404, f"no demo image {sample_id!r} for {model_id}")
+        return demo
 
     @app.get("/models")
     def list_models() -> list[dict[str, Any]]:
-        return [m.description for m in models().values()]
+        return [listing.description for listing in listings.values()]
 
     @app.get("/models/{model_id}/demo")
     def demos(model_id: str) -> list[dict[str, Any]]:
-        model = model_for(model_id)
         return [
             {
                 "sample_id": d.sample_id,
                 "truth": d.truth,
                 "image_url": f"/models/{model_id}/demo/{d.sample_id}.png",
             }
-            for d in model.demos.values()
+            for d in listing_for(model_id).demos.values()
         ]
-
-    def demo_for(model: ServedModel, sample_id: str):
-        if sample_id not in model.demos:
-            raise HTTPException(404, f"no demo image {sample_id!r} for {model.id}")
-        return model.demos[sample_id]
 
     @app.get("/models/{model_id}/demo/{sample_id}.png")
     def demo_image(model_id: str, sample_id: str) -> FileResponse:
-        demo = demo_for(model_for(model_id), sample_id)
-        return FileResponse(demo.path, media_type="image/png")
-
-    @app.post("/models/{model_id}/demo/{sample_id}/predict")
-    def predict_demo(model_id: str, sample_id: str) -> dict[str, Any]:
-        model = model_for(model_id)
-        demo = demo_for(model, sample_id)
-        with Image.open(demo.path) as image:
-            image.load()
-            return run(model, image, demo.truth)
-
-    @app.post("/models/{model_id}/predict")
-    async def predict_upload(model_id: str, request: Request) -> dict[str, Any]:
-        model = model_for(model_id)
-        body = await _read_limited(request)
-        form = await _buffered(request, body).form(max_files=1, max_fields=0)
-        upload = form.get("file")
-        if not isinstance(upload, StarletteUploadFile):
-            raise HTTPException(422, "send the image as a multipart form field named file")
-        data = await upload.read()
-        await form.close()
-        if len(data) > MAX_UPLOAD_BYTES:
-            raise HTTPException(413, "files may be at most 10 MB")
-        image = _decode(data)
-        del data, body
-        return await run_in_threadpool(run, model, image, None)
+        return FileResponse(demo_for(model_id, sample_id).path, media_type="image/png")
 
     @app.middleware("http")
     async def no_store(request: Request, call_next):
@@ -156,4 +174,4 @@ def create_app(
         response.headers["Cache-Control"] = "no-store"
         return response
 
-    return app
+    return server

@@ -139,21 +139,6 @@ def load_models(folders: list[Path], cache: Path) -> dict[str, ServedModel]:
     return {m.id: m for m in sorted(models, key=_rank)}
 
 
-def refresh(
-    models: dict[str, ServedModel], folders: list[Path], cache: Path
-) -> dict[str, ServedModel]:
-    """The models for ``folders``, reusing those in ``models`` whose run has not changed."""
-    kept, new = [], []
-    for folder in folders:
-        current = models.get(folder.parent.name)
-        if current is not None and current.description["run_id"] == folder.name:
-            kept.append(current)
-        else:
-            new.append(folder)
-    loaded = kept + list(load_models(new, cache).values())
-    return {m.id: m for m in sorted(loaded, key=_rank)}
-
-
 def _png(image: torch.Tensor) -> str:
     buffer = io.BytesIO()
     Image.fromarray(image.permute(1, 2, 0).numpy()).save(buffer, format="PNG")

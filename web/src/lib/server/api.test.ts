@@ -73,9 +73,10 @@ describe('createApiClient', () => {
 
     const result = await api.predictDemo('pneumoniamnist-convnext', 'test 12/../x');
 
-    expect(calls[0]).toMatchObject({
-      method: 'POST',
-      url: 'http://api/models/pneumoniamnist-convnext/demo/test%2012%2F..%2Fx/predict',
+    expect(calls[0]).toMatchObject({ method: 'POST', url: 'http://api/predict' });
+    expect(JSON.parse(String(calls[0]?.body))).toEqual({
+      model: 'pneumoniamnist-convnext',
+      sample_id: 'test 12/../x',
     });
     expect(result).toEqual({
       model: 'pneumoniamnist-convnext',
@@ -94,16 +95,18 @@ describe('createApiClient', () => {
     });
   });
 
-  it('posts an upload as multipart form data in the field "file"', async () => {
+  it('posts an upload as base64 in a JSON body', async () => {
     const { fetch, calls } = fakeFetch(() => json({ ...prediction, truth: null }));
     const api = createApiClient({ baseUrl: 'http://api', fetch });
     const file = new File([new Uint8Array([1, 2, 3])], 'scan.png', { type: 'image/png' });
 
     const result = await api.predictUpload('pneumoniamnist-convnext', file);
 
-    expect(calls[0]?.url).toBe('http://api/models/pneumoniamnist-convnext/predict');
-    const body = calls[0]?.body;
-    expect(body instanceof FormData && body.get('file') instanceof File).toBe(true);
+    expect(calls[0]?.url).toBe('http://api/predict');
+    expect(JSON.parse(String(calls[0]?.body))).toEqual({
+      model: 'pneumoniamnist-convnext',
+      image: 'AQID',
+    });
     expect(result.truth).toBeNull();
   });
 

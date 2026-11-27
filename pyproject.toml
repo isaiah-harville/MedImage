@@ -45,8 +45,7 @@ cpu = ["torch>=2.6", "torchvision>=0.21"]
 cu132 = ["torch>=2.6", "torchvision>=0.21"]
 serve = [
     "fastapi>=0.115",
-    "python-multipart>=0.0.18",
-    "uvicorn>=0.32",
+    "litserve>=0.2.19",
 ]
 
 [project.scripts]

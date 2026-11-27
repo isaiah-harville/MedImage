@@ -24,12 +24,22 @@ const server = createServer((req, res) => {
     res.writeHead(status, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify(body));
   };
-  const model = modelsJson.find((m) => m.id === parts[1]);
-
-  if (req.method === 'GET' && url.pathname === '/healthz') {
-    return json(200, { status: 'ok', models: modelsJson.length });
-  }
+  if (req.method === 'GET' && url.pathname === '/health') return res.end('ok');
   if (req.method === 'GET' && url.pathname === '/models') return json(200, modelsJson);
+  if (req.method === 'POST' && url.pathname === '/predict') {
+    const chunks: Buffer[] = [];
+    req.on('data', (chunk: Buffer) => chunks.push(chunk));
+    req.on('end', () => {
+      const body = JSON.parse(Buffer.concat(chunks).toString());
+      if (!modelsJson.some((m) => m.id === body.model)) return json(404, { detail: 'no model' });
+      if (body.image) return json(200, prediction(null, 1));
+      const demo = demosJson(body.model).find((d) => d.sample_id === body.sample_id);
+      if (!demo) return json(404, { detail: 'no demo image' });
+      setTimeout(() => json(200, prediction(demo.truth, seedOf(demo.sample_id))), 300);
+    });
+    return;
+  }
+  const model = modelsJson.find((m) => m.id === parts[1]);
   if (parts[0] !== 'models' || !model) return json(404, { detail: 'not found' });
 
   const demos = demosJson(model.id);
@@ -39,16 +49,6 @@ const server = createServer((req, res) => {
     if (!demos.some((d) => d.sample_id === sampleId)) return json(404, { detail: 'not found' });
     res.writeHead(200, { 'Content-Type': 'image/png' });
     return res.end(syntheticPng({ size: 224, seed: seedOf(sampleId), heat: false }));
-  }
-  if (req.method === 'POST' && parts.length === 5 && parts[4] === 'predict') {
-    const demo = demos.find((d) => d.sample_id === parts[3]);
-    if (!demo) return json(404, { detail: 'not found' });
-    return setTimeout(() => json(200, prediction(demo.truth, seedOf(demo.sample_id))), 300);
-  }
-  if (req.method === 'POST' && parts.length === 3 && parts[2] === 'predict') {
-    req.resume();
-    req.on('end', () => json(200, prediction(null, 1)));
-    return;
   }
   return json(404, { detail: 'not found' });
 });

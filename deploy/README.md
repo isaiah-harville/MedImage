@@ -15,10 +15,11 @@ site's privacy page (`web/src/routes/privacy`) states it to users. Request metad
 logged; uploaded content never is.
 
 - **In memory only.** The frontend reads the upload with `request.formData()` and
-  forwards it from memory. The API reads the body into memory with a 10 MB cap and parses
-  it there; Starlette's multipart parser is set never to spool a part to a temporary file,
-  and a test fails if one is. Both pods' `/tmp` is a RAM-backed `emptyDir`, so even a
-  library that spooled could not reach a node's disk.
+  forwards it from memory as base64 in a JSON body. LitServe's size limit refuses a body
+  over the cap before it is all read; the API parses the JSON in memory and hands the image
+  to its worker over an in-memory queue. A test fails if an upload is spooled to a
+  temporary file. Both pods' `/tmp` is a RAM-backed `emptyDir`, so even a library that
+  spooled could not reach a node's disk.
 - **Gone after the response.** Nothing keeps the image or the result once the response
   is sent. Nothing stores uploads or results: the only volume holds published models
   downloaded from the weights bucket. Responses carry `Cache-Control: no-store`.
@@ -40,8 +41,10 @@ invariant 9 in `AGENTS.md`.
 
 ## Parts
 
-- **`opendiagnostics.serve`**, the inference API (`Dockerfile.serve`). It serves the
-  published models on CPU and implements the [demo API](api.md). Only the frontend can
+- **`opendiagnostics.serve`**, the inference API (`Dockerfile.serve`), built on
+  [LitServe](https://lightning.ai/docs/litserve). One LitAPI at `POST /predict` runs every
+  published model in a worker process; the API process lists models and serves demo images.
+  It implements the [demo API](api.md). Only the frontend can
   reach it. Its only outbound connections are DNS and the in-cluster S3 port, used to
   download published models.
 - **`web/`**, the SvelteKit frontend (`web/Dockerfile`), with the privacy policy at
@@ -57,7 +60,7 @@ invariant 9 in `AGENTS.md`.
 | `REFRESH_SECONDS` | `600` | how often to check the catalog for new models; `0` checks only at startup |
 | `LISTEN_ADDRESS` | `:8080` | `host:port` to listen on |
 | `ATTRIBUTION_STEPS` | `16` | Integrated Gradients steps per explanation |
-| `MAX_CONCURRENT` | `2` | predictions that may run at once |
+| `WORKERS` | `1` | LitServe worker processes; each holds every model, so each adds its memory |
 
 ## Run it locally
 
@@ -84,13 +87,17 @@ catalog.json                         {"models": {"<project>": "<run-id>", ...}}
 <project>/<run-id>/checkpoint.ckpt
 ```
 
-At startup, and every `REFRESH_SECONDS`, the API reads the catalog from the in-cluster
-SeaweedFS S3 endpoint. It downloads each new run's `demo.tar` into the cache volume, and its
-checkpoint as `<sha256>.ckpt` after checking the size and SHA-256 against `artifacts.yaml`.
-Anything already cached is not downloaded again. It then loads new runs, drops retired
-ones, and deletes cached files the catalog no longer names. A model that fails to download
-or load is logged and left out. With no catalog, the API serves no models and the site
-says so. See [model weights](../docs/weights.md).
+At startup the API reads the catalog from the in-cluster SeaweedFS S3 endpoint. It downloads
+each run's `demo.tar` into the cache volume, and its checkpoint as `<sha256>.ckpt` after
+checking the size and SHA-256 against `artifacts.yaml`. Anything already cached is not
+downloaded again, and cached files the catalog no longer names are deleted. LitServe then
+starts one worker that loads every model. A model that fails to download or load is logged
+and left out. With no catalog, the API serves no models and the site says so.
+
+LitServe fixes its workers at startup, so new models need a restart. Every
+`REFRESH_SECONDS` the API checks the catalog; when it names a different set of runs, the API
+downloads them and exits cleanly, and Kubernetes restarts it on the new set. The demo is
+down for the restart, about a minute, since the new models are already cached. See [model weights](../docs/weights.md).
 
 ## Deployment
 

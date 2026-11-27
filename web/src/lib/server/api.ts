@@ -73,12 +73,19 @@ export function createApiClient({
       request(`${sample(id, sampleId)}.png`),
 
     predictDemo: (id: string, sampleId: string): Promise<Prediction> =>
-      json(predictionSchema, `${sample(id, sampleId)}/predict`, { method: 'POST' }),
+      json(predictionSchema, '/predict', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ model: id, sample_id: sampleId }),
+      }),
 
-    predictUpload: (id: string, file: File): Promise<Prediction> => {
-      const body = new FormData();
-      body.set('file', file);
-      return json(predictionSchema, `${model(id)}/predict`, { method: 'POST', body });
+    predictUpload: async (id: string, file: File): Promise<Prediction> => {
+      const image = Buffer.from(await file.arrayBuffer()).toString('base64');
+      return json(predictionSchema, '/predict', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ model: id, image }),
+      });
     },
   };
 }

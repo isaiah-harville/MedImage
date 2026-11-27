@@ -1,7 +1,8 @@
-# The inference API (Dockerfile.serve). CPU only. The image holds no models: at startup and
-# every REFRESH_SECONDS it reads catalog.json from the in-cluster weights bucket and downloads
-# new runs into a cache volume, checkpoints named by SHA-256, so it never downloads the same
-# checkpoint twice. It writes nothing else but /tmp, which is in memory. Uploads are never
+# The inference API: LitServe (Dockerfile.serve), CPU only. The image holds no models: at
+# startup it reads catalog.json from the in-cluster weights bucket and downloads the runs into
+# a cache volume, checkpoints named by SHA-256, so it never downloads one twice. Every
+# REFRESH_SECONDS it checks the catalog again and exits when it changed, so the pod restarts
+# on the new models. It writes nothing else but /tmp, which is in memory. Uploads are never
 # stored.
 apiVersion: v1
 kind: PersistentVolumeClaim
@@ -65,26 +66,26 @@ spec:
               value: "600"
             - name: ATTRIBUTION_STEPS
               value: "16"
-            - name: MAX_CONCURRENT
-              value: "2"
+            - name: WORKERS
+              value: "1"
             # One BLAS thread per CPU in the limit.
             - name: OMP_NUM_THREADS
               value: "2"
           # The first start downloads every checkpoint (about 200 MB each) before serving.
           startupProbe:
             httpGet:
-              path: /healthz
+              path: /health
               port: http
             periodSeconds: 5
             failureThreshold: 360
           readinessProbe:
             httpGet:
-              path: /healthz
+              path: /health
               port: http
             periodSeconds: 10
           livenessProbe:
             httpGet:
-              path: /healthz
+              path: /health
               port: http
             periodSeconds: 20
             timeoutSeconds: 5
