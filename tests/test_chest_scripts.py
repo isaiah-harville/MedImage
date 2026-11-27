@@ -145,11 +145,30 @@ images/00000004_001.png,4,Pleural_Thickening|Effusion,train
     assert batch["target"].sum(1).tolist() == [0, 2]
 
 
-def test_nih_images_outside_both_lists_are_an_error(scripts):
+@pytest.mark.parametrize(
+    ("findings", "train_val", "test", "error"),
+    [
+        ("Mass", {"b.png"}, set(), "neither"),
+        ("Mass", {"a.png"}, {"a.png"}, "in both NIH lists"),
+        ("Mass|Fracture", {"a.png"}, set(), r"outside the 14 NIH labels: \['Fracture'\]"),
+        ("Mass", {"a.png", "b.png"}, set(), "Data_Entry has 1 images, the NIH lists 2"),
+    ],
+)
+def test_nih_metadata_that_disagrees_is_an_error(scripts, findings, train_val, test, error):
     nih = scripts("nih_chestxray14")
-    entry = {"Image Index": "a.png", "Finding Labels": "Mass", "Patient ID": "1"}
-    with pytest.raises(RuntimeError, match="neither"):
-        nih.manifest_rows([entry], {"b.png"}, set())
+    entry = {"Image Index": "a.png", "Finding Labels": findings, "Patient ID": "1"}
+    with pytest.raises(RuntimeError, match=error):
+        nih.manifest_rows([entry], train_val, test)
+
+
+def test_zip_members_that_leave_the_dataset_directory_are_refused(scripts, tmp_path):
+    download = scripts("_download")
+    archive = tmp_path / "evil.zip"
+    with zipfile.ZipFile(archive, "w") as bundle:
+        bundle.writestr("../escape.jpeg", b"x")
+    with pytest.raises(RuntimeError, match="would land outside"):
+        download.extract(archive, tmp_path / "out", members=lambda name: name)
+    assert not (tmp_path / "escape.jpeg").exists()
 
 
 def _jpeg():
