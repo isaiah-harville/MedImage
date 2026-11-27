@@ -19,8 +19,6 @@ def write_dicom(path: Path, pixels: np.ndarray, **tags: str) -> Path:
     ds.StudyInstanceUID = tags.pop("StudyInstanceUID", generate_uid())
     ds.SeriesInstanceUID = tags.pop("SeriesInstanceUID", generate_uid())
     ds.PatientID = tags.pop("PatientID", "anonymous")
-    for key, value in tags.items():
-        setattr(ds, key, value)
     ds.Modality = "OT"
     ds.Rows, ds.Columns = pixels.shape
     ds.SamplesPerPixel = 1

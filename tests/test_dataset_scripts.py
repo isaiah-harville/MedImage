@@ -84,7 +84,7 @@ def test_rsna_manifest_maps_images_to_nih_patients_and_keeps_negatives(scripts, 
     ]
     index = rsna.index_dicoms(tmp_path / "images")
     boxes = rsna.annotated_boxes(export, index)
-    rows = rsna.manifest_rows(boxes, rsna.nih_patients(mapping, index), tmp_path)
+    rows = rsna.manifest_rows(boxes, rsna.nih_patients({"mappings": mapping}, index), tmp_path)
     assert [(r["path"], r["patient_id"], r["label"], r["x2"], r["y2"]) for r in rows] == [
         ("images/a.dcm", "00000013", "opacity", 4.0, 6.0),
         ("images/b.dcm", "00000013", "", "", ""),
@@ -141,7 +141,9 @@ def test_cbis_manifest_boxes_masks_merges_one_film_and_keeps_test_whole(scripts,
         CASE_HEADER + _case("Calc-Training_P_00001_LEFT_CC", "P_00001", "LEFT", "CC", 1)
     )
     (tmp_path / "calc_test.csv").write_text(
-        CASE_HEADER + _case("Calc-Test_P_00002_RIGHT_MLO", "P_00002", "RIGHT", "MLO", 1)
+        CASE_HEADER
+        + _case("Calc-Test_P_00002_RIGHT_MLO", "P_00002", "RIGHT", "MLO", 1)
+        + _case("Calc-Test_P_00003_LEFT_CC", "P_00003", "LEFT", "CC", 1)
     )
     _mammogram(dicom, "Mass-Training_P_00001_LEFT_CC", film)
     _mammogram(dicom, "Calc-Training_P_00001_LEFT_CC", film)
@@ -151,6 +153,8 @@ def test_cbis_manifest_boxes_masks_merges_one_film_and_keeps_test_whole(scripts,
     _roi(dicom, "Calc-Training_P_00001_LEFT_CC_1", (12, 10), (7, 0, 8, 1))
     _roi(dicom, "Mass-Training_P_00002_LEFT_CC_1", (12, 10), (0, 0, 4, 4))
     _roi(dicom, "Calc-Test_P_00002_RIGHT_MLO_1", (12, 10), (1, 1, 3, 3))
+    _mammogram(dicom, "Calc-Test_P_00003_LEFT_CC", film)
+    _roi(dicom, "Calc-Test_P_00003_LEFT_CC_1", (10, 12), (1, 1, 3, 3))
     lesions = [
         *cbis.read_cases(tmp_path / "mass_train.csv", "mass", "train"),
         *cbis.read_cases(tmp_path / "calc_train.csv", "calcification", "train"),
@@ -159,6 +163,7 @@ def test_cbis_manifest_boxes_masks_merges_one_film_and_keeps_test_whole(scripts,
     assert lesions[0].roi_subject == "Mass-Training_P_00001_LEFT_CC_1"
     images, skipped = cbis.mammograms(lesions, dicom)
     assert skipped["duplicate film merged"] == 1
+    assert skipped["no ROI mask with the mammogram's size"] == 1
     assert cbis.drop_test_participants_from_train(images) == 1
     rows = cbis.manifest_rows(images, root)
     assert [
