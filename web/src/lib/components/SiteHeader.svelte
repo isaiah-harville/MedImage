@@ -7,8 +7,7 @@
   </p>
   <div class="border-b border-border bg-card">
     <div class="mx-auto flex h-14 max-w-6xl items-center justify-between gap-6 px-5">
-      <a href="/" class="flex items-center gap-3">
-        <img src="/favicon.svg" alt="" class="size-6" />
+      <a href="/" class="flex items-center">
         <span class="flex flex-col leading-tight">
           <span class="text-[14px] font-semibold tracking-[-0.01em]">OpenDiagnostics</span>
           <span class="text-[11px] text-foreground-muted">Research model catalog</span>
@@ -16,6 +15,7 @@
       </a>
       <nav aria-label="Site" class="flex items-center gap-5 text-[13px]">
         <a href="/" class="text-foreground-muted hover:text-foreground">Models</a>
+        <a href="/papers" class="text-foreground-muted hover:text-foreground">Papers</a>
         <a href="/privacy" class="text-foreground-muted hover:text-foreground">Privacy</a>
         <a
           href="https://github.com/isaiah-harville/opendiagnostics"

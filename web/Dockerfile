@@ -12,11 +12,15 @@ FROM node:22.23.5-alpine3.23@sha256:6868d4695b947ee120bffaa463fecd68cde370d7bfec
 WORKDIR /app
 ENV NODE_ENV=production \
     PORT=3000 \
+    PAPERS_DIR=/app/papers \
     BODY_SIZE_LIMIT=11M
 RUN addgroup -g 10001 -S app && adduser -u 10001 -S -G app -H app
 COPY --from=build --chown=10001:10001 /app/build ./build
 COPY --from=build --chown=10001:10001 /app/node_modules ./node_modules
 COPY --from=build --chown=10001:10001 /app/package.json ./package.json
+# The repository's papers/ folder, passed as a named build context:
+#   docker build --build-context papers=../papers .
+COPY --from=papers --chown=10001:10001 . ./papers
 USER 10001:10001
 EXPOSE 3000
 HEALTHCHECK --interval=30s --timeout=3s CMD wget -q -O /dev/null http://127.0.0.1:3000/healthz || exit 1

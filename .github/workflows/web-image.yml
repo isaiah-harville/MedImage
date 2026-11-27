@@ -5,10 +5,12 @@ on:
     branches: [main]
     paths:
       - web/**
+      - papers/**
       - .github/workflows/web-image.yml
   pull_request:
     paths:
       - web/**
+      - papers/**
       - .github/workflows/web-image.yml
   workflow_dispatch:
 
@@ -56,6 +58,7 @@ jobs:
       - uses: docker/build-push-action@v6
         with:
           context: web
+          build-contexts: papers=./papers
           push: true
           tags: |
             ghcr.io/isaiah-harville/opendiagnostics-web:main

@@ -17,7 +17,13 @@ export const allowUploadsSchema = z
   .optional()
   .transform((value) => value !== 'false');
 
+export const papersDirSchema = z
+  .string()
+  .optional()
+  .transform((value) => value || '../papers');
+
 export type Config = {
   apiUrl: string;
   allowUploads: boolean;
+  papersDir: string;
 };

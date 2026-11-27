@@ -2,9 +2,9 @@ import type { Handle } from '@sveltejs/kit/hooks';
 import { createApiClient } from '#lib/server/api.ts';
 import type { Config } from '#lib/server/config.ts';
 import { withPrivacyHeaders } from '#lib/server/headers.ts';
-import { ALLOW_UPLOADS, API_URL } from '$app/env/private';
+import { ALLOW_UPLOADS, API_URL, PAPERS_DIR } from '$app/env/private';
 
-const config: Config = { apiUrl: API_URL, allowUploads: ALLOW_UPLOADS };
+const config: Config = { apiUrl: API_URL, allowUploads: ALLOW_UPLOADS, papersDir: PAPERS_DIR };
 const api = createApiClient({ baseUrl: config.apiUrl, fetch });
 
 export const handle: Handle = async ({ event, resolve }) => {
