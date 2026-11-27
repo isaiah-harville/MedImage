@@ -79,22 +79,6 @@ def test_cli_builds_the_notebook(notebook, project, tmp_path, capsys):
     assert "wrote 1 projects and 1 runs" in capsys.readouterr().out
 
 
-def test_samples_page_shows_one_correct_test_image_per_class(notebook):
-    out, run_id = notebook
-    page = (out / "samples.md").read_text()
-    assert "## SyntheticClassificationDataModule" in page
-    assert "License generated." in page
-    images = [line for line in page.splitlines() if line.startswith("-   ![")]
-    assert len(images) == 2
-    assert all(f"smoke-project/{run_id}/files/examples/" in line for line in images)
-
-
-def test_samples_page_says_when_there_are_no_examples(project, tmp_path):
-    out = tmp_path / "notebook"
-    build_notebook(project.parent, out)
-    assert "No published run has example images yet." in (out / "samples.md").read_text()
-
-
 def test_roc_plot_is_skipped_for_a_multilabel_run(tmp_path):
     from opendiagnostics.notebook import plots
 
@@ -109,7 +93,12 @@ def _paper(papers, run_id, pdf=True, run=None):
     folder.mkdir(parents=True)
     if pdf:
         (folder / "main.pdf").write_bytes(b"%PDF-1.5 stub")
-    record = {"title": "A smoke paper", "project": "smoke-project", "run": run or run_id}
+    record = {
+        "title": "A smoke paper",
+        "description": "What the smoke run shows.",
+        "project": "smoke-project",
+        "run": run or run_id,
+    }
     (folder / "paper.yaml").write_text(yaml.safe_dump({**record, "pdf": "main.pdf"}))
 
 
@@ -122,7 +111,7 @@ def test_a_paper_is_listed_copied_and_linked_from_its_run_and_the_dataset_table(
     build_notebook(project.parent, out, papers)
     assert (out / "papers" / "smoke.pdf").read_bytes() == b"%PDF-1.5 stub"
     page = (out / "papers.md").read_text()
-    assert "[A smoke paper](papers/smoke.pdf)" in page
+    assert "## [A smoke paper](papers/smoke.pdf)\n\nWhat the smoke run shows." in page
     assert f"[{run_id}](smoke-project/{run_id}/index.md)" in page
     run_page = (out / "smoke-project" / run_id / "index.md").read_text()
     assert "**Paper:** [A smoke paper](../../papers/smoke.pdf)" in run_page

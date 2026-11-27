@@ -8,7 +8,7 @@ beat.
 
 Every dataset here has a published model. Each row links the model, its latest published
 run (metrics with 95% intervals, curves, examples, and weights), and its paper, when there
-is one. [Sample images](notebook/samples.md) shows a test image per class from each.
+is one.
 
 --8<-- "notebook/published-table.snippet"
 
@@ -242,4 +242,3 @@ only with selection on validation, means over seeds, and the code to rerun it.
 * [Chest X-ray](datasets/chest-xray.md)
 * [MRI and CT](datasets/mri-ct.md)
 * [Dermatology, pathology, fundus and OCT, mammography, and MedMNIST](datasets/other-modalities.md)
-* [Sample images](notebook/samples.md) from every dataset we have published a model for

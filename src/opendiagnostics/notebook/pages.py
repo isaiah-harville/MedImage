@@ -144,7 +144,7 @@ def index_page(projects: Sequence[Project]) -> str:
             ]
         )
     return (
-        GENERATED + "# Lab notebook\n\n"
+        GENERATED + "# Models\n\n"
         "Every trained model has a project, and every published run has a page with its config, "
         "metrics with 95% patient-level bootstrap intervals, training curves, provenance, and "
         "downloadable artifacts. Pages are generated from the files under `models/`.\n\n"
@@ -325,39 +325,6 @@ def examples_section(examples: Sequence[dict[str, Any]]) -> str:
         )
     view = "Attribution" if kind == "attribution" else "Boxes"
     return intro + "\n\n" + table(["Input", view, "Sample"], rows)
-
-
-def samples_page(projects: Sequence[Project]) -> str:
-    """One test image per class for each dataset with a published run's examples."""
-    sections, seen = [], set()
-    for project in projects:
-        dataset = dataset_label(project.config)
-        run = next((r for r in project.runs if r.examples), None)
-        if run is None or dataset in seen:
-            continue
-        seen.add(dataset)
-        picks: dict[str, dict[str, Any]] = {}
-        for example in run.examples:
-            if example.get("correct") is not False:
-                picks.setdefault(example["truth"], example)
-        cards = "".join(
-            f"-   ![{e['truth']}]({project.name}/{run.run_id}/files/examples/{e['input']})"
-            f"{{ loading=lazy }}\n\n    {e['truth']}\n\n"
-            for e in picks.values()
-        )
-        license = run.record.get("dataset", {}).get("license", "unknown")
-        sections.append(
-            f"## {dataset}\n\nLicense {license}. "
-            f"[Model project and results]({project.name}/index.md).\n\n"
-            f'<div class="grid cards" markdown>\n\n{cards}</div>\n'
-        )
-    intro = (
-        "Test images from each dataset we have published a model for, one per class, captioned "
-        "with the true label. Images appear only when the dataset's license allows sharing "
-        "them; the [dataset survey](../datasets.md) lists every dataset's terms.\n\n"
-    )
-    body = "\n".join(sections) or "No published run has example images yet.\n"
-    return GENERATED + "# Sample images\n\n" + intro + body
 
 
 def dataset_label(config: dict[str, Any]) -> str:

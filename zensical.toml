@@ -8,7 +8,7 @@ docs_dir = "docs"
 site_dir = "site"
 nav = [
   { "Home" = "index.md" },
-  { "Lab notebook" = "notebook/index.md" },
+  { "Models" = "notebook/index.md" },
   { "Papers" = "notebook/papers.md" },
   { "Datasets" = [
     "datasets.md",
@@ -16,14 +16,13 @@ nav = [
     { "Chest X-ray" = "datasets/chest-xray.md" },
     { "MRI and CT" = "datasets/mri-ct.md" },
     { "Other modalities" = "datasets/other-modalities.md" },
-    { "Sample images" = "notebook/samples.md" },
   ] },
-  { "Code reference" = [
+  { "Develop" = [
     "reference/index.md",
     { "Using the pipeline" = "guide.md" },
-    { "Design" = "design.md" },
     { "Model weights" = "weights.md" },
-    { "Modules" = [
+    { "Design" = "design.md" },
+    { "Module reference" = [
       "reference/cli.md",
       "reference/data.md",
       "reference/modules.md",

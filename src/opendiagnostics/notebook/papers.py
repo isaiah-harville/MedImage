@@ -22,6 +22,7 @@ class PaperRecord(BaseModel):
     model_config = ConfigDict(extra="forbid", strict=True)
 
     title: str
+    description: str
     project: str
     run: str
     pdf: str
@@ -31,6 +32,7 @@ class PaperRecord(BaseModel):
 class Paper:
     name: str
     title: str
+    description: str
     project: str
     run: str
     source: Path
@@ -59,7 +61,16 @@ def load_papers(papers_dir: Path, projects: Sequence[Project]) -> list[Paper]:
                 f"{path} names {source}, which does not exist; build it with "
                 f"`tectonic -X compile main.tex` in {path.parent}"
             )
-        papers.append(Paper(path.parent.name, record.title, record.project, record.run, source))
+        papers.append(
+            Paper(
+                path.parent.name,
+                record.title,
+                record.description,
+                record.project,
+                record.run,
+                source,
+            )
+        )
     return papers
 
 
@@ -71,21 +82,14 @@ def papers_page(papers: Sequence[Paper], projects: Sequence[Project]) -> str:
     )
     if not papers:
         return GENERATED + "# Papers\n\n" + intro + "No papers yet.\n"
-    rows = [
-        [
-            f"[{paper.title}]({paper.href})",
-            f"[{paper.project}]({paper.project}/index.md)",
-            f"[{paper.run}]({paper.project}/{paper.run}/index.md)",
-            fmt(runs[paper.project, paper.run].headline()),
-        ]
+    sections = [
+        f"## [{paper.title}]({paper.href})\n\n{paper.description}\n\n"
+        f"Run [{paper.run}]({paper.project}/{paper.run}/index.md) of "
+        f"[{paper.project}]({paper.project}/index.md), test "
+        f"{fmt(runs[paper.project, paper.run].headline())}. [PDF]({paper.href})\n"
         for paper in papers
     ]
-    return (
-        GENERATED
-        + "# Papers\n\n"
-        + intro
-        + table(["Paper (PDF)", "Model", "Run", "Test result"], rows)
-    )
+    return GENERATED + "# Papers\n\n" + intro + "\n".join(sections)
 
 
 def published_table(projects: Sequence[Project], papers: Sequence[Paper]) -> str:

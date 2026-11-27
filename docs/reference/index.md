@@ -1,8 +1,14 @@
-# Code reference
+# Develop
 
-New here? Start with [using the pipeline](../guide.md), which takes one experiment from a
-config to a published result. [Design](../design.md) explains how the pipeline works and
-why, and [model weights](../weights.md) covers downloading and loading checkpoints.
+Everything here is for training, evaluating, and publishing models with the pipeline.
+
+- [Using the pipeline](../guide.md) takes one experiment from a config to a published result.
+- [Model weights](../weights.md) covers downloading, checking, loading, and publishing
+  checkpoints.
+- [Design](../design.md) explains how the pipeline works and why: data contracts, evaluation
+  rules, and where artifacts live.
+
+## Module reference
 
 The module pages are generated from the docstrings in `src/opendiagnostics`. Training runs
 through Lightning's `LightningCLI`; start with the [command line](cli.md), then the

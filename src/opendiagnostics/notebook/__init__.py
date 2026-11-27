@@ -88,7 +88,6 @@ def build_notebook(
         shutil.copyfile(paper.source, out_dir / paper.href)
     (out_dir / "papers.md").write_text(papers_page(papers, projects))
     (out_dir / "published-table.snippet").write_text(published_table(projects, papers))
-    (out_dir / "samples.md").write_text(pages.samples_page(projects))
     for project in projects:
         own = {p.run: p for p in papers if p.project == project.name}
         _write_project(project, out_dir / project.name, own)

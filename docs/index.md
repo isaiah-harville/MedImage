@@ -1,20 +1,17 @@
 # OpenDiagnostics
 
-**Open research models for medical image diagnosis. Not a medical device.**
+Open research models for medical image classification, each with its test results, 95%
+confidence intervals, weights, and the training run that produced it. These are research
+models, not medical devices.
 
-OpenDiagnostics is an open-source monorepo of PyTorch models for medical image
-classification and detection. The goal is models that beat published results, with the
-statistics to back the claim.
+**[Try the models](https://diagnostics.harville.dev)** on test images or your own, with an
+attribution map of the pixels behind each prediction.
 
-**[Try the demo](https://diagnostics.harville.dev).** Pick a scan type, run a published
-model on a sample image or your own, and see its prediction with a map of the pixels that
-drove it. Uploads are never stored.
-
-- [Lab notebook](notebook/index.md): every model project, its leaderboard against published
-  baselines, and every run with its metrics, 95% patient-level intervals, and weights.
-- [Papers](notebook/papers.md): conference drafts on the models that beat published
-  results, each linked to the run it reports.
-- [Datasets](datasets.md): which datasets have a published model and which are still to do,
-  with licenses, access terms, and the bar each model has to beat.
-- [Code reference](reference/index.md): how to use the pipeline, the design, the model
-  weights, and every module.
+- **[Models](notebook/index.md):** every published model, its results against published
+  baselines, and each training run, with config, metrics, curves, provenance, and downloads.
+- **[Papers](notebook/papers.md):** conference drafts on the models that beat every published
+  result we could source.
+- **[Datasets](datasets.md):** which datasets have a model and which are still to do, with
+  licenses, access terms, and the published results to beat.
+- **[Develop](reference/index.md):** how to train, evaluate, and publish a model with the
+  pipeline, and the code reference.
