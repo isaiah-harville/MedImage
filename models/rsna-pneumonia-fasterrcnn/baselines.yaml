@@ -1,0 +1,10 @@
+benchmark: RSNA Pneumonia Detection Challenge (2018), RSNA's open adjudicated release
+protocol: >-
+  mAP at IoU 0.5 over one opacity class (torchmetrics MeanAveragePrecision, COCO
+  101-point interpolation) on a 15% patient-level test split, with patients identified through
+  RSNA's mapping to NIH ChestX-ray image IDs. This is not the Kaggle leaderboard metric, which
+  averages per-image TP/(TP+FP+FN) over IoU 0.40 to 0.75 and scores any box on a negative image
+  as 0, and was scored on Kaggle's private stage 2 test images. Leaderboard scores are
+  therefore not comparable. The papers we found use their own splits,
+  so no published number matches this protocol yet.
+baselines: []

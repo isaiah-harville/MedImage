@@ -1,0 +1,6 @@
+benchmark: CMMD, our patient-level 70/15/15 split of the labelled images
+protocol: >-
+  No published result is comparable. CMMD has no official split, and the papers we found each
+  report results on their own split, so their AUCs are on different patients. Compare our own runs
+  with `opendiagnostics compare` on this split.
+baselines: []

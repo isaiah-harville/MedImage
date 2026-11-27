@@ -5,3 +5,7 @@
 ::: opendiagnostics.modules.classification
 
 ::: opendiagnostics.modules.detection
+
+::: opendiagnostics.modules.detection_3d
+
+::: opendiagnostics.modules.slide

@@ -10,6 +10,7 @@ patient spans two splits, and serves batches as dicts with ``image``, ``target``
 from __future__ import annotations
 
 import logging
+import os
 import warnings
 from collections import Counter, defaultdict
 from collections.abc import Callable, Hashable, Mapping, Sequence
@@ -19,6 +20,7 @@ from typing import Any, Literal, Protocol
 import numpy as np
 import torch
 from lightning.pytorch import LightningDataModule
+from monai.data.utils import set_rnd
 from sklearn.model_selection import StratifiedGroupKFold, train_test_split
 from torch.utils.data import DataLoader, Dataset
 from torchvision import tv_tensors
@@ -240,11 +242,17 @@ class SplitDataset(Dataset):
         self.indices = indices
         self.transform = transform
         self.mode = mode
+        self._seeded_in: int | None = None
 
     def __len__(self) -> int:
         return len(self.indices)
 
     def __getitem__(self, index: int) -> dict[str, Any]:
+        if self._seeded_in != os.getpid():
+            # MONAI's random transforms keep their own NumPy state, which neither
+            # seed_everything nor DataLoader worker seeding reaches.
+            set_rnd(self.transform, seed=torch.initial_seed() % 2**32)
+            self._seeded_in = os.getpid()
         i = self.indices[index]
         image, target = prepare(*self.source.dataset[i], self.transform, self.mode)
         return {

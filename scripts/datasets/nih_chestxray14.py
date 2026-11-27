@@ -16,12 +16,10 @@ validation list; the model config holds out patients from ``train`` as validatio
 
 from __future__ import annotations
 
-import csv
-import urllib.request
 from collections.abc import Iterable
 from pathlib import Path
 
-from _download import DownloadError, Opener, fetch, fetch_and_extract, parser, write_manifest
+from _download import Opener, download, fetch_and_extract, parser, read_csv, write_manifest
 
 BOX = (
     "https://nihcc.app.box.com/index.php?rm=box_download_shared_file"
@@ -70,16 +68,16 @@ def manifest_rows(
 ) -> list[dict[str, str]]:
     """One manifest row per Data_Entry row, labelled with its official split."""
     if overlap := train_val & test:
-        raise DownloadError(f"{len(overlap)} images are in both NIH lists, e.g. {min(overlap)}")
+        raise RuntimeError(f"{len(overlap)} images are in both NIH lists, e.g. {min(overlap)}")
     rows = []
     for entry in entries:
         image = entry["Image Index"]
         findings = [f for f in entry["Finding Labels"].split("|") if f != NO_FINDING]
         if unknown := sorted(set(findings) - set(FINDINGS)):
-            raise DownloadError(f"{image} has findings outside the 14 NIH labels: {unknown}")
+            raise RuntimeError(f"{image} has findings outside the 14 NIH labels: {unknown}")
         split = "test" if image in test else "train" if image in train_val else None
         if split is None:
-            raise DownloadError(f"{image} is in neither train_val_list.txt nor test_list.txt")
+            raise RuntimeError(f"{image} is in neither train_val_list.txt nor test_list.txt")
         rows.append(
             {
                 "path": f"images/{image}",
@@ -89,36 +87,39 @@ def manifest_rows(
             }
         )
     if len(rows) != len(train_val) + len(test):
-        raise DownloadError(
+        raise RuntimeError(
             f"Data_Entry has {len(rows)} images, the NIH lists {len(train_val) + len(test)}"
         )
-    return rows
+    return sorted(rows, key=lambda row: row["path"])
 
 
 def _names(path: Path) -> set[str]:
     return {line.strip() for line in path.read_text().splitlines() if line.strip()}
 
 
-def main(argv: list[str] | None = None, opener: Opener = urllib.request.urlopen) -> Path:
+def main(argv: list[str] | None = None, opener: Opener | None = None) -> Path:
     args = parser(__doc__.splitlines()[0]).parse_args(argv)
-    out: Path = args.out
+    root: Path = args.root
     for name, (file_id, size) in METADATA.items():
-        fetch(BOX.format(file_id), out / name, size, opener=opener)
+        download(BOX.format(file_id), root / name, size, opener=opener)
     for name, (file_id, size) in ARCHIVES.items():
         fetch_and_extract(
-            BOX.format(file_id), out / name, size, out, args.delete_archives, opener=opener
+            BOX.format(file_id),
+            root / name,
+            root,
+            size,
+            delete_archive=args.delete_archives,
+            opener=opener,
         )
-    with (out / "Data_Entry_2017_v2020.csv").open(newline="") as handle:
-        rows = manifest_rows(
-            csv.DictReader(handle),
-            _names(out / "train_val_list.txt"),
-            _names(out / "test_list.txt"),
-        )
-    if missing := [r["path"] for r in rows if not (out / r["path"]).exists()]:
-        raise DownloadError(f"{len(missing)} listed images are not on disk, e.g. {missing[0]}")
-    count = write_manifest(out / "manifest.csv", rows)
-    print(f"wrote {out / 'manifest.csv'} with {count} images")
-    return out / "manifest.csv"
+    entries = read_csv(
+        root / "Data_Entry_2017_v2020.csv", ("Image Index", "Finding Labels", "Patient ID")
+    )
+    rows = manifest_rows(
+        entries, _names(root / "train_val_list.txt"), _names(root / "test_list.txt")
+    )
+    if missing := [r["path"] for r in rows if not (root / r["path"]).exists()]:
+        raise RuntimeError(f"{len(missing)} listed images are not on disk, e.g. {missing[0]}")
+    return write_manifest(root, rows)
 
 
 if __name__ == "__main__":

@@ -10,11 +10,10 @@ and sit in ``train/<label>/`` or ``test/<label>/``.
 from __future__ import annotations
 
 import re
-import urllib.request
 from collections.abc import Iterable
 from pathlib import Path
 
-from _download import DownloadError, Opener, fetch_and_extract, parser, write_manifest
+from _download import Opener, fetch_and_extract, parser, relative, write_manifest
 
 URL = (
     "https://data.mendeley.com/public-files/datasets/rscbjbr9sj/files/"
@@ -37,11 +36,11 @@ def member_name(prefix: str, name: str) -> str | None:
 def manifest_rows(paths: Iterable[str], labels: tuple[str, ...]) -> list[dict[str, str]]:
     """Rows for paths such as ``train/CNV/CNV-81630-1.jpeg``, relative to the dataset dir."""
     rows = []
-    for path in paths:
+    for path in sorted(paths):
         split, label, filename = path.split("/")
         match = FILENAME.fullmatch(filename)
         if split not in SPLITS or label not in labels or match is None:
-            raise DownloadError(
+            raise RuntimeError(
                 f"unexpected file {path}; expected <split>/<label>/<CLASS>-<patient>-<n>.jpeg "
                 f"with a split in {SPLITS} and a label in {labels}"
             )
@@ -54,7 +53,7 @@ def main(
     subset: str,
     labels: tuple[str, ...],
     argv: list[str] | None = None,
-    opener: Opener = urllib.request.urlopen,
+    opener: Opener | None = None,
 ) -> Path:
     cli = parser(doc.splitlines()[0])
     cli.add_argument(
@@ -63,20 +62,17 @@ def main(
         help=f"where to keep {ARCHIVE}; point both Kermany scripts at one copy to download it once",
     )
     args = cli.parse_args(argv)
-    out: Path = args.out
-    archive: Path = args.archive or out / ARCHIVE
+    root: Path = args.root
     prefix = f"CellData/{subset}/"
     fetch_and_extract(
         URL,
-        archive,
+        args.archive or root / ARCHIVE,
+        root,
         SIZE,
-        out,
-        args.delete_archives,
-        sha256=SHA256,
-        rename=lambda name: member_name(prefix, name),
+        delete_archive=args.delete_archives,
         opener=opener,
+        sha256=SHA256,
+        members=lambda name: member_name(prefix, name),
     )
-    paths = sorted(p.relative_to(out).as_posix() for p in out.glob("*/*/*.jpeg"))
-    count = write_manifest(out / "manifest.csv", manifest_rows(paths, labels))
-    print(f"wrote {out / 'manifest.csv'} with {count} images")
-    return out / "manifest.csv"
+    paths = [relative(p, root) for p in root.glob("*/*/*.jpeg")]
+    return write_manifest(root, manifest_rows(paths, labels))

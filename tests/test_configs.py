@@ -43,9 +43,9 @@ def test_medmnist_project_configs_match_their_generator(root):
     assert spec.loader
     recipes = importlib.util.module_from_spec(spec)
     spec.loader.exec_module(recipes)
-    for flag in recipes.RECIPES:
-        written = (root / f"models/{flag}-convnext/config.yaml").read_text()
+    for flag in [*recipes.RECIPES, *recipes.RECIPES_3D]:
+        written = (root / f"models/{recipes.project(flag)}/config.yaml").read_text()
         assert written == recipes.render(flag), (
-            f"models/{flag}-convnext/config.yaml is stale; run "
+            f"models/{recipes.project(flag)}/config.yaml is stale; run "
             "`uv run python scripts/medmnist_recipes.py`"
         )

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import csv
 from collections.abc import Sequence
-from functools import partial
+from functools import cache, partial
 from pathlib import Path
 from typing import Any
 
@@ -16,31 +16,46 @@ from PIL import Image
 
 from opendiagnostics.data.base import SPLIT_NAMES, DatasetInfo, MedicalDataModule, Source
 
+_reader = LoadImage(image_only=True, ensure_channel_first=True)
+
+
+@cache
+def _reader_for(mode: str | None) -> LoadImage:
+    if mode is None:
+        return _reader
+    converter = partial(Image.Image.convert, mode=mode)
+    return LoadImage(
+        reader=PILReader(converter=converter), image_only=True, ensure_channel_first=True
+    )
+
+
+def read_image(path: str | Path, mode: str | None = None) -> np.ndarray:
+    """A float32 image min-max scaled to ``[0, 1]``, shaped ``(C, H, W)`` for 2D files, so
+    pixel ``x`` is the column and ``y`` the row. ``mode`` reads the file with Pillow and
+    converts it to that mode, such as ``L``."""
+    image = np.asarray(_reader_for(mode)(str(path)), dtype=np.float32)
+    span = image.max() - image.min()
+    image = (image - image.min()) / span if span else image * 0
+    if image.ndim == 3:
+        image = np.ascontiguousarray(np.swapaxes(image, -1, -2))
+    return image
+
 
 class LoadedImages:
     def __init__(
-        self, paths: list[str], labels: Sequence[Any] | np.ndarray, image_mode: str | None = None
+        self, paths: list[str], targets: Sequence[Any] | np.ndarray, mode: str | None = None
     ) -> None:
         self.paths = paths
-        self.labels = labels
-        reader = (
-            PILReader(converter=partial(Image.Image.convert, mode=image_mode))
-            if image_mode
-            else None
-        )
-        self.reader = LoadImage(reader=reader, image_only=True, ensure_channel_first=True)
+        self.targets = targets
+        self.mode = mode
 
     def __len__(self) -> int:
         return len(self.paths)
 
     def __getitem__(self, index: int) -> tuple[Any, Any]:
-        image = np.asarray(self.reader(self.paths[index]), dtype=np.float32)
-        span = image.max() - image.min()
-        image = (image - image.min()) / span if span else image * 0
-        if image.ndim == 3:
-            image = np.swapaxes(image, -1, -2)
         # A tensor, not an array: torchvision reads a numpy array as height x width x channel.
-        return torch.from_numpy(np.ascontiguousarray(image)), self.labels[index]
+        image = read_image(self.paths[index], self.mode)
+        return torch.from_numpy(image), self.targets[index]
 
 
 def _tokens(label: str, separator: str) -> list[str]:
