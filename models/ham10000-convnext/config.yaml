@@ -31,6 +31,16 @@ model:
         drop_path_rate: 0.2
     tta: true
     label_smoothing: 0.1
+    # Inverse class frequency over the 10,015 HAM10000 training images, so the loss
+    # targets balanced accuracy, the ISIC 2018 Task 3 metric.
+    class_weight:
+    - 4.375
+    - 2.783
+    - 1.302
+    - 12.441
+    - 1.285
+    - 0.213
+    - 10.075
 data:
   class_path: opendiagnostics.data.CSVImageDataModule
   init_args:

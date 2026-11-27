@@ -31,7 +31,12 @@ class SlideClassifier(ImageClassifier):
         calibration_bins: int = 15,
     ) -> None:
         super().__init__(
-            network, info, threshold, label_smoothing, pos_weight, False, calibration_bins
+            network,
+            info,
+            threshold,
+            label_smoothing,
+            pos_weight=pos_weight,
+            calibration_bins=calibration_bins,
         )
 
     def forward(self, images: torch.Tensor) -> torch.Tensor:

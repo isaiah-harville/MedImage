@@ -31,6 +31,7 @@ class ImageClassifier(DiagnosticModule):
         threshold: float | Literal["youden"] = "youden",
         label_smoothing: float = 0.0,
         pos_weight: list[float] | None = None,
+        class_weight: list[float] | None = None,
         tta: bool = False,
         calibration_bins: int = 15,
     ) -> None:
@@ -43,6 +44,15 @@ class ImageClassifier(DiagnosticModule):
         self.threshold = threshold
         self.label_smoothing = label_smoothing
         self.pos_weight = pos_weight
+        if class_weight is not None and (
+            self.mode != "multiclass" or len(class_weight) != info.num_classes
+        ):
+            raise ValueError(
+                f"class_weight needs one weight per class of a multiclass task; got "
+                f"{len(class_weight)} for a {self.mode} task with {info.num_classes} classes. "
+                "Use pos_weight for binary and multilabel tasks."
+            )
+        self.class_weight = class_weight
         self.tta = tta
         self.calibration_bins = calibration_bins
 
@@ -59,7 +69,10 @@ class ImageClassifier(DiagnosticModule):
     def training_step(self, batch: dict, batch_idx: int) -> torch.Tensor:
         logits, target = self(batch["image"]), batch["target"]
         if self.mode == "multiclass":
-            loss = nn.functional.cross_entropy(logits, target, label_smoothing=self.label_smoothing)
+            weight = None if self.class_weight is None else logits.new_tensor(self.class_weight)
+            loss = nn.functional.cross_entropy(
+                logits, target, weight=weight, label_smoothing=self.label_smoothing
+            )
         else:
             weight = None if self.pos_weight is None else logits.new_tensor(self.pos_weight)
             loss = nn.functional.binary_cross_entropy_with_logits(

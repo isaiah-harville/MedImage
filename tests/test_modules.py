@@ -53,3 +53,22 @@ def test_classifier_refuses_a_detection_dataset():
     info = DatasetInfo(label_mode="detection", class_names=("blob",), in_channels=1)
     with pytest.raises(ValueError, match="classification data module"):
         ImageClassifier(nn.Identity(), info)
+
+
+def test_class_weight_weights_the_multiclass_loss():
+    weights = [1.0, 4.0, 2.0]
+    model = _classifier("multiclass", ["a", "b", "c"], class_weight=weights)
+    batch = _batch(torch.tensor([0, 1, 2, 0, 0, 1]))
+    expected = nn.functional.cross_entropy(
+        model(batch["image"]), batch["target"], weight=torch.tensor(weights)
+    )
+    assert model.training_step(batch, 0).item() == pytest.approx(expected.item())
+
+
+@pytest.mark.parametrize(
+    ("mode", "names", "weights"),
+    [("multiclass", ["a", "b", "c"], [1.0, 2.0]), ("binary", ["no", "yes"], [1.0, 2.0])],
+)
+def test_class_weight_must_match_a_multiclass_task(mode, names, weights):
+    with pytest.raises(ValueError, match="one weight per class"):
+        _classifier(mode, names, class_weight=weights)
