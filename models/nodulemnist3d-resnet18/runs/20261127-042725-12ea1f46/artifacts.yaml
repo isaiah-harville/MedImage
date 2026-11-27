@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 132728773
+  sha256: ccc005ea00aa8765472653d7432d49a3a8e6de1eddefa0f78c22b1d39fe0c7bc
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/nodulemnist3d-resnet18/20261127-042725-12ea1f46/checkpoint.ckpt
