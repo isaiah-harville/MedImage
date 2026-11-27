@@ -204,3 +204,6 @@ docs/notebook/
 weights/
 weights-cache/
 
+
+# Datasets, downloaded by `opendiagnostics prepare` or scripts/datasets/. Often a link to a large disk.
+/data/
