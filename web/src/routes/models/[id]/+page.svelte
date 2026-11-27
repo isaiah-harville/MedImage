@@ -1,53 +1,129 @@
 <script lang="ts">
-import { tick } from 'svelte';
+import { tick, untrack } from 'svelte';
 import DemoGallery from '#lib/components/DemoGallery.svelte';
 import ModelFacts from '#lib/components/ModelFacts.svelte';
 import ResultView from '#lib/components/ResultView.svelte';
-import UploadForm from '#lib/components/UploadForm.svelte';
+import ScanUpload, { type QueuedScan } from '#lib/components/ScanUpload.svelte';
 import WeightsDownload from '#lib/components/WeightsDownload.svelte';
-import { formatLabel } from '#lib/format.ts';
+import type { Prediction } from '#lib/contract.ts';
 import type { SubmitFunction } from '$app/forms';
+import { deserialize } from '$app/forms';
 import type { ActionData, PageData } from './$types';
 
 let { data, form }: { data: PageData; form: ActionData } = $props();
 
-type Pending = { source: 'demo'; sampleId: string } | { source: 'upload' } | null;
-let pending = $state<Pending>(null);
+type Entry = { key: number; label: string; sampleId: string | null; prediction: Prediction };
 
-const result = $derived(
-  form?.prediction ? { prediction: form.prediction, sampleId: form.sampleId ?? null } : null,
-);
-const failure = $derived(
-  form?.message && form.source ? { source: form.source, message: form.message } : null,
-);
-const sourceLabel = $derived.by(() => {
-  if (!result) return '';
-  if (result.sampleId === null) return 'Your image';
-  const index = data.demos.findIndex((d) => d.sampleId === result.sampleId);
+let nextKey = 0;
+const caseLabel = (sampleId: string) => {
+  const index = data.demos.findIndex((d) => d.sampleId === sampleId);
   return index === -1 ? 'Test case' : `Case ${String(index + 1).padStart(2, '0')}`;
-});
-const status = $derived.by(() => {
-  if (pending?.source === 'demo') return 'Running the model on the demo image.';
-  if (pending?.source === 'upload') return 'Running the model on your image.';
-  if (failure) return failure.message;
-  return '';
-});
-
-const submit: SubmitFunction = ({ formData, action }) => {
-  const sampleId = formData.get('sample_id');
-  pending =
-    action.search === '?/demo' && typeof sampleId === 'string'
-      ? { source: 'demo', sampleId }
-      : { source: 'upload' };
-  return async ({ update, result: actionResult }) => {
-    await update({ reset: false });
-    pending = null;
-    if (actionResult.type === 'success') {
-      await tick();
-      document.getElementById('result-heading')?.focus();
-    }
-  };
 };
+
+// Without JavaScript the form posts normally and the page renders the one result; with it,
+// every run goes through call() below. Either way the list starts from that first result.
+const initial = untrack(() => form);
+let results = $state<Entry[]>(
+  initial?.prediction
+    ? [
+        {
+          key: nextKey++,
+          label: initial.sampleId ? caseLabel(initial.sampleId) : 'Your scan',
+          sampleId: initial.sampleId ?? null,
+          prediction: initial.prediction,
+        },
+      ]
+    : [],
+);
+let queue = $state<QueuedScan[]>([]);
+let busy = $state(false);
+let runningCase = $state<string | null>(null);
+let demoError = $state<string | null>(
+  initial?.source === 'demo' ? (initial.message ?? null) : null,
+);
+let status = $state('');
+
+type Outcome = { prediction: Prediction } | { message: string };
+
+async function call(action: 'demo' | 'upload', body: FormData): Promise<Outcome> {
+  try {
+    const response = await fetch(`?/${action}`, {
+      method: 'POST',
+      body,
+      headers: { 'x-sveltekit-action': 'true', accept: 'application/json' },
+    });
+    const result = deserialize(await response.text());
+    if (result.type === 'success' && result.data?.prediction) {
+      return { prediction: result.data.prediction as Prediction };
+    }
+    if (result.type === 'failure' && typeof result.data?.message === 'string') {
+      return { message: result.data.message };
+    }
+  } catch {
+    // Network failure: reported below like any other unanswered request.
+  }
+  return { message: 'The model service did not answer. Try again in a minute.' };
+}
+
+async function show(entry: Omit<Entry, 'key'>) {
+  results = [{ key: nextKey++, ...entry }, ...results];
+  await tick();
+  document.getElementById(`result-${results[0]?.key}`)?.focus();
+}
+
+async function runScans(files: File[]) {
+  busy = true;
+  const items = files.map((file) => ({
+    id: nextKey++,
+    name: file.name,
+    status: 'waiting' as const,
+  }));
+  queue = [...items, ...queue];
+  for (const [index, file] of files.entries()) {
+    const item = items[index];
+    if (!item) continue;
+    const set = (patch: Partial<QueuedScan>) => {
+      queue = queue.map((q) => (q.id === item.id ? { ...q, ...patch } : q));
+    };
+    set({ status: 'running' });
+    status = `Running scan ${index + 1} of ${files.length}.`;
+    const body = new FormData();
+    body.set('file', file);
+    body.set('consent', 'yes');
+    const outcome = await call('upload', body);
+    if ('prediction' in outcome) {
+      set({ status: 'done' });
+      await show({ label: file.name, sampleId: null, prediction: outcome.prediction });
+    } else {
+      set({ status: 'failed', message: outcome.message });
+    }
+  }
+  status = `Finished ${files.length} ${files.length === 1 ? 'scan' : 'scans'}.`;
+  busy = false;
+}
+
+const runCase: SubmitFunction = ({ formData, cancel }) => {
+  cancel();
+  const sampleId = formData.get('sample_id');
+  if (typeof sampleId !== 'string' || busy) return;
+  busy = true;
+  runningCase = sampleId;
+  demoError = null;
+  status = `Running ${caseLabel(sampleId)}.`;
+  call('demo', formData).then(async (outcome) => {
+    if ('prediction' in outcome) {
+      await show({ label: caseLabel(sampleId), sampleId, prediction: outcome.prediction });
+      status = `${caseLabel(sampleId)} finished.`;
+    } else {
+      demoError = outcome.message;
+      status = outcome.message;
+    }
+    runningCase = null;
+    busy = false;
+  });
+};
+
+const selected = $derived(results.find((r) => r.sampleId !== null)?.sampleId ?? null);
 </script>
 
 <svelte:head>
@@ -73,64 +149,55 @@ const submit: SubmitFunction = ({ formData, action }) => {
 <p class="sr-only" aria-live="polite">{status}</p>
 
 <div class="mt-8 grid items-start gap-8 lg:grid-cols-[minmax(0,8fr)_minmax(0,4fr)]">
-  <div class="min-w-0">
-    {#if result}
-      <ResultView prediction={result.prediction} {sourceLabel} />
-    {:else}
+  <div class="min-w-0 space-y-6">
+    {#if data.allowUploads}
+      <section aria-labelledby="upload-heading">
+        <ScanUpload scanType={data.model.scanType} {busy} {queue} onrun={runScans} />
+      </section>
+    {/if}
+
+    {#if results.length === 0}
       <div
         class="hidden aspect-[2/1] place-items-center rounded-[var(--radius-xl)] bg-[var(--color-viewer)] px-6 text-center lg:grid"
       >
         <div class="text-[var(--color-viewer-foreground)]">
-          {#if pending}
-            <p class="text-[14px] font-medium">Running the model</p>
-            <p class="mt-1 text-[12px] opacity-75">
-              Computing the prediction and its attribution map. This takes up to a minute.
-            </p>
-          {:else}
-            <p class="text-[14px] font-medium">No case selected</p>
-            <p class="mt-1 text-[12px] opacity-75">
-              Choose a test case, or upload an image, to see the model's output here.
-            </p>
-          {/if}
+          <p class="text-[14px] font-medium">{busy ? 'Running the model' : 'No results yet'}</p>
+          <p class="mt-1 text-[12px] opacity-75">
+            {busy
+              ? 'Computing the prediction and its attribution map. Each scan takes up to a minute.'
+              : 'Results appear here, newest first, as each scan or test case finishes.'}
+          </p>
         </div>
+      </div>
+    {:else}
+      <div class="space-y-8" aria-label="Results, newest first">
+        {#each results as entry (entry.key)}
+          <ResultView id="result-{entry.key}" prediction={entry.prediction} sourceLabel={entry.label} />
+        {/each}
       </div>
     {/if}
   </div>
 
-  <aside class="space-y-6" aria-label="Cases and model files">
+  <aside class="space-y-6" aria-label="Test cases and model files">
     <section aria-labelledby="gallery-heading" class="rounded-[var(--radius-xl)] bg-card p-4 shadow-[var(--elevation-control)]">
       <h2 id="gallery-heading" class="text-[14px] font-semibold">Test cases</h2>
       <p class="mt-0.5 mb-3 text-[12px] text-foreground-muted">
         From the {data.model.dataset} test split, with each image's reference label.
       </p>
-      {#if failure?.source === 'demo'}
+      {#if demoError}
         <p class="mb-3 rounded-[var(--radius-md)] bg-error-soft px-3 py-2 text-[12px] text-error">
-          {failure.message}
+          {demoError}
         </p>
       {/if}
       <DemoGallery
         modelId={data.model.id}
         demos={data.demos}
-        selected={result?.sampleId ?? null}
-        pending={pending?.source === 'demo' ? pending.sampleId : null}
-        onsubmit={submit}
+        {selected}
+        pending={runningCase}
+        disabled={busy}
+        onsubmit={runCase}
       />
     </section>
-
-    {#if data.allowUploads}
-      <section aria-labelledby="upload-heading" class="rounded-[var(--radius-xl)] bg-card p-4 shadow-[var(--elevation-control)]">
-        <h2 id="upload-heading" class="text-[14px] font-semibold">Your own image</h2>
-        <p class="mt-0.5 mb-3 text-[12px] text-foreground-muted">
-          A {data.model.scanType.toLowerCase()} with no names, dates, or record numbers in the
-          pixels.
-        </p>
-        <UploadForm
-          pending={pending?.source === 'upload'}
-          serverError={failure?.source === 'upload' ? failure.message : null}
-          onsubmit={submit}
-        />
-      </section>
-    {/if}
 
     {#if data.model.weights}
       <WeightsDownload weights={data.model.weights} license={data.model.license} />

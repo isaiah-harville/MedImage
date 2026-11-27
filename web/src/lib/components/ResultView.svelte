@@ -5,7 +5,8 @@ import ImagePanel from './ImagePanel.svelte';
 import ProbabilityBars from './ProbabilityBars.svelte';
 import VerdictBadge from './VerdictBadge.svelte';
 
-let { prediction, sourceLabel }: { prediction: Prediction; sourceLabel: string } = $props();
+let { id, prediction, sourceLabel }: { id: string; prediction: Prediction; sourceLabel: string } =
+  $props();
 
 const outcome = $derived(verdict(prediction));
 const predictedText = $derived(
@@ -15,9 +16,9 @@ const predictedText = $derived(
 );
 </script>
 
-<section aria-labelledby="result-heading">
+<section aria-labelledby={id} >
   <div class="rounded-[var(--radius-xl)] bg-[var(--color-viewer)] p-4 sm:p-5">
-    <h2 id="result-heading" tabindex="-1" class="sr-only">Result for {sourceLabel}</h2>
+    <h2 {id} tabindex="-1" class="sr-only">Result for {sourceLabel}</h2>
     <p class="font-mono text-[11px] text-[var(--color-viewer-foreground)]">
       {sourceLabel} · {formatLatency(prediction.latencyMs)}
     </p>

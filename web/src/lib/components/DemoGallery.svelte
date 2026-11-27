@@ -9,12 +9,14 @@ let {
   demos,
   selected,
   pending,
+  disabled = false,
   onsubmit,
 }: {
   modelId: string;
   demos: DemoSample[];
   selected: string | null;
   pending: string | null;
+  disabled?: boolean;
   onsubmit: SubmitFunction;
 } = $props();
 </script>
@@ -35,7 +37,7 @@ let {
             type="submit"
             name="sample_id"
             value={demo.sampleId}
-            disabled={pending !== null}
+            disabled={disabled || pending !== null}
             aria-current={active ? 'true' : undefined}
             aria-label="Run case {index + 1}, reference label {formatLabel(demo.truth)}"
             class={[
