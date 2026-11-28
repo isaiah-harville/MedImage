@@ -18,6 +18,7 @@ import urllib.error
 import urllib.request
 import zipfile
 from collections.abc import Callable, Iterable, Mapping
+from concurrent.futures import ProcessPoolExecutor
 from pathlib import Path
 from typing import Any, BinaryIO, ParamSpec, TypeVar
 
@@ -219,6 +220,40 @@ def find_files(root: Path, suffixes: Iterable[str]) -> dict[str, Path]:
                 raise RuntimeError(f"two files are named {path.stem}: {found[path.stem]}, {path}")
             found[path.stem] = path
     return found
+
+
+def _shrink_one(job: tuple[Path, Path, int]) -> None:
+    from PIL import Image
+
+    source, target, max_side = job
+    with Image.open(source) as image:
+        image.draft("RGB", (max_side, max_side))
+        image = image.convert("RGB")
+        image.thumbnail((max_side, max_side), Image.Resampling.LANCZOS)
+        tmp = target.with_name(f".{target.name}")
+        image.save(tmp, "JPEG", quality=95)
+    tmp.replace(target)
+
+
+def shrink(
+    images: Mapping[str, Path], into: Path, max_side: int, workers: int = 8
+) -> dict[str, Path]:
+    """Copy each image into ``into`` with its longer side at most ``max_side``, keeping its aspect.
+
+    Decoding multi-megapixel JPEGs every step starves the GPU, so large sources are shrunk once.
+    Copies already on disk are reused.
+    """
+    into.mkdir(parents=True, exist_ok=True)
+    out = {stem: into / f"{stem}.jpg" for stem in images}
+    jobs = [(images[s], out[s], max_side) for s in images if not out[s].exists()]
+    if workers == 1:
+        for job in jobs:
+            _shrink_one(job)
+    else:
+        with ProcessPoolExecutor(workers) as pool:
+            list(pool.map(_shrink_one, jobs, chunksize=64))
+    print(f"shrank {len(jobs)} images into {into} ({len(out) - len(jobs)} already there)")
+    return out
 
 
 def read_csv(path: Path, required: Iterable[str], delimiter: str = ",") -> list[dict[str, str]]:

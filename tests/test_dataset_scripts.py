@@ -200,7 +200,22 @@ def test_isic2020_script_downloads_writes_the_manifest_and_reruns_offline(
     assert len(server.requested) == 3
     assert (root / "manifest.csv").read_text() == first
     assert first.count("\n") == 30
-    assert "images/train/ISIC_000.jpg" in first
+    assert "images_768/ISIC_000.jpg" in first
+
+
+def test_shrink_caps_the_longer_side_keeps_the_aspect_and_reuses_copies(script, tmp_path):
+    download = script("_download")
+    wide, small = tmp_path / "wide.jpg", tmp_path / "small.jpg"
+    Image.new("RGB", (2000, 1000), "red").save(wide)
+    Image.new("RGB", (300, 200), "blue").save(small)
+    out = download.shrink({"wide": wide, "small": small}, tmp_path / "out", 768, workers=1)
+    with Image.open(out["wide"]) as image:
+        assert image.size == (768, 384)
+    with Image.open(out["small"]) as image:
+        assert image.size == (300, 200)
+    stamp = out["wide"].stat().st_mtime_ns
+    download.shrink({"wide": wide}, tmp_path / "out", 768, workers=1)
+    assert out["wide"].stat().st_mtime_ns == stamp
 
 
 def test_isic2019_manifest_groups_by_lesion_and_reads_one_hot_labels(script, tmp_path):

@@ -8,6 +8,10 @@ images by ``patient_id`` into train, val and test (70/15/15, stratified by melan
 on ISIC's duplicate list are dropped first: one copy is kept when both copies share a label,
 and neither when they disagree.
 
+Training decodes every image each epoch, and the originals run to several megapixels, so the
+manifest points at copies in ``images_768/`` whose longer side is at most 768 pixels, twice the
+384-pixel input.
+
 The JPEG archive is 24.7 GB. Sizes and MD5s are from the S3 objects' headers (for a
 single-part upload the ETag is the MD5).
 """
@@ -25,6 +29,7 @@ from _download import (
     find_files,
     read_csv,
     relative,
+    shrink,
     write_manifest,
 )
 
@@ -33,6 +38,7 @@ IMAGES = ("ISIC_2020_Training_JPEG.zip", 24_707_698_022, None)
 GROUND_TRUTH = ("ISIC_2020_Training_GroundTruth.csv", 2_056_020, "86657c7009b003543b377b62a8745b4c")
 DUPLICATES = ("ISIC_2020_Training_Duplicates.csv", 11_500, "62992a2252b492095a54dbc5ce0d5b3e")
 LABELS = {"0": "benign", "1": "melanoma"}
+MAX_SIDE = 768
 
 
 def duplicates_to_drop(groups: list[list[str]], label: dict[str, str]) -> set[str]:
@@ -94,6 +100,7 @@ def main() -> None:
     truth = read_csv(truth_path, ["image_name", "patient_id", "target"])
     duplicates = read_duplicates(dup_path, {r["image_name"] for r in truth})
     images = find_files(root / "images", [".jpg"])
+    images = shrink(images, root / f"images_{MAX_SIDE}", MAX_SIDE)
     write_manifest(root, manifest_rows(truth, duplicates, images, root))
 
 
