@@ -142,3 +142,23 @@ def test_cli_fit(tmp_path):
 def test_prepare_readies_a_configs_data_without_training(root, capsys):
     assert main(["prepare", "-c", str(root / "configs/smoke/classification.yaml")]) == 0
     assert "prepared the data for smoke-classification" in capsys.readouterr().out
+
+
+def test_checkpoint_holds_the_averaged_weights_that_selection_scored(tmp_path):
+    averaging = tmp_path / "ema.yaml"
+    averaging.write_text(
+        "trainer:\n"
+        "  callbacks:\n"
+        "    - class_path: lightning.pytorch.callbacks.EMAWeightAveraging\n"
+        "      init_args: {decay: 0.9}\n"
+    )
+    run_dir = fit_smoke("classification", tmp_path, "-c", str(averaging))
+    metrics = _metrics(run_dir)
+    epoch = metrics["selection"]["best_epoch"]
+    with (run_dir / "metrics.csv").open() as handle:
+        logged = [
+            float(row["val/auroc"])
+            for row in csv.DictReader(handle)
+            if row["epoch"] == str(epoch) and row["val/auroc"]
+        ]
+    assert metrics["val"]["auroc"]["value"] == pytest.approx(logged[0], abs=1e-6)

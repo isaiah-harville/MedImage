@@ -7,6 +7,7 @@ from typing import Any, ClassVar
 
 import numpy as np
 from lightning.pytorch import LightningModule
+from lightning.pytorch.callbacks import WeightAveraging
 from torch import nn
 
 from opendiagnostics.data import DatasetInfo
@@ -61,6 +62,18 @@ class DiagnosticModule(LightningModule):
         metrics = self.score(self._val_predictions)
         self._val_predictions = []
         self.log_dict({f"val/{k}": float(v) for k, v in metrics.items() if isinstance(v, float)})
+
+    def on_save_checkpoint(self, checkpoint: dict[str, Any]) -> None:
+        # Lightning skips callback save hooks for weights-only checkpoints, so WeightAveraging
+        # would leave the raw weights in the checkpoint instead of the averaged ones that
+        # validation scored and selection chose.
+        if "current_model_state" in checkpoint:
+            return
+        for callback in self.trainer.callbacks:  # ty: ignore[missing-attribute]
+            if isinstance(callback, WeightAveraging):
+                callback.on_save_checkpoint(self.trainer, self, checkpoint)
+                checkpoint.pop("current_model_state", None)
+                checkpoint.pop("averaging_state", None)
 
     def predict_step(self, batch: dict, batch_idx: int) -> list[Prediction]:
         return self.predict_batch(batch)
