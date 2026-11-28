@@ -212,7 +212,13 @@ def publish_run(
         raise PublishError(f"{run_dir} has no metrics.json; publish a run that finished")
     if not (project_dir / "config.yaml").exists():
         raise PublishError(f"{project_dir} is not a model project (no config.yaml)")
-    git = json.loads((run_dir / "run.json").read_text()).get("git", {})
+    record = json.loads((run_dir / "run.json").read_text())
+    if not record.get("finished"):
+        raise PublishError(
+            f"{run_dir} is still running: run.json has no finished time. Fit writes it after "
+            "the example figures, so wait for the fit process to exit and publish again"
+        )
+    git = record.get("git", {})
     if git.get("dirty") and not allow_dirty:
         raise PublishError(
             f"{run_dir.name} ran on a dirty working tree, so its commit does not reproduce it. "

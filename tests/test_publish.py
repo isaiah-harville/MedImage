@@ -73,6 +73,18 @@ def test_dirty_runs_are_refused_unless_allowed(finished_run, project, tmp_path, 
     assert publish_run(dirty, project, allow_dirty=True, bucket=bucket).exists()
 
 
+def test_a_run_still_writing_its_examples_is_refused(finished_run, project, tmp_path, bucket):
+    running = tmp_path / finished_run.name
+    shutil.copytree(finished_run, running)
+    record = json.loads((running / "run.json").read_text())
+    del record["finished"]
+    (running / "run.json").write_text(json.dumps(record))
+    with pytest.raises(PublishError, match="still running"):
+        publish_run(running, project, bucket=bucket)
+    assert bucket.objects == {}
+    assert not (project / "runs" / running.name).exists()
+
+
 def test_example_images_are_published_for_open_data(finished_run, project, bucket):
     target = publish_run(finished_run, project, bucket=bucket)
     assert (target / "examples" / "examples.json").is_file()
