@@ -1,0 +1,348 @@
+{
+  "checkpoint_epoch": 7,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "sample (no patient IDs)",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.9900996075184498,
+      "lower": 0.984828427764498,
+      "upper": 0.9945100646410393,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.8814140268744934,
+      "lower": 0.8131911403523983,
+      "upper": 0.9399502605302891,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.9336823734729494,
+      "lower": 0.9144415357766144,
+      "upper": 0.9528795811518325,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.8077841997146606,
+      "lower": 0.7257069185376167,
+      "upper": 0.8905446484684943,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/actinic keratoses and intraepithelial carcinoma": {
+      "value": 0.9843245297358921,
+      "lower": 0.971153993864843,
+      "upper": 0.9954728658126271,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/actinic keratoses and intraepithelial carcinoma": {
+      "value": 0.7745633697964625,
+      "lower": 0.5917447175934966,
+      "upper": 0.9271412179755494,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/basal cell carcinoma": {
+      "value": 0.9993400428972117,
+      "lower": 0.9978549974896793,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/basal cell carcinoma": {
+      "value": 0.9829047255820709,
+      "lower": 0.9416762779789746,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/benign keratosis-like lesions": {
+      "value": 0.9845889101338432,
+      "lower": 0.9709360007105566,
+      "upper": 0.9946412814846304,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/benign keratosis-like lesions": {
+      "value": 0.9070523122915145,
+      "lower": 0.8370447650068528,
+      "upper": 0.9570536439805258,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/dermatofibroma": {
+      "value": 0.9971830985915493,
+      "lower": 0.9912587412587412,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 997,
+      "unit": "sample"
+    },
+    "auprc/dermatofibroma": {
+      "value": 0.8111111111111111,
+      "lower": 0.4434523809523816,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 997,
+      "unit": "sample"
+    },
+    "auroc/melanoma": {
+      "value": 0.9731892426992246,
+      "lower": 0.9464027140292347,
+      "upper": 0.9915770061885529,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/melanoma": {
+      "value": 0.6964604640037978,
+      "lower": 0.5049606533314349,
+      "upper": 0.8601307815224623,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/melanocytic nevi": {
+      "value": 0.9920714285714286,
+      "lower": 0.9864649347305332,
+      "upper": 0.9962078651685393,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/melanocytic nevi": {
+      "value": 0.997806205336497,
+      "lower": 0.996147765937019,
+      "upper": 0.998992313129513,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/vascular lesions": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/vascular lesions": {
+      "value": 0.9999999999999998,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 573,
+    "n_patients": 573
+  },
+  "test": {
+    "auroc": {
+      "value": 0.9906674601227695,
+      "lower": 0.9870095440499986,
+      "upper": 0.9936424558062825,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc": {
+      "value": 0.9017635694424023,
+      "lower": 0.8696761740475631,
+      "upper": 0.930388311773686,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "accuracy": {
+      "value": 0.928280358598207,
+      "lower": 0.9127954360228199,
+      "upper": 0.9421352893235534,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "balanced_accuracy": {
+      "value": 0.8062624335289001,
+      "lower": 0.7438156694173813,
+      "upper": 0.8634341835975647,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/actinic keratoses and intraepithelial carcinoma": {
+      "value": 0.9847794822627038,
+      "lower": 0.971777979092708,
+      "upper": 0.994455338563421,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/actinic keratoses and intraepithelial carcinoma": {
+      "value": 0.7927206398158783,
+      "lower": 0.6684511115432026,
+      "upper": 0.8973504637689581,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/basal cell carcinoma": {
+      "value": 0.9954084377161301,
+      "lower": 0.9920270417177934,
+      "upper": 0.9980876009492532,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/basal cell carcinoma": {
+      "value": 0.87625424115383,
+      "lower": 0.7801733477769051,
+      "upper": 0.94682942712468,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/benign keratosis-like lesions": {
+      "value": 0.9864357864357864,
+      "lower": 0.9801566876174087,
+      "upper": 0.9916264117280729,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/benign keratosis-like lesions": {
+      "value": 0.8832712055724908,
+      "lower": 0.82678827579602,
+      "upper": 0.9295467253738549,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/dermatofibroma": {
+      "value": 0.9997949138638229,
+      "lower": 0.9989452493201288,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/dermatofibroma": {
+      "value": 0.975,
+      "lower": 0.8666666666666667,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/melanoma": {
+      "value": 0.9761328559081368,
+      "lower": 0.9604503123695943,
+      "upper": 0.9879347089198185,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/melanoma": {
+      "value": 0.7874122836184052,
+      "lower": 0.6868961455972893,
+      "upper": 0.8676565501286282,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/melanocytic nevi": {
+      "value": 0.9921207446728066,
+      "lower": 0.9881306619132184,
+      "upper": 0.9952662804338892,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/melanocytic nevi": {
+      "value": 0.9976866159362124,
+      "lower": 0.9963545645434813,
+      "upper": 0.9986786746190996,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auroc/vascular lesions": {
+      "value": 1.0,
+      "lower": 0.9999999999999999,
+      "upper": 1.0,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "auprc/vascular lesions": {
+      "value": 1.0,
+      "lower": 0.9999999999999998,
+      "upper": 1.0000000000000002,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "sample"
+    },
+    "n_samples": 1227,
+    "n_patients": 1227
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 7
+  }
+}

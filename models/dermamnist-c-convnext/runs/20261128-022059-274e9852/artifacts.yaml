@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 197954831
+  sha256: d060ccf80178c006b7881b1b3a2f510e89e4a76bf3bb5d72b15f0e68fce78706
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/dermamnist-c-convnext/20261128-022059-274e9852/checkpoint.ckpt
