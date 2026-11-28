@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 197936399
+  sha256: d18f18951b559903576de567ac2e50c6ada00527497418484bfddcbfec4a7fe9
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/isic2020-convnext/20261128-034000-8bf03965/checkpoint.ckpt

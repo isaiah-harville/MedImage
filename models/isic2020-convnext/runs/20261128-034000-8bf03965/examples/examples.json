@@ -1,0 +1,82 @@
+[
+  {
+    "id": "images_768/ISIC_7270978.jpg",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "benign",
+    "prediction": "benign",
+    "confidence": 0.9999339478526963,
+    "correct": true
+  },
+  {
+    "id": "images_768/ISIC_2787702.jpg",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "melanoma",
+    "prediction": "melanoma",
+    "confidence": 0.4336712956428528,
+    "correct": true
+  },
+  {
+    "id": "images_768/ISIC_9425363.jpg",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "benign",
+    "prediction": "benign",
+    "confidence": 0.990129629150033,
+    "correct": true
+  },
+  {
+    "id": "images_768/ISIC_9978107.jpg",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "melanoma",
+    "prediction": "melanoma",
+    "confidence": 0.09811404347419739,
+    "correct": true
+  },
+  {
+    "id": "images_768/ISIC_9241732.jpg",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "benign",
+    "prediction": "melanoma",
+    "confidence": 0.025299791246652603,
+    "correct": false
+  },
+  {
+    "id": "images_768/ISIC_6634951.jpg",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "melanoma",
+    "prediction": "melanoma",
+    "confidence": 0.016741488128900528,
+    "correct": true
+  },
+  {
+    "id": "images_768/ISIC_0564568.jpg",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "benign",
+    "prediction": "melanoma",
+    "confidence": 0.3320133090019226,
+    "correct": false
+  },
+  {
+    "id": "images_768/ISIC_0862745.jpg",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "melanoma",
+    "prediction": "melanoma",
+    "confidence": 0.601881206035614,
+    "correct": true
+  }
+]
