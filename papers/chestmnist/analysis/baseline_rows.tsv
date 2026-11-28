@@ -1,0 +1,16 @@
+method_prefix	label	input	runs	cite	where
+BioFuse	BioFuse (frozen FMs, XGBoost)	native 224	3	hossain2026biofuse	Tab.~3
+DINOv2 ViT-B/14	DINOv2 ViT-B/14	native 224	3	wu2025rethinking	App.~C, Tab.~4
+MambaVision-B	MambaVision-B	native 224	10	farooq2026mambavision	Tab.~V
+MedViTV2-L	MedViTV2-L	28 $\rightarrow$ 224	n.s.	manzari2025medvitv2	arXiv v3 Tab.~5
+DenseNet-121, end-to-end, native 224	DenseNet-121 (MedMNIST+)	native 224	3	doerrich2025medmnistplus	Tab.~S3
+C-Mixer	C-Mixer	28	n.s.	zheng2023cmixer	Tab.~II
+MedViT-L	MedViT-L	28 $\rightarrow$ 224	n.s.	manzari2023medvit	arXiv v1 Tab.~3
+ConvNeXt-T	ConvNeXt-T, ImageNet-1k	native 224	10	farooq2026mambavision	Tab.~VI
+Google AutoML	Google AutoML Vision	n.s.	$\geq$3	yang2023medmnist	Tab.~3
+ResNet-18 (28 up	ResNet-18	28 $\rightarrow$ 224	$\geq$3	yang2023medmnist	Tab.~3
+ResNet-50 (28 up	ResNet-50	28 $\rightarrow$ 224	$\geq$3	yang2023medmnist	Tab.~3
+ResNet-50 (28)	ResNet-50	28	$\geq$3	yang2023medmnist	Tab.~3
+ResNet-18 (28)	ResNet-18	28	$\geq$3	yang2023medmnist	Tab.~3
+AutoKeras	AutoKeras	28	$\geq$3	yang2023medmnist	Tab.~3
+auto-sklearn	auto-sklearn	28	$\geq$3	yang2023medmnist	Tab.~3

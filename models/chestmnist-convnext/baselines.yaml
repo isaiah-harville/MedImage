@@ -9,28 +9,41 @@ protocol: >-
   3 seeds; MedMNIST v2 values are means of at least 3 trials; the MedViT papers do not say. No
   source publishes intervals or predictions, so a claim to beat one needs its value outside our
   95% interval. MedViTV2's Table 5 misquotes several MedMNIST v2 rows, so treat its own numbers
-  with care.
+  with care. auroc_sd and accuracy_sd are the standard deviations over runs that a source
+  publishes next to its mean.
 baselines:
   - method: "BioFuse: frozen foundation-model embeddings with XGBoost, native 224, mean of 3 runs"
     metrics: {auroc: 0.835, accuracy: 0.949}
     source: Hossain et al., PLOS One (2026), doi:10.1371/journal.pone.0320989, Table 3
     url: https://doi.org/10.1371/journal.pone.0320989
   - method: "DINOv2 ViT-B/14, end-to-end fine-tuned, native 224, mean of 3 runs"
-    metrics: {auroc: 0.8322, accuracy: 0.9487}
+    metrics: {auroc: 0.8322, accuracy: 0.9487, auroc_sd: 0.0048, accuracy_sd: 0.0001}
     source: Wu and Papiez, arXiv 2501.14685v1 (2025), Appendix C
     url: https://arxiv.org/abs/2501.14685
+  - method: "MambaVision-B, native 224, mean of 10 seeds"
+    metrics: {auroc: 0.823, auroc_sd: 0.002}
+    source: Farooq et al., arXiv 2611.20103 (2026), Table V
+    url: https://arxiv.org/abs/2611.20103
   - method: "MedViTV2-L (224, resized)"
     metrics: {auroc: 0.823, accuracy: 0.967}
     source: Manzari et al., arXiv 2502.13693v3 (2025), Table 5
     url: https://arxiv.org/html/2502.13693v3
   - method: "DenseNet-121, end-to-end, native 224 (MedMNIST+), mean of 3 seeds"
-    metrics: {auroc: 0.8222, accuracy: 0.9484}
+    metrics: {auroc: 0.8222, accuracy: 0.9484, auroc_sd: 0.0014, accuracy_sd: 0.0003}
     source: Doerrich et al., arXiv 2404.15786v3 (2025), Supplementary Table S3
     url: https://arxiv.org/html/2404.15786v3
+  - method: "C-Mixer (28)"
+    metrics: {auroc: 0.822, accuracy: 0.963}
+    source: Zheng et al., arXiv 2304.10054 (2023), Table II
+    url: https://arxiv.org/abs/2304.10054
   - method: "MedViT-L (224, resized)"
     metrics: {auroc: 0.805, accuracy: 0.959}
     source: Manzari et al., arXiv 2302.09462v1 (2023), Table 3
     url: https://arxiv.org/html/2302.09462v1
+  - method: "ConvNeXt-T, ImageNet-1k, native 224, mean of 10 seeds"
+    metrics: {auroc: 0.802, auroc_sd: 0.002}
+    source: Farooq et al., arXiv 2611.20103 (2026), Table VI
+    url: https://arxiv.org/abs/2611.20103
   - method: "Google AutoML Vision (28)"
     metrics: {auroc: 0.778, accuracy: 0.948}
     source: Yang et al., Scientific Data 10:41 (2023), Table 3

@@ -1,0 +1,11 @@
+title: "Three Seeds of a ConvNeXt-Small Recipe on ChestMNIST, Scored with Recovered Patient Identifiers"
+description: >-
+  We recovered NIH patient identifiers for ChestMNIST and found its split patient-disjoint
+  but not NIH's own test list. Over three seeds, a ConvNeXt-Small pretrained on ImageNet-22k
+  reached a mean test macro AUROC of 0.8450 (SD 0.0029). Every seed's patient-level interval
+  lies above the best end-to-end published value (0.8322); against the highest published
+  value (0.835, BioFuse) the comparison is unresolved. The paper says how ChestMNIST was
+  chosen from twelve subsets.
+project: chestmnist-convnext
+run: 20261126-165951-ab39eb97
+pdf: main.pdf

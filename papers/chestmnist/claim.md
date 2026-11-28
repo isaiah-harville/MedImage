@@ -1,75 +1,58 @@
 # Claim
 
-## Verdict of stage 1
+## Verdict
 
-The old paper's headline does not hold as stated. Its `paper.yaml` description says the run is "above the best published 0.823", and its Results say "all ten published values lie below the lower end of the interval". The literature review found two higher published ChestMNIST AUROCs on the same split and metric that the old paper missed:
+Stage 1 stopped the one-seed paper as inconclusive (see the history in `decisions.tsv`). Suggestions S1 to S3 are now done: three seeds, NIH patient identifiers recovered for ChestMNIST, and patient-level intervals. The claim below holds against the best end-to-end published value. Against the highest published value, BioFuse (0.835, no SD), it does not resolve, and the paper says so.
 
-- BioFuse, 0.835, mean of 3 runs, frozen foundation-model embeddings with XGBoost on native 224 px images (`hossain2026biofuse`, Table 3). That is 0.0019 below our lower bound of 0.8369, and our interval resamples images, not patients, so it is too narrow by an unknown amount.
-- Wu and Papiez, DINOv2 ViT-B/14 fine-tuned end to end at 224 px, 0.8322 +/- 0.0048 over 3 runs (`wu2025rethinking`, Appendix C). Their run-to-run SD of 0.0048 for one end-to-end model is the best available estimate of how far a single run moves. Our single run is 0.0094 above their mean, about two of their SDs.
+## Claim
 
-With one seed, the claim "higher than every published ChestMNIST AUROC" is inconclusive. The run stops at stage 1, narrowed to the claim below, which holds. Supporting the original claim needs suggestions S1 and S2 in `suggestions.md`.
-
-## Narrowed claim
-
-On native 224-pixel ChestMNIST, with the official MedMNIST split and evaluator, one training run of an ImageNet-22k-pretrained ConvNeXt-Small reached a test macro AUROC of 0.8416 (95% bootstrap interval over test images, 0.8369 to 0.8461), 0.019 above the best end-to-end result of the MedMNIST+ benchmark on the same images (DenseNet-121, 0.8222 +/- 0.0014 over 3 seeds), while its label accuracy at the 0.5 threshold, 0.9470, is below the 0.9474 of predicting every label negative.
-
-Why the narrowed claim holds (inferred, not measured): the gap of 0.019 is 4 times our interval's lower half-width (0.0047), 14 MedMNIST+ seed SDs (0.0014), and 4 times the largest single-model seed SD we found for end-to-end fine-tuning on ChestMNIST (0.0048, `wu2025rethinking`). Patient clustering would have to widen our interval about four-fold before 0.8222 fell inside it.
+On the official ChestMNIST split at 224 pixels, each of three seeds of one fixed ConvNeXt-Small (ImageNet-22k) recipe has a test macro AUROC above the best end-to-end fine-tuned published value (Wu and Papież, DINOv2 ViT-B/14, 0.8322 +/- 0.0048), and so does each seed's 95% patient-level bootstrap interval (mean 0.8450, SD 0.0029; lowest patient-level lower bound 0.8350; Welch p = 0.024, 0.29 after a Bonferroni factor of 12 for choosing ChestMNIST from 12 subsets). Each seed is also above BioFuse's 0.835, but seed 0's patient-level interval reaches it, so that comparison is unresolved. Among the 99.6% of ChestMNIST images matched confidently to NIH, no patient appears in two splits, and the test split is not NIH's `test_list.txt`.
 
 ## Contributions
 
-1. A single public run, with weights, per-image test and validation probabilities, and the resolved configuration, that reaches 0.8416 test macro AUROC on native 224 px ChestMNIST, 0.019 above the MedMNIST+ end-to-end best on the same images.
-2. A line-by-line comparison of our recipe with the MedMNIST+ end-to-end setup, taken from its paper and released code, with the one-factor experiment that would test each difference. No difference is tested here.
-3. A measurement showing that ACC at the 0.5 threshold barely separates models on native 224 px ChestMNIST: our run (0.9470) and every MedMNIST+ model (0.9431 to 0.9484) sit within 0.005 of the 0.9474 of the all-negative predictor, while AUROC spans 0.5593 to 0.8222 in the same table. MedViT, MedViTV2, and C-Mixer report 0.959 to 0.967 on 28 px inputs; we could not explain those values from their papers and make no claim about them.
+1. NIH patient identifiers for ChestMNIST, the split checked for patient overlap, and the finding that ChestMNIST's test split is not NIH's test list (17,243 of its 22,433 test images are in NIH's `train_val_list.txt`).
+2. Three seeds with image- and patient-level intervals and released per-image predictions.
+3. A sourced item-by-item setup comparison with MedMNIST+, and the observation that ACC at 0.5 mostly counts true negatives (ours is below every native-224 baseline and the all-negative predictor).
 
 ## Evidence
 
-All run files are in `models/chestmnist-convnext/runs/20261126-165951-ab39eb97/` (below, `RUN/`). `vet.py` prints every computed value; it was rerun on 2026-11-27 and matched each value here.
+Every number in the paper is a macro in `generated/numbers.tex`, written by
 
-| Number in the paper | Value | Macro | Artifact | Command that regenerates it |
-|---|---|---|---|---|
-| Test macro AUROC | 0.8416 | `\testAuroc` | `RUN/predictions_test.csv`, `RUN/metrics.json` | `uv run python papers/chestmnist/vet.py` (sklearn and `medmnist.evaluator.getAUC` agree to all digits) |
-| Test AUROC 95% interval | 0.8369 to 0.8461 | `\testAurocLo`, `\testAurocHi` | `RUN/metrics.json` | `vet.py`, repo `bootstrap()` with 1,000 image replicates, seed 0 |
-| Test ACC at 0.5 | 0.9470 | `\testAcc` | `RUN/predictions_test.csv` | `vet.py` (`getACC`) |
-| Test ACC 95% interval | 0.9461 to 0.9479 | `\testAccLo`, `\testAccHi` | `RUN/metrics.json` | read from `metrics.json` |
-| ACC of all-negative predictor | 0.9474 | `\allNegAcc` | `RUN/predictions_test.csv` | `vet.py` |
-| Share of label decisions predicted positive at 0.5 | 2.24% | `\predPosRate` | `RUN/predictions_test.csv` | `vet.py` |
-| Share of label decisions positive in the test labels | 5.26% | `\labelPosRate` | `RUN/predictions_test.csv` | `vet.py` |
-| Test label prevalence range | 0.19% (hernia) to 17.55% (infiltration) | `\prevMin`, `\prevMax` | `RUN/predictions_test.csv` | `vet.py` |
-| Test images | 22,433 | `\nTest` | `RUN/predictions_test.csv` | `vet.py` |
-| Per-label test AUROC | 0.7093 (infiltration) to 0.9321 (hernia) | table | `RUN/metrics.json` | read from `metrics.json` |
-| Validation AUROC, saved raw weights | 0.8470 | `\valAurocRaw` | `RUN/metrics.json` | read from `metrics.json` |
-| Validation AUROC, EMA weights, selected epoch | 0.8512 | `\valAurocEma` | `RUN/metrics.csv`, epoch 6 (0-based) | read from `metrics.csv` |
-| Selected epoch | 7 of 10 (1-based) | `\bestEpoch` | `RUN/metrics.json` `selection.best_epoch` = 6 | read |
-| Training time, one RTX 4070 Ti | 53 min | `\trainMinutes` | `RUN/run.json` started and finished | read |
-| Parameters | 49,462,382 | `\nParams` | `RUN/run.json` | read |
-| MedMNIST+ DenseNet-121 end-to-end, 224 | 0.8222 +/- 0.0014, ACC 0.9484 | `\mpAuroc` | `doerrich2025medmnistplus`, Supp. Table S3 | ledger |
-| Gap to MedMNIST+ best | 0.0194 | `\gapMp` | computed from the two rows above | `vet.py` (to add) |
-| Wu and Papiez DINOv2 end-to-end | 0.8322 +/- 0.0048 | `\wuAuroc` | `wu2025rethinking`, Appendix C | ledger |
-| BioFuse | 0.835, ACC 0.949 | `\biofuseAuroc` | `hossain2026biofuse`, Table 3 | ledger |
-| MedViTV2-L, 28 px upscaled | 0.823, ACC 0.967 | `\medvitAuroc` | `manzari2025medvitv2`, Table 5 | ledger |
+    uv run python -I papers/chestmnist/analysis/paper_numbers.py
 
-Checks run in stage 1, from `vet.py` unless noted:
+(about 30 minutes of CPU, mostly the 10,000-replicate patient bootstraps). The script recomputes each run's metrics from `models/chestmnist-convnext/runs/<run>/predictions_{test,val}.csv` and fails unless they equal `metrics.json` to 1e-9 and the medmnist evaluator's `getAUC`/`getACC`. It recomputes the patient summary from `generated/patient_ids.csv.gz` and fails unless it equals `generated/patient_ids.json`, including the seed-0-seeded 1,000-replicate patient intervals that file holds. It checks that the three runs share configuration (apart from the seed and defaulted options) and library versions. Published values come from `models/chestmnist-convnext/baselines.yaml`, each with a `sources.tsv` row.
 
-- Did the work happen? Both prediction files are complete: 22,433 test and 11,219 validation rows, 14 labels, no missing values, unique ids.
-- Is it the benchmark's metric? Our AUROC equals `medmnist.evaluator.getAUC` and our ACC equals `getACC` (threshold `> 0.5`) on the same predictions.
-- Was the test split used for selection? The recipe was committed in `6aa724b` at 19:46 UTC on 2026-11-26, before the run started at 22:59 UTC (`run.json`), and selection used validation AUROC only. Only one ChestMNIST run is in the repository history.
-- Which weights were scored? The checkpoint holds the raw weights of epoch 7, not the EMA weights the selection saw. Lightning 2.6.6 `dump_checkpoint` skips callback `on_save_checkpoint` hooks when `weights_only` is set, and the config sets `save_weights_only: true`. The rescored validation AUROC (0.8470) differs from the logged EMA value (0.8512) by 40 times the 1e-4 metric-implementation tolerance noted in `metrics/classification.py`.
-- Can row order stand in for patients? No. Adjacent test rows have mean score correlation 0.0006, the same as shuffled rows (0.0008), so a block bootstrap over consecutive rows equals the image bootstrap. It was dropped.
-- What limits the number? Not measured. The weakest labels are infiltration (0.709) and pneumonia (0.760); report-mined labels bound every model (the NIH labeler's per-label F1 ranges from 88.1 for pneumonia to 100 for hernia on 900 reports, `wang2017chestxray8` v5 Table 18).
+| Number | Value | Macro |
+|---|---|---|
+| Test AUROC, seeds 0, 1, 2 | 0.8416, 0.8464, 0.8470 | `\testAurocSeedZero` etc. |
+| Mean, SD | 0.8450, 0.0029 | `\testAurocMean`, `\testAurocSD` |
+| Image-level 95% CI (1,000 replicates) | [0.8369, 0.8461], [0.8415, 0.8512], [0.8422, 0.8515] | `\testAurocLoSeed*` |
+| Patient-level 95% CI (10,000 replicates) | [0.8350, 0.8469], [0.8403, 0.8516], [0.8408, 0.8522] | `\patientAurocLoSeed*` |
+| Welch vs Wu, p (n-1; n) | 0.024; 0.044 | `\welchPWu`, `\welchPWuByN` |
+| Difference to Wu, Welch 95% CI | 0.0030 to 0.0226 | `\diffWuLo`, `\diffWuHi` |
+| One-sample vs 0.835, p | 0.028 (0.030 vs 0.8355) | `\oneSamplePBest` |
+| Seeds 1 and 2 only, vs Wu / vs 0.835 | 0.034 / 0.014 | `\laterWelchPWu`, `\laterOneSamplePBest` |
+| Test ACC mean; all-negative ACC | 0.9470; 0.9474 | `\testAccMean`, `\allNegAcc` |
+| Confident matches (train, val, test) | 78,164, 11,162, 22,356 | `\confident*` |
+| Patients shared train/test (confident; loose) | 0; 49 | `\sharedTrainTest`, `\looseSharedTrainTest` |
+| Shared under a random split (5 shuffles) | 7,670 to 7,802 | `\nullShared*` |
+| Test images in NIH test list | 5,190 | `\testFromNihTest` |
+| Recipe clears best published on | 2 of 12 subsets | `\subsetsAbove` |
+
+Figures: `uv run --with matplotlib python -I papers/chestmnist/make_figures.py` (reads `generated/seeds.json` and the run files).
 
 ## Limits
 
-- One seed. Seed spread is the largest uncertainty the interval leaves out. Published single-model seed SDs on ChestMNIST range from 0.0014 (MedMNIST+ DenseNet-121) to 0.0048 (Wu and Papiez DINOv2).
-- The interval resamples images. ChestMNIST has no patient IDs. MedMNIST v2 says it uses the official NIH split; ChestX-ray14's v5 text describes that split as patient-level. Neither claim was checked against image-level patient IDs here, so patient overlap across splits and clustering within the test split are both unverified.
-- Labels are mined from radiology reports, not read from images.
-- The checkpoint holds raw weights; EMA only chose the epoch.
-- No ablation. The comparison with MedMNIST+ changes about ten settings at once, so it identifies candidate causes, not causes.
-- ACC at 0.5 is below the all-negative predictor. No accuracy claim is made, and the threshold was not tuned, by protocol.
-- One dataset, at reduced resolution. A research model, not a medical device.
-- BioFuse uses RAD-DINO, which was pretrained on NIH chest X-rays among other data, so its 0.835 may include test-set exposure. This makes the comparison with it less clean in either direction.
+- Three seeds; Welch tests with about 3 degrees of freedom; published SDs from three runs with unstated divisors; BioFuse reports no SD.
+- ChestMNIST was chosen after its first result; p-values are given raw and with a factor of 12.
+- Patient IDs come from thumbnail matching; the matching is not one-to-one (194 NIH images claimed twice, 4 by two confident matches), and 438 images have no confident match (S8).
+- No ablation and no in-pipeline baseline, so no component is credited (S4, S6).
+- Raw weights are scored; EMA weights chose the epoch (S7).
+- Report-mined labels, one hospital, reduced resolution. ACC at 0.5 is below every native-224 baseline. A research model, not a medical device.
+- BioFuse's RAD-DINO and CheXagent were trained on chest radiographs, RAD-DINO's on data including NIH's.
 
 ## Authors
 
-- Isaiah R. Harville, <affiliation placeholder>, <email placeholder>.
-- Claude (Anthropic) is not an author, because arXiv does not allow generative AI tools as authors. The Acknowledgment says how Claude was used.
-- arXiv category: placeholder. Suggested primary eess.IV, cross-list cs.CV.
+- Isaiah R. Harville, Independent Researcher (affiliation unconfirmed).
+- Claude is not an author; the Acknowledgment says how Claude was used.
+- Suggested arXiv category: eess.IV primary, cs.CV cross-list.

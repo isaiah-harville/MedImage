@@ -1,0 +1,27 @@
+\begin{table}[t]
+\caption{Which findings does the model rank worst? Test prevalence and one-vs-rest AUROC for each label, as the mean and the range over the three seeds, sorted by AUROC.}
+\label{tab:perlabel}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}lrll@{}}
+\toprule
+Label & Prev.\ (\%) & AUROC & range \\
+\midrule
+Infiltration & 17.55 & 0.7096 & 0.7093--0.7101 \\
+Pneumonia & 1.08 & 0.7668 & 0.7595--0.7706 \\
+Nodule & 5.95 & 0.7847 & 0.7793--0.7878 \\
+Pleural thickening & 3.27 & 0.7850 & 0.7831--0.7885 \\
+Consolidation & 4.27 & 0.8149 & 0.8136--0.8158 \\
+Atelectasis & 10.79 & 0.8303 & 0.8282--0.8326 \\
+Fibrosis & 1.61 & 0.8386 & 0.8342--0.8425 \\
+Mass & 5.05 & 0.8565 & 0.8523--0.8586 \\
+Pneumothorax & 4.85 & 0.8769 & 0.8699--0.8849 \\
+Effusion & 12.28 & 0.8859 & 0.8838--0.8881 \\
+Edema & 1.84 & 0.8958 & 0.8878--0.9006 \\
+Cardiomegaly & 2.59 & 0.9144 & 0.9108--0.9164 \\
+Emphysema & 2.27 & 0.9313 & 0.9270--0.9337 \\
+Hernia & 0.19 & 0.9397 & 0.9321--0.9445 \\
+\bottomrule
+\end{tabular}
+\end{table}

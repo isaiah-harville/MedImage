@@ -1,9 +1,10 @@
-"""Draw the paper's figures from the committed ChestMNIST run files.
+"""Draw the paper's figures from the committed ChestMNIST run files and baselines.yaml.
 
-    uv run python papers/chestmnist/make_figures.py
+    uv run --with matplotlib python -I papers/chestmnist/make_figures.py
 
-Reads metrics.csv and metrics.json from the run directory and writes PDFs to
-papers/chestmnist/figures/.
+Run analysis/paper_numbers.py first: it checks every run against its predictions and writes
+generated/seeds.json, which holds the image- and patient-level intervals drawn here. Writes
+comparison.pdf and training_curves.pdf to papers/chestmnist/figures/.
 """
 
 from __future__ import annotations
@@ -16,105 +17,149 @@ import matplotlib
 
 matplotlib.use("pdf")
 import matplotlib.pyplot as plt
-import numpy as np
+import yaml
 
-HERE = Path(__file__).resolve().parent
-PROJECT = HERE.parents[1] / "models/chestmnist-convnext"
-RUN = PROJECT / "runs/20261126-165951-ab39eb97"
-OUT = HERE / "figures"
-BLUE = "#2a78d6"
-ORANGE = "#eb6834"
-GRAY = "#52514e"
+ROOT = Path(__file__).resolve().parents[1].parent
+PAPER = Path(__file__).resolve().parent
+PROJECT = ROOT / "models/chestmnist-convnext"
+RUNS = ["20261126-165951-ab39eb97", "20261127-142008-a35c5dae", "20261127-150930-405f7138"]
+OUT = PAPER / "figures"
+PUBLISHED = [
+    ("BioFuse", "BioFuse [Hos]"),
+    ("DINOv2 ViT-B/14", "DINOv2 ViT-B/14 [Wu]"),
+    ("MambaVision-B", "MambaVision-B [Far]"),
+    ("DenseNet-121, end-to-end, native 224", "DenseNet-121 [M+]"),
+    ("ConvNeXt-T", "ConvNeXt-T [Far]"),
+]
+OURS = "#0072b2"
+THEIRS = "#d55e00"
+STYLES = [("-", "o"), ("--", "s"), (":", "^")]
 
 plt.rcParams.update(
     {
-        "font.family": "serif",
         "font.size": 8,
-        "axes.titlesize": 8,
-        "axes.labelsize": 8,
-        "legend.fontsize": 7,
-        "xtick.labelsize": 7,
-        "ytick.labelsize": 7,
-        "pdf.fonttype": 42,
         "axes.spines.top": False,
         "axes.spines.right": False,
         "axes.grid": True,
-        "grid.color": "#e4e3df",
+        "grid.color": "#dddddd",
         "grid.linewidth": 0.5,
+        "pdf.fonttype": 42,
+        "legend.frameon": False,
     }
 )
 
 
-def read_rows(path: Path) -> list[dict[str, str]]:
-    with path.open(newline="") as f:
-        return list(csv.DictReader(f))
-
-
-def series(rows: list[dict[str, str]], column: str) -> tuple[np.ndarray, np.ndarray]:
-    """Values of ``column`` by epoch, numbered from 1."""
-    points = [(int(r["epoch"]) + 1, float(r[column])) for r in rows if r[column] and r["epoch"]]
-    epochs, values = zip(*points, strict=True)
-    return np.array(epochs), np.array(values)
-
-
-def training_curves(metrics: dict) -> None:
-    rows = read_rows(RUN / "metrics.csv")
-    best = metrics["selection"]["best_epoch"] + 1
-    saved = metrics["val"]["auroc"]["value"]
-    fig, (top, bottom) = plt.subplots(2, 1, figsize=(3.4, 3.0), sharex=True)
-    epochs, loss = series(rows, "train/loss")
-    top.plot(epochs, loss, color=BLUE, lw=1.5, marker="o", ms=3)
-    top.set_ylabel("Training loss (BCE)")
-    epochs, auroc = series(rows, "val/auroc")
-    bottom.plot(epochs, auroc, color=BLUE, lw=1.5, marker="o", ms=3, label="EMA weights, logged")
-    bottom.plot([best], [saved], ls="none", marker="D", ms=4, color=ORANGE, label="Saved weights")
-    for ax in (top, bottom):
-        ax.axvline(best, color=GRAY, lw=0.7, ls="--")
-    bottom.set_ylabel("Validation macro AUROC")
-    bottom.set_xlabel("Epoch")
-    bottom.set_xticks(range(1, len(epochs) + 1))
-    bottom.legend(loc="lower right", frameon=False)
+def comparison() -> None:
+    seeds = json.loads((PAPER / "generated/seeds.json").read_text())
+    baselines = yaml.safe_load((PROJECT / "baselines.yaml").read_text())["baselines"]
+    fig, ax = plt.subplots(figsize=(3.5, 2.6))
+    labels = []
+    y = 0
+    for seed in seeds.values():
+        for offset, (key, marker, fill) in enumerate(
+            (("image", "o", OURS), ("patient", "o", "white"))
+        ):
+            value, lower, upper = seed[key]
+            ax.errorbar(
+                value,
+                y - 0.17 + 0.34 * offset,
+                xerr=[[value - lower], [upper - value]],
+                fmt=marker,
+                color=OURS,
+                mfc=fill,
+                ms=3.5,
+                capsize=2,
+                lw=0.9,
+            )
+        labels.append(f"ConvNeXt-S seed {seed['seed']}")
+        y += 1
+    values = [s["image"][0] for s in seeds.values()]
+    mean = sum(values) / len(values)
+    sd = (sum((v - mean) ** 2 for v in values) / (len(values) - 1)) ** 0.5
+    ax.errorbar(mean, y, xerr=sd, fmt="D", color=OURS, ms=3.5, capsize=2, lw=0.9)
+    labels.append("ConvNeXt-S mean")
+    y += 1
+    best = max(b["metrics"]["auroc"] for b in baselines)
+    for prefix, label in PUBLISHED:
+        metrics = next(b for b in baselines if b["method"].startswith(prefix))["metrics"]
+        ax.errorbar(
+            metrics["auroc"],
+            y,
+            xerr=metrics.get("auroc_sd", 0),
+            fmt="s",
+            color=THEIRS,
+            mfc="white",
+            ms=3.5,
+            capsize=2,
+            lw=0.9,
+        )
+        labels.append(label)
+        y += 1
+    ax.axvline(best, color=THEIRS, lw=0.6, ls="--")
+    ax.set_xlabel("Test macro AUROC")
+    ax.set_yticks(range(len(labels)), labels)
+    ax.grid(axis="y", visible=False)
+    ax.invert_yaxis()
+    ax.set_xlim(0.795, 0.855)
     fig.tight_layout(pad=0.3)
-    fig.savefig(OUT / "training_curves.pdf")
+    fig.savefig(OUT / "comparison.pdf")
     plt.close(fig)
 
 
-def lr_schedules() -> None:
-    """Our logged learning rate against the MedMNIST+ schedule, recomputed from its code.
+def history(run_id: str) -> tuple[int, dict, dict[int, dict[str, float]]]:
+    path = PROJECT / "runs" / run_id
+    out: dict[int, dict[str, float]] = {}
+    with (path / "metrics.csv").open(newline="") as handle:
+        for row in csv.DictReader(handle):
+            if row["epoch"]:
+                values = out.setdefault(int(row["epoch"]), {})
+                for key in ("train/loss", "val/auroc"):
+                    if row[key]:
+                        values[key] = float(row[key])
+    seed = json.loads((path / "run.json").read_text())["seed"]
+    return seed, json.loads((path / "metrics.json").read_text()), out
 
-    MedMNIST+ (train.py at commit b67b772 of sdoerrich97/rethinking-model-prototyping-
-    MedMNISTPlus) uses timm's CosineLRScheduler with t_initial=100, lr_min=0, no warmup, and
-    calls scheduler.step(epoch=e) after epoch e, so epoch e+1 trains at lr(e).
-    """
-    rows = read_rows(RUN / "metrics.csv")
-    ours = [float(r["lr-AdamW"]) for r in rows if r["lr-AdamW"]]
-    base, cycle, shown = 1e-4, 100, 30
 
-    def medmnist_plus(epoch: int) -> float:
-        t = max(epoch - 1, 0)
-        return 0.5 * base * (1 + np.cos(np.pi * t / cycle))
-
-    theirs = [medmnist_plus(e) for e in range(shown)]
-    fig, ax = plt.subplots(figsize=(3.4, 1.9))
-    ax.plot(range(1, shown + 1), theirs, color=ORANGE, lw=1.5, label="MedMNIST+ (first 30 of 100)")
-    ax.plot(
-        range(1, len(ours) + 1), ours, color=BLUE, lw=1.5, marker="o", ms=3, label="Ours (logged)"
-    )
-    ax.set_xlabel("Epoch")
-    ax.set_ylabel("Learning rate")
-    ax.set_ylim(0, 1.1e-4)
-    ax.ticklabel_format(axis="y", style="sci", scilimits=(0, 0))
-    ax.legend(loc="center right", frameon=False)
-    fig.tight_layout(pad=0.3)
-    fig.savefig(OUT / "lr_schedules.pdf")
+def curves() -> None:
+    fig, axes = plt.subplots(1, 2, figsize=(3.5, 1.7))
+    for run_id, (line, marker) in zip(RUNS, STYLES, strict=True):
+        seed, metrics, epochs = history(run_id)
+        x = [e + 1 for e in sorted(epochs)]
+        for ax, key in ((axes[0], "train/loss"), (axes[1], "val/auroc")):
+            ax.plot(
+                x,
+                [epochs[e][key] for e in sorted(epochs)],
+                line,
+                marker=marker,
+                ms=2.5,
+                lw=0.9,
+                color=OURS,
+                label=f"seed {seed}",
+            )
+        selected = metrics["selection"]["best_epoch"]
+        axes[1].plot(
+            selected + 1.2,
+            metrics["val"]["auroc"]["value"],
+            marker,
+            ms=4,
+            mfc="white",
+            color="black",
+        )
+    axes[0].set_ylabel("Training loss")
+    axes[1].set_ylabel("Validation AUROC")
+    for ax in axes:
+        ax.set_xlabel("Epoch")
+        ax.set_xticks(range(1, 11, 3))
+    axes[0].legend(fontsize=7, handlelength=2.2)
+    fig.tight_layout(pad=0.3, w_pad=0.8)
+    fig.savefig(OUT / "training_curves.pdf")
     plt.close(fig)
 
 
 def main() -> None:
     OUT.mkdir(exist_ok=True)
-    metrics = json.loads((RUN / "metrics.json").read_text())
-    training_curves(metrics)
-    lr_schedules()
+    comparison()
+    curves()
 
 
 if __name__ == "__main__":

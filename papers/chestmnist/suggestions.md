@@ -14,7 +14,7 @@ Cost basis: the published run took 53 min for 10 epochs on one RTX 4070 Ti, trai
 - **Would change:** a 5-seed mean at or above about 0.840 with SD at or below 0.003 would support "higher than every published value we found". A mean near 0.835 would make the run a favourable draw, and the paper would say the recipe matches the best published values.
 - **Without it:** the narrowed claim: one run reached 0.8416, 0.019 above the MedMNIST+ end-to-end best on the same images, and within the range of the best published values (0.832 to 0.835).
 - **Cost:** 4 runs, about 3.5 GPU-hours on the RTX 4070 Ti. 2 runs (3 seeds in all, matching the baselines) cost about 1.8 hours.
-- **Status:** open
+- **Status:** done. Seeds 1 and 2 trained at a35c5da and 405f713 (runs 20261127-142008-a35c5dae and 20261127-150930-405f7138). Three seeds, not five: mean 0.8450, SD 0.0029, which meets the bar above on mean and SD. The claim against Wu and Papiez holds; against BioFuse it stays unresolved because seed 0's patient-level interval overlaps 0.835. Two more seeds would tighten the Welch tests.
 
 ## S2: Patient-level interval
 
@@ -24,7 +24,7 @@ Cost basis: the published run took 53 min for 10 epochs on one RTX 4070 Ti, trai
 - **Would change:** the interval width, and so whether 0.835 lies outside it.
 - **Without it:** the paper says the interval resamples images and cannot rank the run against BioFuse.
 - **Cost:** the download (hours, depending on bandwidth) plus about 1 to 3 CPU-hours of matching. Note the repo's AGENTS.md lets open datasets be downloaded without asking.
-- **Status:** open
+- **Status:** done. NIH IDs recovered by thumbnail matching (`scripts/patient_ids.py`, commit d1edb30); patient-level intervals with 10,000 replicates in `analysis/paper_numbers.py`. Widths are 1.2 to 1.3 times the image-level ones.
 
 ## S3: Train/test patient overlap
 
@@ -33,7 +33,7 @@ Cost basis: the published run took 53 min for 10 epochs on one RTX 4070 Ti, trai
 - **Why:** MedMNIST v2 says it uses the official split; ChestX-ray14 v5 describes that split as patient-level (`wang2017chestxray8`), but nothing checks it for the MedMNIST arrays, and `check_disjoint` could not run. If patients overlap, a larger pretrained model could gain more from memorizing them than DenseNet-121 does.
 - **Would change:** a drop in AUROC on unseen patients would weaken the comparison with every baseline.
 - **Cost:** minutes once S2 is done.
-- **Status:** open
+- **Status:** done. 0 patients shared between train and test among confident matches; 49 if unsure matches count, and dropping their 607 test images moves AUROC by at most 0.0003. The split is not NIH's test_list.txt (5,190 of 22,433 test images are in it).
 
 ## S4: One-factor ablations of the recipe
 
@@ -49,7 +49,7 @@ Cost basis: the published run took 53 min for 10 epochs on one RTX 4070 Ti, trai
 - **Would change:** which differences the paper may name as causes.
 - **Without it:** the setup comparison stays a list of hypotheses.
 - **Cost:** items 1, 4, 5, 6 at about 53 min per run, 3 seeds each: about 10.5 GPU-hours. Item 2 about 2 to 3 hours. Item 3 runs until early stopping, up to 100 epochs, about 3 to 25 hours for 3 seeds. About 16 to 40 GPU-hours in all.
-- **Status:** open
+- **Status:** open, listed in the paper's Discussion and Limitations.
 
 ## S5: Add the missing published baselines
 
@@ -58,7 +58,7 @@ Cost basis: the published run took 53 min for 10 epochs on one RTX 4070 Ti, trai
 - **Why:** `baselines.yaml` stops at 0.823, so the model card and the old paper overstate the margin. This file is outside `papers/`, so this run did not edit it.
 - **Would change:** the results table and the "highest published value" wording.
 - **Cost:** 15 minutes.
-- **Status:** open
+- **Status:** done. Added SDs for Wu and MedMNIST+, MambaVision-B and ConvNeXt-T (Farooq Tables V and VI), and C-Mixer (Table II) to baselines.yaml.
 
 ## S6: Reproduce the MedMNIST+ DenseNet-121 in this pipeline
 
@@ -67,7 +67,7 @@ Cost basis: the published run took 53 min for 10 epochs on one RTX 4070 Ti, trai
 - **Why:** no baseline publishes per-image predictions, so the comparison can only use published means. A reproduced baseline allows the paired test that repo invariant 3 prefers.
 - **Would change:** a paired difference with an interval, in place of a comparison with a published mean.
 - **Cost:** about 3 to 6 GPU-hours, depending on when early stopping ends each run.
-- **Status:** open
+- **Status:** open. Both reviewers named it the most useful next run.
 
 ## S7: Score the EMA weights
 
@@ -75,4 +75,13 @@ Cost basis: the published run took 53 min for 10 epochs on one RTX 4070 Ti, trai
 - **Run:** retrain with `checkpoint.save_weights_only: false` (or fix the pipeline so weights-only checkpoints hold the EMA average), select between raw and EMA weights on validation only, then score test once.
 - **Why:** the reported model is the raw weights; the EMA weights scored 0.8512 against 0.8470 on validation at the same epoch.
 - **Cost:** one run, about 1 GPU-hour, plus the pipeline fix.
+- **Status:** open, listed in Limitations.
+
+## S8: One-to-one patient matching
+
+- **Priority:** strengthens (from reviewer round 1)
+- **Run:** on the training machine with the NIH images, extend `scripts/patient_ids.py` to assign ChestMNIST images to NIH images one-to-one (Hungarian or greedy unique by correlation), searching all label sets for the 438 rows without a confident match, and report how many ChestMNIST label sets differ from `Data_Entry_2017.csv`.
+- **Why:** 194 NIH images are the best match of more than one ChestMNIST image, 4 of them for two confident matches, and one ChestMNIST label set has no NIH counterpart.
+- **Would change:** the count of unsure matches and the 49 loosely shared patients; the patient-level intervals by a little.
+- **Cost:** about the same CPU time as the first matching run, plus the 42 GB of NIH images already on that machine.
 - **Status:** open

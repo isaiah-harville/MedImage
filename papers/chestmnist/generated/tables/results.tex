@@ -1,0 +1,35 @@
+\begin{table*}[t]
+\caption{ChestMNIST test results on the official split of 22,433 images. AUROC is the macro mean over 14 labels; ACC is label accuracy at a 0.5 threshold. For our seeds, Image CI and Patient CI are 95\% percentile bootstrap intervals that resample test images or test patients; the mean row gives the mean $\pm$ SD over the three seeds. Published rows give the mean, with $\pm$ SD over runs where the source reports it. Runs: seeds or trials averaged (n.s.: not stated; n.r.: not reported). Input: native 224 is the MedMNIST+ 224-pixel release; 28 $\rightarrow$ 224 is a 28-pixel image enlarged.}
+\label{tab:main}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3.5pt}
+\begin{tabular}{@{}llllllll@{}}
+\toprule
+Method & Input & Runs & AUROC & Image CI & Patient CI & ACC & Source \\
+\midrule
+ConvNeXt-S, seed 0 (ours) & native 224 & 1 & 0.8416 & [0.8369, 0.8461] & [0.8350, 0.8469] & 0.9470 & this work \\
+ConvNeXt-S, seed 1 (ours) & native 224 & 1 & 0.8464 & [0.8415, 0.8512] & [0.8403, 0.8516] & 0.9470 & this work \\
+ConvNeXt-S, seed 2 (ours) & native 224 & 1 & 0.8470 & [0.8422, 0.8515] & [0.8408, 0.8522] & 0.9469 & this work \\
+ConvNeXt-S, mean (ours) & native 224 & 3 & \textbf{0.8450} $\pm$ 0.0029 & & & 0.9470 & this work \\
+\midrule
+BioFuse (frozen FMs, XGBoost) & native 224 & 3 & 0.835 & & & 0.949 & \cite{hossain2026biofuse}, Tab.~3 \\
+DINOv2 ViT-B/14 & native 224 & 3 & 0.8322 $\pm$ 0.0048 & & & 0.9487 $\pm$ 0.0001 & \cite{wu2025rethinking}, App.~C, Tab.~4 \\
+MambaVision-B & native 224 & 10 & 0.823 $\pm$ 0.002 & & & n.r. & \cite{farooq2026mambavision}, Tab.~V \\
+MedViTV2-L & 28 $\rightarrow$ 224 & n.s. & 0.823 & & & 0.967 & \cite{manzari2025medvitv2}, arXiv v3 Tab.~5 \\
+DenseNet-121 (MedMNIST+) & native 224 & 3 & 0.8222 $\pm$ 0.0014 & & & 0.9484 $\pm$ 0.0003 & \cite{doerrich2025medmnistplus}, Tab.~S3 \\
+C-Mixer & 28 & n.s. & 0.822 & & & 0.963 & \cite{zheng2023cmixer}, Tab.~II \\
+MedViT-L & 28 $\rightarrow$ 224 & n.s. & 0.805 & & & 0.959 & \cite{manzari2023medvit}, arXiv v1 Tab.~3 \\
+ConvNeXt-T, ImageNet-1k & native 224 & 10 & 0.802 $\pm$ 0.002 & & & n.r. & \cite{farooq2026mambavision}, Tab.~VI \\
+Google AutoML Vision & n.s. & $\geq$3 & 0.778 & & & 0.948 & \cite{yang2023medmnist}, Tab.~3 \\
+ResNet-18 & 28 $\rightarrow$ 224 & $\geq$3 & 0.773 & & & 0.947 & \cite{yang2023medmnist}, Tab.~3 \\
+ResNet-50 & 28 $\rightarrow$ 224 & $\geq$3 & 0.773 & & & 0.948 & \cite{yang2023medmnist}, Tab.~3 \\
+ResNet-50 & 28 & $\geq$3 & 0.769 & & & 0.947 & \cite{yang2023medmnist}, Tab.~3 \\
+ResNet-18 & 28 & $\geq$3 & 0.768 & & & 0.947 & \cite{yang2023medmnist}, Tab.~3 \\
+AutoKeras & 28 & $\geq$3 & 0.742 & & & 0.937 & \cite{yang2023medmnist}, Tab.~3 \\
+auto-sklearn & 28 & $\geq$3 & 0.649 & & & 0.779 & \cite{yang2023medmnist}, Tab.~3 \\
+\midrule
+Every label negative & -- & -- & 0.5 & & & 0.9474 & computed \\
+\bottomrule
+\end{tabular}
+\end{table*}
