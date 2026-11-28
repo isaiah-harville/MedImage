@@ -2,9 +2,8 @@
 
 ## Summary
 The dermamnist-convnext recipe trained and tested on DermaMNIST-C (Abhishek et al. 2024), the
-corrected DermaMNIST split that keeps each HAM10000 lesion in one split. It exists for the DermaMNIST paper (`papers/dermamnist/`), which measures how much
-training on test lesions raises the official-split score. Results come from each run's
-`metrics.json`.
+corrected DermaMNIST split that keeps each HAM10000 lesion in one split, so no test lesion
+was seen in training. Results come from each run's `metrics.json`.
 
 ## Intended use
 Research only. Not a medical device.
@@ -18,7 +17,7 @@ patient IDs, so the bootstrap resamples images.
 Config: `config.yaml`. Commit, hardware and time: each run's `run.json`.
 
 ## Limitations and biases
-Seeds are few, and the ViT learning rate was set once, not tuned.
+One run, with the MedMNIST recipe's settings, not tuned for this split.
 
 ## Reproduce
 ```bash
