@@ -1,0 +1,49 @@
+{
+  "name": "cmmd-convnext",
+  "seed": 0,
+  "deterministic": "warn",
+  "git": {
+    "commit": "8bf0396534b76186837ba7e5b3a5577f89d46ac5",
+    "branch": "main",
+    "dirty": false
+  },
+  "environment": {
+    "python": "3.12.16",
+    "platform": "Windows-11-10.0.26300-SP0",
+    "machine": "AMD64",
+    "packages": {
+      "opendiagnostics": "0.1.0",
+      "torch": "2.15.0+cu132",
+      "torchvision": "0.29.2+cu132",
+      "lightning": "2.6.6",
+      "torchmetrics": "1.9.0",
+      "timm": "1.0.31",
+      "monai": "1.6.2",
+      "medmnist": "3.0.2",
+      "numpy": "2.5.5"
+    },
+    "cuda_available": true,
+    "cuda_version": "13.2",
+    "gpu": "NVIDIA GeForce RTX 4070 Ti",
+    "mps_available": false
+  },
+  "device": "cuda:0",
+  "command": [
+    "opendiagnostics",
+    "fit",
+    "-c",
+    "models/cmmd-convnext/config.yaml"
+  ],
+  "dataset": {
+    "name": "CSVImageDataModule",
+    "license": "CC BY 4.0",
+    "citation": "Cui C, et al. The Chinese Mammography Database (CMMD). The Cancer Imaging Archive (2021). doi:10.7937/tcia.eqde-4b16",
+    "patient_ids_available": true,
+    "fingerprint": {
+      "manifest": "data\\cmmd\\manifest.csv",
+      "rows": 3744
+    }
+  },
+  "parameters": 49452385,
+  "started": "2026-11-28T10:42:28+00:00"
+}
