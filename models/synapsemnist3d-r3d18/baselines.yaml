@@ -2,9 +2,10 @@ benchmark: SynapseMNIST3D (MedMNIST v2), official test split of 352 volumes at 6
 protocol: 'Test AUROC and ACC on the official split, with the official medmnist evaluator''s definitions:
   AUROC is plain binary AUROC and ACC uses a 0.5 threshold (compare our accuracy_at_0.5). Our runs train
   and test on the 64³ volumes. The MedMNIST v2 rows use the 28³ volumes, so they are a weaker, lower-resolution
-  reference, not a like-for-like comparison; they are means of at least 3 trials. The BSDA, cross-plane
-  attention, TopoCAM and PlaneCycle rows use the official split (PlaneCycle does not state its resolution). BSDA values are means of 3 seeds; the cross-plane attention
-  paper does not say. Its Table 1 also lists other methods, copied from their papers without a stated
+  reference, not a like-for-like comparison; they are means of at least 3 trials. The cross-plane
+  attention, TopoCAM and PlaneCycle rows use the official split (PlaneCycle does not state its resolution).
+  PlaneCycle values are means of 5 runs with no SD; TopoCAM and the cross-plane attention paper report
+  one value with no seed count. MTDL and CNMTDL give means of 3 and 5 seeds without SDs. Its Table 1 also lists other methods, copied from their papers without a stated
   resolution, so they are left out. No source publishes intervals or predictions, so a claim to beat one
   needs its value outside our 95% interval.'
 baselines:
@@ -20,6 +21,7 @@ baselines:
 - method: DINOv3 ViT-L/16, fully fine-tuned, 3D baseline (mean of 5 runs)
   metrics:
     auroc: 0.973
+    accuracy: 0.93
   source: Yu et al., PlaneCycle, doi:10.1007/978-3-032-38062-3_45 (arXiv 2603.04165v3), Table 2
   url: https://arxiv.org/abs/2603.04165
   notes: Official MedMNIST+ split. The paper does not state the resolution; its code defaults to 64³.
@@ -31,6 +33,20 @@ baselines:
   url: https://arxiv.org/html/2602.21636v1
   notes: Frozen MedDINOv3 slice features, pretrained on 3.87M axial CT slices whose overlap with this
     subset's source is not stated. Seeds not stated.
+- method: MTDL, Hodge-decomposition channels (64³), mean of 3 seeds
+  metrics:
+    auroc: 0.951
+    accuracy: 0.931
+  source: Liu et al., Manifold topological deep learning for biomedical data, Nature Communications 17 (2026), doi:10.1038/s41467-026-71392-1, Results (Overall performance)
+  url: https://doi.org/10.1038/s41467-026-71392-1
+  notes: MedMNIST v2 split; 64³ is stated in Supplementary Information Sec 7. No SD in the main text.
+- method: CNMTDL, combinatorial-complex MTDL (64³), mean of 5 seeds
+  metrics:
+    auroc: 0.932
+    accuracy: 0.855
+  source: Wachira et al., arXiv 2609.25453 (2026), Table 2
+  url: https://arxiv.org/abs/2609.25453
+  notes: Five seeds, mean only.
 - method: ResNet-50 + 3D (28³), mean of at least 3 trials
   metrics:
     auroc: 0.851

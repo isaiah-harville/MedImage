@@ -1,0 +1,19 @@
+\begin{table*}[t]
+\caption{How did the first SynapseMNIST3D run compare with the other MedMNIST 3D subsets? Test AUROC [95\% CI] of the first run of the same from-scratch ResNet-18 recipe on each subset at 64 voxels, against the best published value in that project's list when SynapseMNIST3D was chosen (commit 39e65a0) and now. Only the SynapseMNIST3D list has had a literature review since. Our CI: whether our interval lies above or below that value, or contains it.}
+\label{tab:subsets}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}llllll@{}}
+\toprule
+Subset & Ours [95\% CI] & Then & Our CI & Now & Our CI \\
+\midrule
+AdrenalMNIST3D & 0.939 [0.910, 0.963] & 0.920 & inside & 0.920 & inside \\
+FractureMNIST3D & 0.781 [0.735, 0.823] & 0.750 & inside & 0.750 & inside \\
+NoduleMNIST3D & 0.920 [0.878, 0.955] & 0.914 & inside & 0.914 & inside \\
+OrganMNIST3D & 0.999 [0.998, 0.999] & 0.999 & inside & 0.999 & inside \\
+SynapseMNIST3D & 0.984 [0.970, 0.995] & 0.880 & above & 0.985 & inside \\
+VesselMNIST3D & 0.950 [0.902, 0.984] & 0.933 & inside & 0.933 & inside \\
+\bottomrule
+\end{tabular}
+\end{table*}

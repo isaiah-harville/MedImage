@@ -1,0 +1,12 @@
+title: "Two 3D ResNet-18 Configurations Are Not Separable in Five Seeds Each on SynapseMNIST3D"
+description: >-
+  Five seeds each of a from-scratch MONAI 3D ResNet-18 and a Kinetics-400-pretrained
+  torchvision R3D-18, trained with one untuned recipe at 64 voxels, reached mean SynapseMNIST3D
+  test AUROC 0.9799 (SD 0.0101) and 0.9871 (SD 0.0040). A permutation test (p = 0.20) and a
+  paired bootstrap of the five-seed means do not resolve the difference, and the R3D-18 mean
+  is consistent with TopoCAM's 0.985. Test numbers come from raw weights of an epoch chosen on
+  averaged weights, so the seed spreads are upper bounds. The paper says how SynapseMNIST3D
+  was chosen from six subsets.
+project: synapsemnist3d-resnet18
+run: 20261127-051633-f5029e64
+pdf: main.pdf

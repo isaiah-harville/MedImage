@@ -1,0 +1,19 @@
+\begin{table}[t]
+\caption{Which published SynapseMNIST3D results do we compare with? Test AUROC and accuracy (ACC) on the official split as each paper reports them; none states its ACC threshold. Size: input edge in voxels (n.s.: not stated). Runs: how many training runs the value summarizes. None reports an SD in its main text, an interval, or per-volume predictions.}
+\label{tab:published}
+\centering
+\footnotesize
+\setlength{\tabcolsep}{3pt}
+\begin{tabular}{@{}lccll@{}}
+\toprule
+Method & Size & Runs & AUROC & ACC \\
+\midrule
+R3D-18, Kinetics-400~\cite{nuwagira2026topocam} & 64 & n.s. & 0.985 & 0.929 \\
+ViT-L/16, DINOv3, 3D~\cite{yu2026planecycle} & n.s. & mean of 5 & 0.973 & 0.930 \\
+MedDINOv3 slices, frozen~\cite{park2026axial} & 64 & n.s. & 0.880 & 0.861 \\
+MTDL~\cite{liu2026manifold} & 64 & mean of 3 & 0.951 & 0.931 \\
+CNMTDL~\cite{wachira2026combinatorial} & 64 & mean of 5 & 0.932 & 0.855 \\
+ResNet-50 + 3D~\cite{yang2023medmnist} & 28 & mean of $\geq$3 & 0.851 & 0.795 \\
+\bottomrule
+\end{tabular}
+\end{table}
