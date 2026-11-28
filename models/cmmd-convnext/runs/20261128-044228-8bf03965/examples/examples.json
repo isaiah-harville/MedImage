@@ -1,0 +1,82 @@
+[
+  {
+    "id": "dicom/1.3.6.1.4.1.14519.5.2.1.1239.1759.840730672229394800341469832626/00000001.dcm",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "benign",
+    "prediction": "benign",
+    "confidence": 0.5191155672073364,
+    "correct": true
+  },
+  {
+    "id": "dicom/1.3.6.1.4.1.14519.5.2.1.1239.1759.679840241695376722961441325211/00000001.dcm",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "malignant",
+    "prediction": "malignant",
+    "confidence": 0.9999977946281433,
+    "correct": true
+  },
+  {
+    "id": "dicom/1.3.6.1.4.1.14519.5.2.1.1239.1759.266874260202394444124381590062/00000001.dcm",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "benign",
+    "prediction": "benign",
+    "confidence": 0.956206314265728,
+    "correct": true
+  },
+  {
+    "id": "dicom/1.3.6.1.4.1.14519.5.2.1.1239.1759.197197335382568703645529970838/00000004.dcm",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "malignant",
+    "prediction": "malignant",
+    "confidence": 0.999997079372406,
+    "correct": true
+  },
+  {
+    "id": "dicom/1.3.6.1.4.1.14519.5.2.1.1239.1759.229406165385766873948256682619/00000001.dcm",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "benign",
+    "prediction": "malignant",
+    "confidence": 0.9998787641525269,
+    "correct": false
+  },
+  {
+    "id": "dicom/1.3.6.1.4.1.14519.5.2.1.1239.1759.135759696254190280022679200814/00000003.dcm",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "malignant",
+    "prediction": "malignant",
+    "confidence": 0.9999926090240479,
+    "correct": true
+  },
+  {
+    "id": "dicom/1.3.6.1.4.1.14519.5.2.1.1239.1759.264410404276106694605659517291/00000001.dcm",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "benign",
+    "prediction": "benign",
+    "confidence": 0.6697379052639008,
+    "correct": true
+  },
+  {
+    "id": "dicom/1.3.6.1.4.1.14519.5.2.1.1239.1759.176624859269416404966152959815/00000002.dcm",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "malignant",
+    "prediction": "malignant",
+    "confidence": 0.999880313873291,
+    "correct": true
+  }
+]
