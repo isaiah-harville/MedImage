@@ -1,0 +1,582 @@
+{
+  "checkpoint_epoch": 5,
+  "calibration": {},
+  "bootstrap": {
+    "replicates": 1000,
+    "confidence": 0.95,
+    "unit": "patient",
+    "seed": 0,
+    "method": "percentile"
+  },
+  "val": {
+    "auroc": {
+      "value": 0.8570533764776307,
+      "lower": 0.8490462495079205,
+      "upper": 0.8658192395594203,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc": {
+      "value": 0.2656059842500901,
+      "lower": 0.25376946657895105,
+      "upper": 0.29053300579422936,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "accuracy": {
+      "value": 0.9557477110885045,
+      "lower": 0.9537179169042568,
+      "upper": 0.9579773785381759,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Atelectasis": {
+      "value": 0.8460586350463483,
+      "lower": 0.8315685158232387,
+      "upper": 0.8595212031475118,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Atelectasis": {
+      "value": 0.3781377287409615,
+      "lower": 0.3467621641395884,
+      "upper": 0.4124296939103979,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Cardiomegaly": {
+      "value": 0.9278212596492897,
+      "lower": 0.9080016582791084,
+      "upper": 0.9446049599944143,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Cardiomegaly": {
+      "value": 0.31619311764544256,
+      "lower": 0.24449269967037063,
+      "upper": 0.4012214817730859,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Effusion": {
+      "value": 0.9051835120273314,
+      "lower": 0.8933917166774141,
+      "upper": 0.9151031977859093,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Effusion": {
+      "value": 0.552649923883122,
+      "lower": 0.5135360174445196,
+      "upper": 0.5898496160923924,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Infiltration": {
+      "value": 0.7278021732116873,
+      "lower": 0.7112242388785958,
+      "upper": 0.7432819705119867,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Infiltration": {
+      "value": 0.3472630115933938,
+      "lower": 0.31353364863222427,
+      "upper": 0.3803970612375468,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Mass": {
+      "value": 0.8962042523384356,
+      "lower": 0.8778897940223594,
+      "upper": 0.9135351269026207,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Mass": {
+      "value": 0.39951707459806857,
+      "lower": 0.3543205733586259,
+      "upper": 0.4526113941777283,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Nodule": {
+      "value": 0.8304725252441932,
+      "lower": 0.8058732688362291,
+      "upper": 0.8536860767806598,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Nodule": {
+      "value": 0.275676328439423,
+      "lower": 0.23380289612344154,
+      "upper": 0.32112696376232513,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Pneumonia": {
+      "value": 0.7788214252314598,
+      "lower": 0.7342996661245432,
+      "upper": 0.8187867588101464,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Pneumonia": {
+      "value": 0.048485261933545715,
+      "lower": 0.03298448667285901,
+      "upper": 0.0762889797184295,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Pneumothorax": {
+      "value": 0.867998837421833,
+      "lower": 0.8369636514710074,
+      "upper": 0.8958002997202181,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Pneumothorax": {
+      "value": 0.268824631371431,
+      "lower": 0.19428203253166576,
+      "upper": 0.34889768301517315,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Consolidation": {
+      "value": 0.8256763192725378,
+      "lower": 0.7997166643848123,
+      "upper": 0.8501136931828625,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Consolidation": {
+      "value": 0.17468304739657664,
+      "lower": 0.13337625185230786,
+      "upper": 0.22108348398086383,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Edema": {
+      "value": 0.916819377878019,
+      "lower": 0.8953966904284391,
+      "upper": 0.936419922208002,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Edema": {
+      "value": 0.20058566299610292,
+      "lower": 0.15219812123489102,
+      "upper": 0.26460341044688085,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Emphysema": {
+      "value": 0.9412715064277124,
+      "lower": 0.9187653808460088,
+      "upper": 0.9600143408073912,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Emphysema": {
+      "value": 0.34788710228151054,
+      "lower": 0.27271202310088144,
+      "upper": 0.4314376103049878,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Fibrosis": {
+      "value": 0.8281787406436216,
+      "lower": 0.7904069469078832,
+      "upper": 0.8629597845849586,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Fibrosis": {
+      "value": 0.0881007837517387,
+      "lower": 0.048529739193194935,
+      "upper": 0.14882382714683695,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Pleural_Thickening": {
+      "value": 0.828845401385036,
+      "lower": 0.7987137851478878,
+      "upper": 0.8543141435933925,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Pleural_Thickening": {
+      "value": 0.1503075605127473,
+      "lower": 0.11626032096896248,
+      "upper": 0.19653825042915607,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Hernia": {
+      "value": 0.8775933049093213,
+      "lower": 0.8126925405238782,
+      "upper": 0.9625533703969021,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Hernia": {
+      "value": 0.17017254435719703,
+      "lower": 0.07294397468285799,
+      "upper": 0.4163214877104595,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "n_samples": 10813,
+    "n_patients": 3542
+  },
+  "test": {
+    "auroc": {
+      "value": 0.8271420356733987,
+      "lower": 0.820499864303599,
+      "upper": 0.8327965843347283,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc": {
+      "value": 0.30117984582044877,
+      "lower": 0.28665281703446066,
+      "upper": 0.3199306189255067,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "accuracy": {
+      "value": 0.9255324492666265,
+      "lower": 0.9236673054427742,
+      "upper": 0.92751114226914,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Atelectasis": {
+      "value": 0.7961203085491797,
+      "lower": 0.7838207012327502,
+      "upper": 0.8091121675899586,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Atelectasis": {
+      "value": 0.3755817213389253,
+      "lower": 0.35064566002374037,
+      "upper": 0.4000586240311695,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Cardiomegaly": {
+      "value": 0.8922935885208195,
+      "lower": 0.8749382870469989,
+      "upper": 0.9059543160374952,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Cardiomegaly": {
+      "value": 0.3647772212953855,
+      "lower": 0.31224291061127357,
+      "upper": 0.4118604274347317,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Effusion": {
+      "value": 0.8406740456940467,
+      "lower": 0.831193243070137,
+      "upper": 0.8507260238358145,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Effusion": {
+      "value": 0.534913114347032,
+      "lower": 0.50754597887291,
+      "upper": 0.5622046786106265,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Infiltration": {
+      "value": 0.7093314240050368,
+      "lower": 0.6987426050001769,
+      "upper": 0.7192902459949762,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Infiltration": {
+      "value": 0.40849225469065475,
+      "lower": 0.389015615790654,
+      "upper": 0.42674237268278176,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Mass": {
+      "value": 0.8460921961323317,
+      "lower": 0.8285403936293311,
+      "upper": 0.8624002958288775,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Mass": {
+      "value": 0.34388024665691813,
+      "lower": 0.3066184569974682,
+      "upper": 0.3829412110882621,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Nodule": {
+      "value": 0.8052067150199962,
+      "lower": 0.7876794142655025,
+      "upper": 0.8214880350815867,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Nodule": {
+      "value": 0.2740111441145141,
+      "lower": 0.24154079680754548,
+      "upper": 0.30698378790322256,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Pneumonia": {
+      "value": 0.7371651392617009,
+      "lower": 0.7136382079907021,
+      "upper": 0.7590610425596248,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Pneumonia": {
+      "value": 0.0597246120497044,
+      "lower": 0.05077577158874577,
+      "upper": 0.07241753614820527,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Pneumothorax": {
+      "value": 0.8854323963815749,
+      "lower": 0.8720443605151753,
+      "upper": 0.8985771058988317,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Pneumothorax": {
+      "value": 0.46956733964176356,
+      "lower": 0.4300037898764545,
+      "upper": 0.5120335969418915,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Consolidation": {
+      "value": 0.7637072932381257,
+      "lower": 0.7495357250017429,
+      "upper": 0.7788415004370687,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Consolidation": {
+      "value": 0.17819802352181524,
+      "lower": 0.15738267755224114,
+      "upper": 0.20251891067412695,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Edema": {
+      "value": 0.854136216391496,
+      "lower": 0.8374229100804987,
+      "upper": 0.8707208525279663,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Edema": {
+      "value": 0.18754144686432475,
+      "lower": 0.16088041374824144,
+      "upper": 0.22607289875030676,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Emphysema": {
+      "value": 0.9416485925001472,
+      "lower": 0.9330250788300767,
+      "upper": 0.9493022236300076,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Emphysema": {
+      "value": 0.48225584391304926,
+      "lower": 0.43048953148457975,
+      "upper": 0.5261324053346955,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Fibrosis": {
+      "value": 0.839552043460802,
+      "lower": 0.8177061301683232,
+      "upper": 0.8586944315371684,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Fibrosis": {
+      "value": 0.12258592086769399,
+      "lower": 0.0944090711630653,
+      "upper": 0.16204409066742295,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Pleural_Thickening": {
+      "value": 0.7941269768179563,
+      "lower": 0.7757431517033989,
+      "upper": 0.8116456282584673,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Pleural_Thickening": {
+      "value": 0.16796083703373074,
+      "lower": 0.14250901219968437,
+      "upper": 0.20000700660207224,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auroc/Hernia": {
+      "value": 0.874501563454368,
+      "lower": 0.8134143052104541,
+      "upper": 0.9245749466783949,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "auprc/Hernia": {
+      "value": 0.24702811515077142,
+      "lower": 0.07068327725053412,
+      "upper": 0.46216735187864977,
+      "confidence": 0.95,
+      "replicates": 1000,
+      "valid_replicates": 1000,
+      "unit": "patient"
+    },
+    "n_samples": 25596,
+    "n_patients": 2797
+  },
+  "selection": {
+    "monitor": "val/auroc",
+    "mode": "max",
+    "best_epoch": 5
+  }
+}
