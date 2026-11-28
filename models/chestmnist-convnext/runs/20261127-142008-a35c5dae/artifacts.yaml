@@ -2,4 +2,4 @@ files:
 - file: checkpoint.ckpt
   bytes: 197990223
   sha256: e068c1ffa9400d29b07c7110db1adec310a074657c81d8c2f1645f4cd0362543
-  url: null
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/chestmnist-convnext/20261127-142008-a35c5dae/checkpoint.ckpt
