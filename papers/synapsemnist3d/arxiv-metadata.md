@@ -4,10 +4,10 @@ For the human authors to paste into the arXiv form. Nothing has been submitted.
 
 - **Title:** Two 3D ResNet-18 Configurations Are Not Separable in Five Seeds Each on SynapseMNIST3D
 - **Authors:** Isaiah R. Harville. arXiv's policy does not allow generative AI tools as authors, so Claude's part in the work is described in the Acknowledgment.
-- **Affiliation:** Independent Researcher (not yet confirmed).
+- **Affiliation:** Independent Researcher (confirmed by the author).
 - **Comments:** 7 pages, 2 figures, 4 tables. Code, configurations, and per-volume predictions at https://github.com/isaiah-harville/opendiagnostics
-- **Primary category:** eess.IV (suggested, not confirmed)
-- **Cross-list:** cs.CV (suggested, not confirmed)
+- **Primary category:** eess.IV (confirmed by the author)
+- **Cross-list:** cs.CV (confirmed by the author)
 - **License:** to be chosen by the authors.
 
 ## Abstract

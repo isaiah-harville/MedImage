@@ -97,5 +97,5 @@ Numbers in the text that are not run outputs, with their source:
 
 ## Authors
 
-- Isaiah R. Harville, Independent Researcher (affiliation not yet confirmed by the author).
+- Isaiah R. Harville, Independent Researcher (affiliation confirmed by the author).
 - Claude (Anthropic) is not an author, because arXiv's policy does not allow generative AI tools as authors. The Acknowledgment says how Claude was used.

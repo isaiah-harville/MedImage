@@ -53,6 +53,6 @@ Figures: `uv run --with matplotlib python -I papers/chestmnist/make_figures.py` 
 
 ## Authors
 
-- Isaiah R. Harville, Independent Researcher (affiliation unconfirmed).
+- Isaiah R. Harville, Independent Researcher (affiliation confirmed).
 - Claude is not an author; the Acknowledgment says how Claude was used.
 - Suggested arXiv category: eess.IV primary, cs.CV cross-list.

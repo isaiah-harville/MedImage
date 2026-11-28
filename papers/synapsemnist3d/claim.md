@@ -76,7 +76,7 @@ Verdict: the narrowed claim holds. No item in `suggestions.md` blocks it.
 
 ## Authors
 
-- Isaiah R. Harville, Independent Researcher (affiliation not confirmed by the author). Claude is credited in the Acknowledgment, not as an author.
+- Isaiah R. Harville, Independent Researcher (affiliation confirmed by the author). Claude is credited in the Acknowledgment, not as an author.
 - arXiv category suggestion: eess.IV primary, cs.CV cross-list.
 
 ## Published values typed into main.tex

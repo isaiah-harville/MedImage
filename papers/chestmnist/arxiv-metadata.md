@@ -4,10 +4,10 @@ For the human author to paste into the arXiv form. Nothing has been submitted.
 
 - **Title:** Three Seeds of a ConvNeXt-Small Recipe on ChestMNIST, Scored with Recovered Patient Identifiers
 - **Authors:** Isaiah R. Harville. arXiv's policy does not allow generative AI tools as authors, so Claude's part in the work is described in the Acknowledgment.
-- **Affiliation:** Independent Researcher (not yet confirmed).
+- **Affiliation:** Independent Researcher (confirmed by the author).
 - **Comments:** 9 pages, 2 figures, 4 tables. Code, configurations, per-image predictions, and recovered patient identifiers at https://github.com/isaiah-harville/opendiagnostics
-- **Primary category:** eess.IV (suggested, not confirmed)
-- **Cross-list:** cs.CV (suggested, not confirmed)
+- **Primary category:** eess.IV (confirmed by the author)
+- **Cross-list:** cs.CV (confirmed by the author)
 - **License:** to be chosen by the author.
 
 ## Abstract
