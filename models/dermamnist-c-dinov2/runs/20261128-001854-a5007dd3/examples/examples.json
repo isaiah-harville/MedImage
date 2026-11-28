@@ -1,0 +1,82 @@
+[
+  {
+    "id": "test-1196",
+    "input": "01-input.png",
+    "overlay": "01-attribution.png",
+    "kind": "attribution",
+    "truth": "actinic keratoses and intraepithelial carcinoma",
+    "prediction": "dermatofibroma",
+    "confidence": 0.6673614978790283,
+    "correct": false
+  },
+  {
+    "id": "test-227",
+    "input": "02-input.png",
+    "overlay": "02-attribution.png",
+    "kind": "attribution",
+    "truth": "basal cell carcinoma",
+    "prediction": "benign keratosis-like lesions",
+    "confidence": 0.7359704971313477,
+    "correct": false
+  },
+  {
+    "id": "test-60",
+    "input": "03-input.png",
+    "overlay": "03-attribution.png",
+    "kind": "attribution",
+    "truth": "benign keratosis-like lesions",
+    "prediction": "benign keratosis-like lesions",
+    "confidence": 0.9265546202659607,
+    "correct": true
+  },
+  {
+    "id": "test-109",
+    "input": "04-input.png",
+    "overlay": "04-attribution.png",
+    "kind": "attribution",
+    "truth": "dermatofibroma",
+    "prediction": "dermatofibroma",
+    "confidence": 0.5365966558456421,
+    "correct": true
+  },
+  {
+    "id": "test-122",
+    "input": "05-input.png",
+    "overlay": "05-attribution.png",
+    "kind": "attribution",
+    "truth": "melanoma",
+    "prediction": "melanoma",
+    "confidence": 0.920425295829773,
+    "correct": true
+  },
+  {
+    "id": "test-1071",
+    "input": "06-input.png",
+    "overlay": "06-attribution.png",
+    "kind": "attribution",
+    "truth": "melanocytic nevi",
+    "prediction": "melanocytic nevi",
+    "confidence": 0.915643572807312,
+    "correct": true
+  },
+  {
+    "id": "test-186",
+    "input": "07-input.png",
+    "overlay": "07-attribution.png",
+    "kind": "attribution",
+    "truth": "vascular lesions",
+    "prediction": "vascular lesions",
+    "confidence": 0.906965970993042,
+    "correct": true
+  },
+  {
+    "id": "test-1225",
+    "input": "08-input.png",
+    "overlay": "08-attribution.png",
+    "kind": "attribution",
+    "truth": "actinic keratoses and intraepithelial carcinoma",
+    "prediction": "benign keratosis-like lesions",
+    "confidence": 0.93093341588974,
+    "correct": false
+  }
+]
