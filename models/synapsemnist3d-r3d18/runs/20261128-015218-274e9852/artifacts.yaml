@@ -1,0 +1,5 @@
+files:
+- file: checkpoint.ckpt
+  bytes: 132748295
+  sha256: 96e66ace1480aa482e0fcad7f7efa80811dbf6f4a180ded08413d9eb31b3cf4d
+  url: https://diagnostics.harville.dev/opendiagnostics-weights/synapsemnist3d-r3d18/20261128-015218-274e9852/checkpoint.ckpt
