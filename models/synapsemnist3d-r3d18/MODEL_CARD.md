@@ -1,7 +1,7 @@
 # Model card: SynapseMNIST3D, Kinetics-pretrained R3D-18
 
 ## Summary
-A baseline for the SynapseMNIST3D paper: torchvision's R3D-18, pretrained on Kinetics-400 video,
+A SynapseMNIST3D model: torchvision's R3D-18, pretrained on Kinetics-400 video,
 fine-tuned with the same recipe as `synapsemnist3d-resnet18` to classify 64-voxel electron
 microscopy volumes as excitatory or inhibitory synapses. Results come from the published runs'
 `metrics.json`.
