@@ -45,7 +45,7 @@ it, so that comparison is not resolved. We chose ChestMNIST after seeing its fir
 and the recipe's interval clears the best published value on only \subsetsAbove{} of
 \subsetsTotal{} MedMNIST 2D subsets. Label accuracy at the 0.5 threshold is below that of every
 native 224-pixel baseline and of predicting every label negative, and we ran no ablation. We release the patient
-identifiers, every seed's per-image predictions, and the seed-0 weights.
+identifiers, every seed's per-image predictions, and the weights of seed 0 and of seed 1, the seed with the best validation AUROC.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -566,8 +566,9 @@ timm 1.0.31, and \texttt{medmnist} 3.0.2. The runs took \runMinutesSeedZero{},
 \runMinutesSeedOne{}, and \runMinutesSeedTwo{} minutes. The run folders under
 \path{models/chestmnist-convnext/runs/} hold each run's resolved configuration, run
 record, per-epoch history, split membership, metrics, and per-image validation and test
-predictions. The seed-0 checkpoint is public at the URL in its \path{artifacts.yaml}. The
-seed-1 and seed-2 checkpoints are recorded there by SHA-256 but not yet uploaded. The
+predictions. The seed-0 checkpoint and the seed-1 checkpoint, chosen by validation AUROC, are public
+at the URLs in their \path{artifacts.yaml} files. The seed-2 checkpoint is recorded there by
+SHA-256 but not uploaded. The
 patient identifiers are in \path{papers/chestmnist/generated/patient_ids.csv.gz}. Every
 number, table, and figure in this paper comes from the scripts in
 \path{papers/chestmnist/}, with the protocol check and subset table shared with
@@ -576,7 +577,7 @@ fail on any disagreement with the runs' \path{metrics.json} or the patient summa
 figures use matplotlib~\cite{hunter2007matplotlib}.
 
 MedMNIST releases ChestMNIST under CC BY 4.0, as the \texttt{medmnist} package records,
-which permits redistribution with attribution, so we publish the seed-0 weights, every
+which permits redistribution with attribution, so we publish the seed-0 and seed-1 weights, every
 seed's predictions, and a few example test images. The NIH release of ChestX-ray14 is
 public, and the identifiers we publish are NIH's own anonymized patient numbers.
 

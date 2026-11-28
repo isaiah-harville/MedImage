@@ -49,7 +49,7 @@ as a hypothesis with the run that would test it. Distal convoluted tubule cells 
 recall, and the two glomerular classes are confused mainly with each other. Against our lists of published results, the same
 recipe clears the best value on \subsetsAbove{} of \subsetsTotal{} MedMNIST 2D
 subsets, and we chose TissueMNIST for this paper after seeing its first test result. We
-release the configuration, every seed's per-image predictions, and the seed-0 weights.
+release the configuration, every seed's per-image predictions, and the weights of seed 0 and of seed 2, the seed with the best validation AUROC.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -563,8 +563,9 @@ timm 1.0.31, and \texttt{medmnist} 3.0.2. The runs took \runMinutesSeedZero{},
 \runMinutesSeedOne{}, and \runMinutesSeedTwo{} minutes. The run folders under
 \path{models/tissuemnist-convnext/runs/} hold each run's resolved configuration, run
 record, per-epoch history, split membership, metrics, and per-image validation and test
-predictions. The seed-0 checkpoint is public at the URL in its \path{artifacts.yaml}. The
-seed-1 and seed-2 checkpoints are recorded there by SHA-256 but not yet uploaded. Every
+predictions. The seed-0 checkpoint and the seed-2 checkpoint, chosen by validation AUROC, are public
+at the URLs in their \path{artifacts.yaml} files. The seed-1 checkpoint is recorded there by
+SHA-256 but not uploaded. Every
 number, table, and figure in this paper comes from the scripts in
 \path{papers/tissuemnist/}, which recompute the numbers from the committed predictions and
 fail on any disagreement with the runs' \path{metrics.json}. The figures use
@@ -574,7 +575,7 @@ BBBC051 images and ground truth are licensed under Creative Commons Attribution 
 Unported~\cite{broad2021bbbc051}. MedMNIST releases its data under a Creative Commons
 license~\cite{yang2023medmnistv2}, and the \texttt{medmnist} package records CC BY 4.0 for
 TissueMNIST. Both licenses permit redistribution with attribution, so we publish the
-seed-0 weights, every seed's predictions, and a few example test images.
+seed-0 and seed-2 weights, every seed's predictions, and a few example test images.
 
 \section{Conclusion}
 
