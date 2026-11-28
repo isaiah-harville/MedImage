@@ -25,11 +25,12 @@ from scipy import stats
 
 from opendiagnostics.metrics import classification as cm
 from opendiagnostics.metrics.bootstrap import Estimate, bootstrap
-from opendiagnostics.metrics.compare import read_predictions
+from opendiagnostics.metrics.compare import Predictions, read_predictions
 
 ROOT = Path(__file__).resolve().parents[3]
 PAPER = Path(__file__).resolve().parents[1]
 PROJECT = ROOT / "models/tissuemnist-convnext"
+NO_FLIP = PAPER / "generated/notta"
 RUNS = {
     "Zero": "20261126-200655-ab39eb97",
     "One": "20261127-113245-f5bc0be9",
@@ -57,6 +58,7 @@ DEFAULTED_KEYS = {
     "data.init_args.folds": 5,
     "data.init_args.fold": 0,
 }
+SPLITS = (("test", "test"), ("val", "val"), ("noflip", "testNoFlip"))
 METRICS = (
     ("auroc", "Auroc"),
     ("auprc", "Auprc"),
@@ -101,6 +103,49 @@ def check(name: str, ours: float, recorded: float) -> None:
         raise SystemExit(f"{name}: recomputed {ours!r} but the run records {recorded!r}")
 
 
+def rescored(
+    label: str, pred: Predictions, record: dict[str, Any], split: str
+) -> dict[str, Estimate]:
+    """Bootstrap one split from its predictions and check it against metrics.json."""
+    found = bootstrap(
+        statistic(pred.target, pred.prob, len(pred.classes)),
+        len(pred.target),
+        replicates=record["bootstrap"]["replicates"],
+        seed=record["bootstrap"]["seed"],
+    )
+    for key, estimate in found.items():
+        for part in ("value", "lower", "upper"):
+            check(f"{label}/{key}/{part}", getattr(estimate, part), record[split][key][part])
+    for name, evaluator, key in (("AUC", getAUC, "auroc"), ("ACC", getACC, "accuracy")):
+        check(
+            f"{label} medmnist {name}",
+            evaluator(pred.target, pred.prob, "multi-class"),
+            found[key].value,
+        )
+    return found
+
+
+def score_without_flips(run: Scored) -> dict[str, Estimate]:
+    """Score the same checkpoint rescored with tta: false (suggestions.md S3)."""
+    path = NO_FLIP / run.path.name
+    record = json.loads((path / "metrics.json").read_text())
+    config = flatten(yaml.safe_load((path / "config.yaml").read_text()))
+    if config.pop("model.init_args.tta") is not False:
+        raise SystemExit(f"{path}: config.yaml does not set model.init_args.tta to false")
+    if config != {k: v for k, v in flatten(run.config).items() if k != "model.init_args.tta"}:
+        raise SystemExit(f"{path}: config.yaml differs from the run's in more than tta")
+    for key in ("checkpoint_epoch", "selection", "bootstrap"):
+        if record[key] != run.record[key]:
+            raise SystemExit(f"{path}: metrics.json {key} differs from the run's")
+    pred = read_predictions(path / "predictions_test.csv")
+    flipped = read_predictions(run.path / "predictions_test.csv")
+    if pred.ids != flipped.ids or not np.array_equal(pred.target, flipped.target):
+        raise SystemExit(f"{path}: test ids or targets differ from the run's")
+    if np.allclose(pred.prob, flipped.prob):
+        raise SystemExit(f"{path}: probabilities equal the flip-averaged ones")
+    return rescored(f"{run.path.name} no-flip test", pred, record, "test")
+
+
 def epoch_history(path: Path) -> dict[int, dict[str, float]]:
     out: dict[int, dict[str, float]] = {}
     with path.open(newline="") as handle:
@@ -138,31 +183,7 @@ def score(name: str, run_id: str) -> Scored:
     target = np.empty(0)
     for split in ("test", "val"):
         pred = read_predictions(path / f"predictions_{split}.csv")
-        classes = len(pred.classes)
-        found = bootstrap(
-            statistic(pred.target, pred.prob, classes),
-            len(pred.target),
-            replicates=record["bootstrap"]["replicates"],
-            seed=record["bootstrap"]["seed"],
-        )
-        for key, estimate in found.items():
-            for part in ("value", "lower", "upper"):
-                check(
-                    f"{run_id} {split}/{key}/{part}",
-                    getattr(estimate, part),
-                    record[split][key][part],
-                )
-        check(
-            f"{run_id} {split} medmnist AUC",
-            getAUC(pred.target, pred.prob, "multi-class"),
-            found["auroc"].value,
-        )
-        check(
-            f"{run_id} {split} medmnist ACC",
-            getACC(pred.target, pred.prob, "multi-class"),
-            found["accuracy"].value,
-        )
-        estimates[split] = found
+        estimates[split] = rescored(f"{run_id} {split}", pred, record, split)
         sizes[split] = len(pred.target)
         if split != "test":
             continue
@@ -234,6 +255,12 @@ def check_same_protocol(runs: list[Scored]) -> None:
                 )
 
 
+def ema_minus_raw(run: Scored) -> float:
+    """Logged EMA validation AUROC at the selected epoch minus the saved raw weights'."""
+    selected = run.record["selection"]["best_epoch"]
+    return run.history[selected]["val/auroc"] - run.record["val"]["auroc"]["value"]
+
+
 def mean_sd(values: list[float]) -> tuple[float, float]:
     return float(np.mean(values)), float(np.std(values, ddof=1))
 
@@ -267,6 +294,10 @@ def results_table(runs: list[Scored], numbers: dict[str, str], baselines: list[d
         f"ConvNeXt-S, mean (ours) & 32 $\\rightarrow$ 224 & 3 & \\textbf{{{numbers['testAurocMean']}}} $\\pm$ "
         f"{numbers['testAurocSD']} & \\textbf{{{numbers['testAccMean']}}} $\\pm$ {numbers['testAccSD']} & this work \\\\"
     )
+    rows.append(
+        f"ConvNeXt-S, mean, no flip averaging (ours) & 32 $\\rightarrow$ 224 & 3 & {numbers['testNoFlipAurocMean']} $\\pm$ "
+        f"{numbers['testNoFlipAurocSD']} & {numbers['testNoFlipAccMean']} $\\pm$ {numbers['testNoFlipAccSD']} & this work \\\\"
+    )
     rows.append("\\midrule")
     for baseline in baselines:
         row = baseline_row(baseline["method"])
@@ -279,8 +310,8 @@ def results_table(runs: list[Scored], numbers: dict[str, str], baselines: list[d
     return (
         "\\begin{table*}[t]\n"
         "\\caption{TissueMNIST test results on the official split of 47,280 images. Our seed rows give 95\\% "
-        "percentile bootstrap intervals over test images; the mean row gives the mean $\\pm$ SD over the three "
-        "seeds. Published rows give the mean, and $\\pm$ SD over runs where the source reports it. Runs: seeds or "
+        "percentile bootstrap intervals over test images; the mean rows give the mean $\\pm$ SD over the three "
+        "seeds, with and without averaging over the horizontal mirror at test time. Published rows give the mean, and $\\pm$ SD over runs where the source reports it. Runs: seeds or "
         "trials averaged (n.s.: not stated). Input: the image the network sees, from the $32\\times32$ projection "
         "or the 28-pixel MedMNIST image; an arrow marks a resize.}\n"
         "\\label{tab:main}\n\\centering\n\\footnotesize\n\\setlength{\\tabcolsep}{4pt}\n"
@@ -315,6 +346,8 @@ def per_class_table(runs: list[Scored], numbers: dict[str, str]) -> str:
 def main() -> None:
     runs = [score(name, run_id) for name, run_id in RUNS.items()]
     check_same_protocol(runs)
+    for run in runs:
+        run.estimates["noflip"] = score_without_flips(run)
     baselines = yaml.safe_load((PROJECT / "baselines.yaml").read_text())["baselines"]
     numbers: dict[str, str] = {}
 
@@ -322,7 +355,7 @@ def main() -> None:
         numbers[name] = value if isinstance(value, str) else fmt.format(value)
 
     for run in runs:
-        for split, prefix in (("test", "test"), ("val", "val")):
+        for split, prefix in SPLITS:
             for key, macro in METRICS:
                 estimate = run.estimates[split][key]
                 put(f"{prefix}{macro}Seed{run.name}", estimate.value)
@@ -333,14 +366,10 @@ def main() -> None:
         ).total_seconds() / 60
         put(f"runMinutesSeed{run.name}", minutes, "{:.0f}")
         put(f"commitSeed{run.name}", run.run["git"]["commit"][:7])
-        selected = run.record["selection"]["best_epoch"]
-        put(f"selectedEpochSeed{run.name}", selected + 1, "{}")
-        put(
-            f"emaMinusRawAurocSeed{run.name}",
-            run.history[selected]["val/auroc"] - run.record["val"]["auroc"]["value"],
-        )
+        put(f"selectedEpochSeed{run.name}", run.record["selection"]["best_epoch"] + 1, "{}")
+        put(f"emaMinusRawAurocSeed{run.name}", ema_minus_raw(run))
 
-    for split, prefix in (("test", "test"), ("val", "val")):
+    for split, prefix in SPLITS:
         for key, macro in METRICS:
             values = [r.estimates[split][key].value for r in runs]
             mean, sd = mean_sd(values)
@@ -395,28 +424,35 @@ def main() -> None:
         put(f"{prefix}Acc", row["metrics"]["accuracy"])
     put("baseBestAurocSD", best["metrics"]["auroc_sd"])
     put("baseBestAccSD", best["metrics"]["accuracy_sd"])
-    for key, macro in (("auroc", "Auroc"), ("accuracy", "Acc")):
-        ours = [r.estimates["test"][key].value for r in runs]
-        mean, sd = mean_sd(ours)
-        theirs, their_sd = best["metrics"][key], best["metrics"][f"{key}_sd"]
-        pooled = math.sqrt((sd**2 + their_sd**2) / 2)
-        welch = stats.ttest_ind_from_stats(
-            mean, sd, len(ours), theirs, their_sd, 3, equal_var=False
-        )
-        put(f"gainMean{macro}", mean - theirs)
-        put(f"marginLower{macro}", min(r.estimates["test"][key].lower for r in runs) - theirs)
-        put(f"pooledSD{macro}", pooled)
-        put(f"gainPooledSD{macro}", (mean - theirs) / pooled, "{:.1f}")
-        put(f"welchT{macro}", float(welch.statistic), "{:.1f}")
-        put(f"welchP{macro}", float(welch.pvalue), "{:.2g}")
-        put(f"gainMinSeed{macro}", min(ours) - theirs)
-        put(f"gainMinSeedInSD{macro}", (min(ours) - theirs) / their_sd, "{:.0f}")
-        a, b = sd**2 / len(ours), their_sd**2 / 3
-        put(f"welchDf{macro}", (a + b) ** 2 / (a**2 / (len(ours) - 1) + b**2 / 2), "{:.1f}")
-        by_n = stats.ttest_ind_from_stats(
-            mean, sd, len(ours), theirs, their_sd * math.sqrt(3 / 2), 3, equal_var=False
-        )
-        put(f"welchPByN{macro}", float(by_n.pvalue), "{:.2g}")
+    for key, macro in METRICS:
+        gains = [r.estimates["test"][key].value - r.estimates["noflip"][key].value for r in runs]
+        put(f"flipGain{macro}Mean", float(np.mean(gains)))
+        put(f"flipGain{macro}Min", min(gains))
+        put(f"flipGain{macro}Max", max(gains))
+    for split, tag in (("test", ""), ("noflip", "NoFlip")):
+        scored = [r.estimates[split] for r in runs]
+        for key, macro in (("auroc", f"{tag}Auroc"), ("accuracy", f"{tag}Acc")):
+            ours = [found[key].value for found in scored]
+            mean, sd = mean_sd(ours)
+            theirs, their_sd = best["metrics"][key], best["metrics"][f"{key}_sd"]
+            pooled = math.sqrt((sd**2 + their_sd**2) / 2)
+            welch = stats.ttest_ind_from_stats(
+                mean, sd, len(ours), theirs, their_sd, 3, equal_var=False
+            )
+            put(f"gainMean{macro}", mean - theirs)
+            put(f"marginLower{macro}", min(found[key].lower for found in scored) - theirs)
+            put(f"pooledSD{macro}", pooled)
+            put(f"gainPooledSD{macro}", (mean - theirs) / pooled, "{:.1f}")
+            put(f"welchT{macro}", float(welch.statistic), "{:.1f}")
+            put(f"welchP{macro}", float(welch.pvalue), "{:.2g}")
+            put(f"gainMinSeed{macro}", min(ours) - theirs)
+            put(f"gainMinSeedInSD{macro}", (min(ours) - theirs) / their_sd, "{:.0f}")
+            a, b = sd**2 / len(ours), their_sd**2 / 3
+            put(f"welchDf{macro}", (a + b) ** 2 / (a**2 / (len(ours) - 1) + b**2 / 2), "{:.1f}")
+            by_n = stats.ttest_ind_from_stats(
+                mean, sd, len(ours), theirs, their_sd * math.sqrt(3 / 2), 3, equal_var=False
+            )
+            put(f"welchPByN{macro}", float(by_n.pvalue), "{:.2g}")
     put("gainNativeAurocMean", float(numbers["testAurocMean"]) - native["metrics"]["auroc"])
 
     first = runs[0]
@@ -429,19 +465,7 @@ def main() -> None:
         put(f"{macro}Min", 100 * min(shares), "{:.0f}")
         put(f"{macro}Max", 100 * max(shares), "{:.0f}")
     put("epochs", len(first.history), "{}")
-    put("emaValAurocFirst", float(np.mean([r.history[0]["val/auroc"] for r in runs])))
-    put(
-        "emaMinusRawAurocMean",
-        float(
-            np.mean(
-                [
-                    r.history[r.record["selection"]["best_epoch"]]["val/auroc"]
-                    - r.record["val"]["auroc"]["value"]
-                    for r in runs
-                ]
-            )
-        ),
-    )
+    put("emaMinusRawAurocMean", float(np.mean([ema_minus_raw(r) for r in runs])))
     put(
         "lastThreeSpreadMax",
         max(
@@ -455,7 +479,6 @@ def main() -> None:
         float(np.mean([r.history[max(r.history)]["train/loss"] for r in runs])),
         "{:.3f}",
     )
-    put("emaValAurocSelected", first.history[selected]["val/auroc"])
     put("parameters", first.run["parameters"], "{:,}")
     put("bootReplicates", first.record["bootstrap"]["replicates"], "{:,}")
     put("commitRescore", first.record["rescored"]["git"]["commit"][:7])

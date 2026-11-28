@@ -33,7 +33,7 @@ Costs use the measured run: 8 epochs took 99 minutes on one RTX 4070 Ti (`run.js
 - **Why:** the method section names flip averaging as one of the differences from every baseline; this is the only one that costs no training to measure. `medeiros2026tta` reports that mixed test-time augmentation hurt accuracy on three other MedMNIST sets (it did not test TissueMNIST).
 - **Would change:** if the no-flip mean still clears 0.9585 and 0.7592, the claim no longer depends on flip averaging; a large drop credits part of the gap to it, which baselines could adopt for free.
 - **Cost:** inference on 70,920 images per seed, about 10 minutes each on the GPU.
-- **Status:** open
+- **Status:** done (2026-11-27). The training machine rescored the three checkpoints with `tta: false` and committed the copies at f036d5f (`generated/notta/`). `paper_numbers.py` recomputes them, checks them against each `metrics.json`, and checks the configs differ from the runs only in `tta`. Without flips, test AUROC 0.9623, 0.9638, 0.9632 (mean 0.9631, SD 0.0008) and accuracy 0.7757, 0.7831, 0.7828 (mean 0.7805, SD 0.0042). Flip averaging adds 0.0004 to 0.0007 AUROC (mean 0.0006) and 0.0015 to 0.0022 accuracy (mean 0.0018). The no-flip mean is 0.0046 AUROC and 0.0213 accuracy above the best published, every seed's lower bound stays above it, and Welch p is 0.0056 and 0.0029. The claim no longer depends on flip averaging (Sec. VI-B of the paper).
 
 ## S4: Ablations of pretraining, augmentation, regularization, and network
 

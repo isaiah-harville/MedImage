@@ -1,5 +1,5 @@
 \begin{table*}[t]
-\caption{TissueMNIST test results on the official split of 47,280 images. Our seed rows give 95\% percentile bootstrap intervals over test images; the mean row gives the mean $\pm$ SD over the three seeds. Published rows give the mean, and $\pm$ SD over runs where the source reports it. Runs: seeds or trials averaged (n.s.: not stated). Input: the image the network sees, from the $32\times32$ projection or the 28-pixel MedMNIST image; an arrow marks a resize.}
+\caption{TissueMNIST test results on the official split of 47,280 images. Our seed rows give 95\% percentile bootstrap intervals over test images; the mean rows give the mean $\pm$ SD over the three seeds, with and without averaging over the horizontal mirror at test time. Published rows give the mean, and $\pm$ SD over runs where the source reports it. Runs: seeds or trials averaged (n.s.: not stated). Input: the image the network sees, from the $32\times32$ projection or the 28-pixel MedMNIST image; an arrow marks a resize.}
 \label{tab:main}
 \centering
 \footnotesize
@@ -12,6 +12,7 @@ ConvNeXt-S, seed 0 (ours) & 32 $\rightarrow$ 224 & 1 & 0.9630 [0.9618, 0.9641] &
 ConvNeXt-S, seed 1 (ours) & 32 $\rightarrow$ 224 & 1 & 0.9643 [0.9630, 0.9655] & 0.7853 [0.7820, 0.7889] & this work \\
 ConvNeXt-S, seed 2 (ours) & 32 $\rightarrow$ 224 & 1 & 0.9640 [0.9628, 0.9652] & 0.7844 [0.7809, 0.7880] & this work \\
 ConvNeXt-S, mean (ours) & 32 $\rightarrow$ 224 & 3 & \textbf{0.9637} $\pm$ 0.0007 & \textbf{0.7823} $\pm$ 0.0044 & this work \\
+ConvNeXt-S, mean, no flip averaging (ours) & 32 $\rightarrow$ 224 & 3 & 0.9631 $\pm$ 0.0008 & 0.7805 $\pm$ 0.0042 & this work \\
 \midrule
 ViT-B/16 & 32 $\rightarrow$ 224 & 3 & 0.9585 $\pm$ 0.0011 & 0.7592 $\pm$ 0.0038 & \cite{wu2025rethinking}, Tab.~6 \\
 EfficientNet-B4 & 32 $\rightarrow$ 224 & 3 & 0.9569 $\pm$ 0.0010 & 0.7556 $\pm$ 0.0044 & \cite{wu2025rethinking}, Tab.~6 \\

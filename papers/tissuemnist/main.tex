@@ -38,11 +38,14 @@ recipe, and trained it with three seeds. The mean test AUROC was \testAurocMean{
 \testAurocSD{}) and the mean accuracy \testAccMean{} (SD \testAccSD{}). The lowest of the
 three seeds is \gainMinSeedAuroc{} AUROC above the published mean. A two-sided Welch test
 of our three runs against the published mean and SD gives $p=\welchPAuroc{}$ for AUROC
-and $p=\welchPAcc{}$ for accuracy. A sourced, item-by-item comparison with the MedMNIST+
+and $p=\welchPAcc{}$ for accuracy. These numbers average each test image with its
+horizontal mirror, which no baseline reports. Scored without the mirror, the means are
+\testNoFlipAurocMean{} AUROC and \testNoFlipAccMean{} accuracy, still above the published
+mean ($p=\welchPNoFlipAuroc{}$ and $p=\welchPNoFlipAcc{}$). A sourced, item-by-item comparison with the MedMNIST+
 setup shows that our inputs are the same 224-pixel images that MedMNIST+ and Wu and
-Papie\.{z} used, so input size does not explain the gap. Pretraining, augmentation, regularization, schedule, and
-test-time flips all differ at once, and we ran no ablation, so we name each as a
-hypothesis with the run that would test it. Distal convoluted tubule cells have the lowest
+Papie\.{z} used, so input size does not explain the gap. Pretraining, augmentation,
+regularization, and schedule all differ at once, and we trained no ablation, so we name each
+as a hypothesis with the run that would test it. Distal convoluted tubule cells have the lowest
 recall, and the two glomerular classes are confused mainly with each other. Against our lists of published results, the same
 recipe clears the best value on \subsetsAbove{} of \subsetsTotal{} MedMNIST 2D
 subsets, and we chose TissueMNIST for this paper after seeing its first test result. We
@@ -73,7 +76,7 @@ We trained ConvNeXt-Small~\cite{liu2022convnext} with the recipe our pipeline ap
 every MedMNIST 2D dataset, three times with different seeds. Our claim is narrow. On the
 official TissueMNIST test split, the three seeds' mean test AUROC and accuracy lie above
 the best published 3-run means, and so does each seed's 95\% interval over test images.
-The claim is about one recipe against other groups' recipes. It is not evidence that
+This holds with and without test-time flip averaging. The claim is about one recipe against other groups' recipes. It is not evidence that
 ConvNeXt is a better architecture than ViT or DenseNet. The paper makes three
 contributions:
 \begin{itemize}
@@ -213,7 +216,7 @@ Selection$^\ast$ & lowest validation loss (C) & highest validation AUROC \\
 Loss$^\ast$ & cross-entropy (P) & cross-entropy, label smoothing 0.1 \\
 Regularization$^\ast$ & none stated (P) & stochastic depth 0.2 \\
 Weight averaging$^\ast$ & none stated (P) & EMA, decay 0.99952; used for validation, not saved \\
-Test-time augmentation$^\ast$ & none (C) & mean softmax of image and horizontal mirror \\
+Test-time augmentation$^\ast$ & none (C) & mean softmax of image and horizontal mirror; also scored without (Sec.~\ref{sec:noflip}) \\
 Precision$^\ast$ & fp32 (C) & bf16 mixed \\
 Seeds & 3, mean reported (P) & 3, each reported, and their mean \\
 AUROC, accuracy & macro one-vs-rest; argmax, by the \texttt{medmnist} evaluator (C) & the same, checked against the evaluator \\
@@ -264,7 +267,8 @@ Augmentation is a random resized crop back to 224 pixels with bilinear, antialia
 resampling, covering 70\% to 100\% of the image area with aspect ratios from 3:4 to 4:3,
 then independent horizontal and vertical flips with probability 0.5 each, then the gray
 normalization. At evaluation the model averages the softmax probabilities of each image
-and its horizontal mirror. The optimizer, the weight decay of 0.05, label smoothing of
+and its horizontal mirror, and Section~\ref{sec:noflip} reports the scores without this
+average. The optimizer, the weight decay of 0.05, label smoothing of
 0.1, stochastic depth, and the weight average follow the ConvNeXt ImageNet
 recipe~\cite{liu2022convnext}.
 
@@ -376,6 +380,27 @@ misclassified. Mean balanced accuracy is \testBalAccMean{} and mean macro AUPRC 
 \testAuprcMean{}. On validation the saved checkpoints score a mean AUROC of
 \valAurocMean{} and a mean accuracy of \valAccMean{}, close to their test scores.
 
+\subsection{Without test-time flip averaging}
+\label{sec:noflip}
+
+No baseline reports averaging over flips at test time, so we rescored the three saved
+checkpoints with the mirrored view turned off. Nothing else in the configuration changed.
+The analysis script checks that each rescored configuration differs from its run's only
+in that option, and that the checkpoint epoch and the test image IDs and labels are the
+same. Computed before rounding, flip averaging raised test AUROC by \flipGainAurocMin{}
+to \flipGainAurocMax{} (mean \flipGainAurocMean{}) and accuracy by \flipGainAccMin{} to
+\flipGainAccMax{} (mean \flipGainAccMean{}). A paired bootstrap over test images gives
+$p<0.0005$ for the AUROC change in each seed. Without flip averaging, the three AUROCs
+are \testNoFlipAurocSeedZero{}, \testNoFlipAurocSeedOne{}, and
+\testNoFlipAurocSeedTwo{}, with a mean of \testNoFlipAurocMean{} (SD
+\testNoFlipAurocSD{}). The accuracies have a mean of \testNoFlipAccMean{} (SD
+\testNoFlipAccSD{}). The mean AUROC is \gainMeanNoFlipAuroc{} above the best published
+mean, and the lowest seed's interval starts \marginLowerNoFlipAuroc{} above it. Welch's
+test gives $p=\welchPNoFlipAuroc{}$ for AUROC and $p=\welchPNoFlipAcc{}$ for accuracy, or
+$p=\welchPByNNoFlipAuroc{}$ and $p=\welchPByNNoFlipAcc{}$ if the published SD divides by
+$n$. Flip averaging accounts for \flipGainAurocMean{} of the \gainMeanAuroc{} AUROC gap
+and \flipGainAccMean{} of the \gainMeanAcc{} accuracy gap, and the claim holds without it.
+
 \subsection{Seed variation and test-sampling variation}
 
 A run's bootstrap standard error, its mean interval half-width divided by 1.96, is
@@ -450,9 +475,9 @@ general.
 \section{Discussion}
 \label{sec:discussion}
 
-Every item marked in Table~\ref{tab:setup} changed at once, so no single one can be
-credited with the gap. For each we give the evidence in hand and the run that would test
-it, which should use three seeds.
+Apart from flip averaging, every item marked in Table~\ref{tab:setup} changed at once, so
+no single one can be credited with the gap. For each we give the evidence in hand and the
+run that would test it, which should use three seeds.
 
 \emph{Input size and framing.} Our inputs are the images of the MedMNIST+ 224-pixel runs,
 and their DenseNet-121 on those images scored \baseNativeAuroc{}, below the 0.9535 it
@@ -460,10 +485,13 @@ scored at 128 pixels with padding~\cite{doerrich2025medmnistplus}. Input size do
 explain the gap, and no run is needed to set it aside. The gray-channel handling is close
 to the same function at initialization, but its effect during training is untested.
 
-\emph{Test-time flip averaging.} No baseline uses it, and rescoring the checkpoints
-without the mirrored view needs no training. Mixed test-time augmentation lowered
-accuracy in 11 of 12 model and dataset pairs on three other MedMNIST sets at 28
-pixels~\cite{medeiros2026tta}, but it was not tested on TissueMNIST.
+\emph{Test-time flip averaging.} This is the one difference we measured
+(Section~\ref{sec:noflip}). Averaging with the mirror raised AUROC in every seed, by a
+mean of \flipGainAurocMean{}. It needs no training, so a published model could be
+rescored the same way. Mixed test-time augmentation lowered accuracy in 11 of 12 model
+and dataset pairs on three other MedMNIST sets at 28 pixels~\cite{medeiros2026tta}. Here,
+at 224 pixels, averaging with a single mirror raised accuracy in every seed, by
+\flipGainAccMin{} to \flipGainAccMax{}.
 
 \emph{Pretraining and architecture.} Our backbone saw ImageNet-22k labels before
 ImageNet-1k. In BiT, pretraining a ResNet-152x4 on ImageNet-21k instead of ImageNet-1k improved
@@ -508,9 +536,9 @@ normality. The published SDs come from three runs each and their divisor is not 
 The bootstrap resamples images. Cells from one specimen are correlated, so the intervals
 are likely too narrow, and with three specimens a specimen-level interval would not be
 informative either. The split is at the cell level across three specimens, so the result
-says nothing about new donors, staining, or microscopes. We ran no ablation, so the paper
-does not show which part of the recipe causes the gap, and test-time flip averaging, which
-no baseline uses, is part of every number we report. The baselines publish no
+says nothing about new donors, staining, or microscopes. We trained no ablation, so the paper
+does not show which part of the recipe causes the gap. Only test-time flip averaging was
+measured on its own, by rescoring the same checkpoints. The baselines publish no
 predictions, so no paired test was possible. The reported numbers come from raw weights,
 and the EMA weights that guided selection were not saved. GPU training ran with
 \texttt{deterministic: warn}, so a rerun may differ slightly. How the 8-epoch budget was
@@ -553,10 +581,10 @@ seed-0 weights, every seed's predictions, and a few example test images.
 Over three seeds, a ConvNeXt-Small fine-tuned with ImageNet-22k pretraining, augmentation,
 regularization, a short cosine schedule, and flip averaging reached a mean TissueMNIST test
 AUROC of \testAurocMean{} and accuracy of \testAccMean{}, above the best published 3-run
-means of \baseBestAuroc{} and \baseBestAcc{}. The result compares recipes, not
-architectures. The comparison with MedMNIST+ rules out input size as the cause, because
-the images are the same. The next runs are the rescoring without flip averaging, the
-ablations named in Section~\ref{sec:discussion}, a reproduction of a published baseline
+means of \baseBestAuroc{} and \baseBestAcc{}. Without flip averaging the means are
+\testNoFlipAurocMean{} and \testNoFlipAccMean{}, still above them. The result compares
+recipes, not architectures. The comparison with MedMNIST+ rules out input size as the
+cause, because the images are the same. The next runs are the ablations named in Section~\ref{sec:discussion}, a reproduction of a published baseline
 for a paired test, and a split that holds out a specimen.
 
 \section*{Acknowledgment}
